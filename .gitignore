@@ -37,3 +37,12 @@ exe/FeatureExtraction/Debug/
 exe/FeatureExtraction/Release/
 matlab_runners/demo_vid/
 matlab_runners/demo_img/
+C++ models/exe/Psyche/bin/
+C++ models/exe/Psyche/obj/Debug/App.g.cs
+C++ models/exe/Psyche/obj/
+C++ models/lib/local/FaceAnalyser/Debug/
+C++ models/lib/local/FaceAnalyser/Release/
+C++ models/lib/local/OpenCVWrappers/Debug/
+C++ models/lib/local/OpenCVWrappers/Release/
+C++ models/lib/local/PsycheInterop/Debug/
+C++ models/lib/local/PsycheInterop/Release/
