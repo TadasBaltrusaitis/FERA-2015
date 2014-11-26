@@ -46,3 +46,11 @@ C++ models/lib/local/OpenCVWrappers/Debug/
 C++ models/lib/local/OpenCVWrappers/Release/
 C++ models/lib/local/PsycheInterop/Debug/
 C++ models/lib/local/PsycheInterop/Release/
+C++ models/exe/FeatureExtraction/Release/
+C++ models/exe/MultiTrackCLM/Release/
+C++ models/exe/Recording/Release/
+C++ models/exe/SimpleCLM/Release/
+C++ models/exe/SimpleCLMImg/Release/
+C++ models/lib/3rdParty/dlib/Release/
+C++ models/lib/local/CLM/Release/
+C++ models/Release/
