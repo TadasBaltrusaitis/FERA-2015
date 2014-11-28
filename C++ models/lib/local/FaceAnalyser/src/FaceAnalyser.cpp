@@ -192,10 +192,12 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	UpdateRunningMedian(this->hog_desc_hist[orientation_to_use], this->hog_hist_sum[orientation_to_use], this->hog_desc_median, hog_descriptor, update_median, this->num_bins_hog, this->min_val_hog, this->max_val_hog);
 	
 	// TODO add changed version
-	// First convert the face image to double representation of columns
-	Mat_<uchar> aligned_face_cols(aligned_face.cols * aligned_face.rows * aligned_face.channels(), 1, aligned_face.data, 1);
+	// First convert the face image to double representation as a row vector
+	Mat_<uchar> aligned_face_cols(1, aligned_face.cols * aligned_face.rows * aligned_face.channels(), aligned_face.data, 1);
 	Mat_<double> aligned_face_cols_double;
 	aligned_face_cols.convertTo(aligned_face_cols_double, CV_64F);
+	
+	update_median = true;
 
 	UpdateRunningMedian(this->face_image_hist[orientation_to_use], this->face_image_hist_sum[orientation_to_use], this->face_image_median, aligned_face_cols_double, true, 256, 0, 255);
 
