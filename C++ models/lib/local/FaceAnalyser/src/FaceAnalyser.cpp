@@ -50,11 +50,54 @@ FaceAnalyser::FaceAnalyser(std::string au_location, std::string av_location)
 	head_orientations.push_back(Vec3d( 0.5,    0, 0));
 	head_orientations.push_back(Vec3d(-0.5,    0, 0));
 	hog_hist_sum.resize(head_orientations.size());
+	face_image_hist_sum.resize(head_orientations.size());
 	hog_desc_hist.resize(head_orientations.size());
+	face_image_hist.resize(head_orientations.size());
 
 	au_prediction_correction_count.resize(head_orientations.size(), 0);
 	au_prediction_correction_histogram.resize(head_orientations.size());
 	dyn_scaling.resize(head_orientations.size());
+}
+
+void FaceAnalyser::GetLatestHOG(Mat_<double>& hog_descriptor, int& num_rows, int& num_cols)
+{
+	hog_descriptor = this->hog_desc_frame.clone();
+
+	if(!hog_desc_frame.empty())
+	{
+		num_rows = this->num_hog_rows;
+		num_cols = this->num_hog_cols;
+	}
+	else
+	{
+		num_rows = 0;
+		num_cols = 0;
+	}
+}
+
+void FaceAnalyser::GetLatestAlignedFace(Mat& image)
+{
+	image = this->aligned_face.clone();
+}
+
+void FaceAnalyser::GetLatestNeutralHOG(Mat_<double>& hog_descriptor, int& num_rows, int& num_cols)
+{
+	hog_descriptor = this->hog_desc_median;
+	if(!hog_desc_median.empty())
+	{
+		num_rows = this->num_hog_rows;
+		num_cols = this->num_hog_cols;
+	}
+	else
+	{
+		num_rows = 0;
+		num_cols = 0;
+	}
+}
+
+void FaceAnalyser::GetLatestNeutralFace(Mat& image)
+{
+
 }
 
 // Getting the closest view center based on orientation
@@ -80,7 +123,7 @@ int GetViewId(const vector<Vec3d> orientations_all, const cv::Vec3d& orientation
 	
 }
 
-void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::CLM& clm, double timestamp_seconds)
+void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm, double timestamp_seconds, bool visualise)
 {
 	// Check if a reset is needed first
 	if(face_bounding_box.area() > 0)
@@ -109,13 +152,21 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 	// First align the face
 	AlignFace(aligned_face, frame, clm);
 	
+	if(aligned_face.channels() == 3)
+	{
+		cvtColor(aligned_face, aligned_face_grayscale, CV_BGR2GRAY);
+	}
+	else
+	{
+		aligned_face_grayscale = aligned_face.clone();
+	}
 	//imshow("Aligned face", aligned_face);
 
 	//cv::waitKey(2);
 
 	// Extract HOG descriptor from the frame and convert it to a useable format
 	Mat_<double> hog_descriptor;
-	Extract_FHOG_descriptor(hog_descriptor, aligned_face);
+	Extract_FHOG_descriptor(hog_descriptor, aligned_face, this->num_hog_rows, this->num_hog_cols);
 
 	// Store the descriptor
 	hog_desc_frame = hog_descriptor;
@@ -140,22 +191,44 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 
 	UpdateRunningMedian(this->hog_desc_hist[orientation_to_use], this->hog_hist_sum[orientation_to_use], this->hog_desc_median, hog_descriptor, update_median, this->num_bins_hog, this->min_val_hog, this->max_val_hog);
 	
-	// Visualising the median HOG
-	Mat visualisation_new;
-	Psyche::Visualise_FHOG(hog_descriptor - this->hog_desc_median, 10, 10, visualisation_new);
+	// TODO add changed version
+	// First convert the face image to double representation of columns
+	Mat_<uchar> aligned_face_cols(aligned_face.cols * aligned_face.rows * aligned_face.channels(), 1, aligned_face.data, 1);
+	Mat_<double> aligned_face_cols_double;
+	aligned_face_cols.convertTo(aligned_face_cols_double, CV_64F);
 
-	//Mat vis_median;
-	//Psyche::Visualise_FHOG(this->hog_desc_median, 10, 10, vis_median);
-	//cv::imshow("FHOG median", vis_median);
-	//cv::waitKey(2);
+	UpdateRunningMedian(this->face_image_hist[orientation_to_use], this->face_image_hist_sum[orientation_to_use], this->face_image_median, aligned_face_cols_double, true, 256, 0, 255);
 
-	if(!hog_descriptor_visualisation.empty())
+	// Convert back
+	Mat_<uchar> aligned_face_cols_uchar;
+	face_image_median.convertTo(aligned_face_cols_uchar, CV_8U);
+
+	Mat aligned_face_uchar;
+	if(aligned_face.channels() == 1)
 	{
-		hog_descriptor_visualisation = 0.9 * hog_descriptor_visualisation + 0.1 * visualisation_new;
+		aligned_face_uchar = Mat(aligned_face.rows, aligned_face.cols, CV_8U, aligned_face_cols_uchar.data);
 	}
 	else
 	{
-		hog_descriptor_visualisation = visualisation_new;
+		aligned_face_uchar = Mat(aligned_face.rows, aligned_face.cols, CV_8UC3, aligned_face_cols_uchar.data);
+	}
+	
+	cv::imshow("Neutral face", aligned_face_uchar);
+
+	// Visualising the median HOG
+	if(visualise)
+	{
+		Mat visualisation_new;
+		Psyche::Visualise_FHOG(hog_descriptor - this->hog_desc_median, 10, 10, visualisation_new);
+		
+		if(!hog_descriptor_visualisation.empty())
+		{
+			hog_descriptor_visualisation = 0.9 * hog_descriptor_visualisation + 0.1 * visualisation_new;
+		}
+		else
+		{
+			hog_descriptor_visualisation = visualisation_new;
+		}
 	}
 
 	// Perform AU prediction
@@ -258,10 +331,15 @@ void FaceAnalyser::Reset()
 	frames_tracking = 0;
 
 	this->hog_desc_median.setTo(Scalar(0));
+	this->face_image_median.setTo(Scalar(0));
+
 	for( size_t i = 0; i < hog_desc_hist.size(); ++i)
 	{
 		this->hog_desc_hist[i] = Mat_<unsigned int>(hog_desc_hist[i].rows, hog_desc_hist[i].cols, (unsigned int)0);
 		this->hog_hist_sum[i] = 0;
+
+		this->face_image_hist[i] = Mat_<unsigned int>(face_image_hist[i].rows, face_image_hist[i].cols, (unsigned int)0);
+		this->face_image_hist_sum[i] = 0;
 
 		// 0 callibration predictions
 		this->au_prediction_correction_count[i] = 0;
@@ -278,7 +356,6 @@ void FaceAnalyser::Reset()
 
 	arousal_value = 0.0;
 	valence_value = 0.0;
-
 
 	this->av_prediction_correction_count = 0;
 	this->av_prediction_correction_histogram = Mat_<unsigned int>(av_prediction_correction_histogram.rows, av_prediction_correction_histogram.cols, (unsigned int)0);
@@ -483,9 +560,9 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(int view, bool dyn_
 	return predictions;
 }
 
-Mat_<uchar> FaceAnalyser::GetLatestAlignedFace()
+Mat_<uchar> FaceAnalyser::GetLatestAlignedFaceGrayscale()
 {
-	return aligned_face;
+	return aligned_face_grayscale.clone();
 }
 
 Mat FaceAnalyser::GetLatestHOGDescriptorVisualisation()

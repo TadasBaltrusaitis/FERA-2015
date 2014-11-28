@@ -25,9 +25,7 @@ public:
 	// Constructor from a model file (or a default one if not provided
 	FaceAnalyser(std::string au_location = "AU_regressors/AU_regressors.txt", std::string av_location = "AV_regressors/AV_regressors.txt");
 
-	void AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::CLM& clm, double timestamp_seconds);
-
-	Mat_<uchar> GetLatestAlignedFace();
+	void AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm, double timestamp_seconds, bool visualise = true);
 
 	Mat GetLatestHOGDescriptorVisualisation();
 
@@ -57,6 +55,14 @@ public:
 
 	}
 
+	void GetLatestHOG(Mat_<double>& hog_descriptor, int& num_rows, int& num_cols);
+	void GetLatestAlignedFace(Mat& image);
+	
+	void GetLatestNeutralHOG(Mat_<double>& hog_descriptor, int& num_rows, int& num_cols);
+	void GetLatestNeutralFace(Mat& image);
+
+	Mat_<uchar> GetLatestAlignedFaceGrayscale();
+
 private:
 
 	// Where the predictions are kept
@@ -66,20 +72,30 @@ private:
 	int frames_tracking;
 
 	// Cache of intermediate images
-	Mat_<uchar> aligned_face;
+	Mat_<uchar> aligned_face_grayscale;
+	Mat aligned_face;
 	Mat hog_descriptor_visualisation;
-
 
 	// Private members to be used for predictions
 	// The HOG descriptor of the last frame
 	Mat_<double> hog_desc_frame;
+	int num_hog_rows;
+	int num_hog_cols;
 
-	// Keep a running median of the hog descriptors
+	// Keep a running median of the hog descriptors and a aligned images
 	Mat_<double> hog_desc_median;
+	Mat_<double> face_image_median;
 
-	// Use histograms for quick (but approximate) median computation, TODO make this view dependent
+	// Use histograms for quick (but approximate) median computation
+	// Use the same for
 	vector<Mat_<unsigned int> > hog_desc_hist;
+
+	// TODO populate this
+	vector<Mat_<unsigned int> > face_image_hist;
+	vector<int> face_image_hist_sum;
+
 	vector<Vec3d> head_orientations;
+
 	int num_bins_hog;
 	double min_val_hog;
 	double max_val_hog;

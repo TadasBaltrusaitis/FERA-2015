@@ -12,9 +12,9 @@ namespace Psyche
 	// Defining a set of useful utility functions to be used within FaceAnalyser
 
 	// Aligning a face to a common reference frame
-	void AlignFace(cv::Mat& aligned_face, const cv::Mat& frame, const CLMTracker::CLM& clm_model, double scale = 0.6, int width = 96, int height = 96);
+	void AlignFace(cv::Mat& aligned_face, const cv::Mat& frame, const CLMTracker::CLM& clm_model, bool rigid = true, double scale = 0.6, int width = 96, int height = 96);
 
-	void Extract_FHOG_descriptor(cv::Mat_<double>& descriptor, const cv::Mat_<uchar>& image, int cell_size = 8);
+	void Extract_FHOG_descriptor(cv::Mat_<double>& descriptor, const cv::Mat& image, int& num_rows, int& num_cols, int cell_size = 8);
 
 	void Visualise_FHOG(const cv::Mat_<double>& descriptor, int num_rows, int num_cols, cv::Mat& visualisation);
 

@@ -25,6 +25,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PsycheInterop", "lib\local\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Psyche", "exe\Psyche\Psyche.csproj", "{96DE9CF3-97FB-4C9D-808B-0FC4718F90B8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleAnalyser_vs2012", "exe\SimpleAnalyser\SimpleAnalyser_vs2012.vcxproj", "{DDFD3509-97B2-4A07-86F1-30FCBF8FB188}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -145,8 +147,21 @@ Global
 		{96DE9CF3-97FB-4C9D-808B-0FC4718F90B8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{96DE9CF3-97FB-4C9D-808B-0FC4718F90B8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{96DE9CF3-97FB-4C9D-808B-0FC4718F90B8}.Release|Win32.ActiveCfg = Release|Any CPU
+		{DDFD3509-97B2-4A07-86F1-30FCBF8FB188}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{DDFD3509-97B2-4A07-86F1-30FCBF8FB188}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{DDFD3509-97B2-4A07-86F1-30FCBF8FB188}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{DDFD3509-97B2-4A07-86F1-30FCBF8FB188}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DDFD3509-97B2-4A07-86F1-30FCBF8FB188}.Debug|Win32.Build.0 = Debug|Win32
+		{DDFD3509-97B2-4A07-86F1-30FCBF8FB188}.Release|Any CPU.ActiveCfg = Release|Win32
+		{DDFD3509-97B2-4A07-86F1-30FCBF8FB188}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{DDFD3509-97B2-4A07-86F1-30FCBF8FB188}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{DDFD3509-97B2-4A07-86F1-30FCBF8FB188}.Release|Win32.ActiveCfg = Release|Win32
+		{DDFD3509-97B2-4A07-86F1-30FCBF8FB188}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

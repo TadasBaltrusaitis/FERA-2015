@@ -54,3 +54,13 @@ C++ models/exe/SimpleCLMImg/Release/
 C++ models/lib/3rdParty/dlib/Release/
 C++ models/lib/local/CLM/Release/
 C++ models/Release/
+C++ models/Debug/
+C++ models/exe/FeatureExtraction/Debug/
+C++ models/exe/MultiTrackCLM/Debug/
+C++ models/exe/Recording/Debug/
+C++ models/exe/SimpleAnalyser/Debug/
+C++ models/exe/SimpleAnalyser/Release/
+C++ models/exe/SimpleCLM/Debug/
+C++ models/exe/SimpleCLMImg/Debug/
+C++ models/lib/3rdParty/dlib/Debug/
+C++ models/lib/local/CLM/Debug/

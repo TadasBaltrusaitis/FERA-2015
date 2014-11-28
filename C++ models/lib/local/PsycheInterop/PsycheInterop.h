@@ -244,7 +244,7 @@ namespace PsycheInterop {
 		}
 
 		RawImage^ GetLatestAlignedFace() {
-			return gcnew RawImage((cv::Mat&)faceAnalyser->GetLatestAlignedFace());
+			return gcnew RawImage((cv::Mat&)faceAnalyser->GetLatestAlignedFaceGrayscale());
 		}
 
 		RawImage^ GetLatestHOGDescriptorVisualisation() {

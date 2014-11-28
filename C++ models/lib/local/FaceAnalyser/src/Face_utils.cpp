@@ -55,7 +55,7 @@ namespace Psyche
 	}
 
 	// Aligning a face to a common reference frame
-	void AlignFace(cv::Mat& aligned_face, const cv::Mat& frame, const CLMTracker::CLM& clm_model, double sim_scale, int out_width, int out_height)
+	void AlignFace(cv::Mat& aligned_face, const cv::Mat& frame, const CLMTracker::CLM& clm_model, bool rigid, double sim_scale, int out_width, int out_height)
 	{
 		// Will warp to scaled mean shape
 		Mat_<double> similarity_normalised_shape = clm_model.pdm.mean_shape * sim_scale;
@@ -67,7 +67,10 @@ namespace Psyche
 		Mat_<double> destination_landmarks = similarity_normalised_shape.reshape(1, 2).t();
 
 		// Aligning only the more rigid points
-		extract_rigid_points(source_landmarks, destination_landmarks);
+		if(rigid)
+		{
+			extract_rigid_points(source_landmarks, destination_landmarks);
+		}
 
 		Matx22d scale_rot_matrix = CLMTracker::AlignShapesWithScale(source_landmarks, destination_landmarks);
 		Matx23d warp_matrix;
@@ -114,16 +117,24 @@ namespace Psyche
 	}
 
 	// Create a row vector Felzenszwalb HOG descriptor from a given image
-	void Extract_FHOG_descriptor(cv::Mat_<double>& descriptor, const cv::Mat_<uchar>& image, int cell_size)
+	void Extract_FHOG_descriptor(cv::Mat_<double>& descriptor, const cv::Mat& image, int& num_rows, int& num_cols, int cell_size)
 	{
-		dlib::cv_image<uchar> dlib_warped_img(image);
-
+		
 		dlib::array2d<dlib::matrix<float,31,1> > hog;
-		dlib::extract_fhog_features(dlib_warped_img, hog, cell_size);
+		if(image.channels() == 1)
+		{
+			dlib::cv_image<uchar> dlib_warped_img(image);
+			dlib::extract_fhog_features(dlib_warped_img, hog, cell_size);
+		}
+		else
+		{
+			dlib::cv_image<dlib::bgr_pixel> dlib_warped_img(image);
+			dlib::extract_fhog_features(dlib_warped_img, hog, cell_size);
+		}
 
 		// Convert to a usable format
-		int num_cols = hog.nc();
-		int num_rows = hog.nr();
+		num_cols = hog.nc();
+		num_rows = hog.nr();
 
 		descriptor = Mat_<double>(1, num_cols * num_rows * 31);
 		cv::MatIterator_<double> descriptor_it = descriptor.begin();
