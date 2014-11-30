@@ -533,6 +533,8 @@ int main (int argc, char **argv)
 
 			face_analyser.AddNextFrame(captured_image, clm_model, 0, false);
 
+
+
 			// Work out the pose of the head from the tracked model
 			Vec6d pose_estimate_CLM;
 			if(use_camera_plane_pose)
@@ -556,15 +558,15 @@ int main (int argc, char **argv)
 			int num_cols;
 			face_analyser.GetLatestHOG(hog_descriptor, num_rows, num_cols);
 
-			Mat_<double> hog_descriptor_vis;
-			Psyche::Visualise_FHOG(hog_descriptor, num_rows, num_cols, hog_descriptor_vis);
-			cv::imshow("hog", hog_descriptor_vis);	
+			//Mat_<double> hog_descriptor_vis;
+			//Psyche::Visualise_FHOG(hog_descriptor, num_rows, num_cols, hog_descriptor_vis);
+			//cv::imshow("hog", hog_descriptor_vis);	
 
-			Mat_<double> hog_descriptor_mean;
-			face_analyser.GetLatestNeutralHOG(hog_descriptor_mean, num_rows, num_cols);
+			//Mat_<double> hog_descriptor_mean;
+			//face_analyser.GetLatestNeutralHOG(hog_descriptor_mean, num_rows, num_cols);
 
-			Psyche::Visualise_FHOG(hog_descriptor_mean, num_rows, num_cols, hog_descriptor_vis);
-			cv::imshow("hog neutral", hog_descriptor_vis);	
+			//Psyche::Visualise_FHOG(hog_descriptor_mean, num_rows, num_cols, hog_descriptor_vis);
+			//cv::imshow("hog neutral", hog_descriptor_vis);	
 
 			if(hog_output_file.is_open())
 			{
@@ -625,7 +627,7 @@ int main (int argc, char **argv)
 				CLMTracker::DrawBox(captured_image, pose_estimate_to_draw, Scalar((1-detection_certainty)*255.0,0, detection_certainty*255), thickness, fx, fy, cx, cy);
 
 			}
-
+			
 			// Work out the framerate
 			if(frame_count % 10 == 0)
 			{      
@@ -720,6 +722,35 @@ int main (int argc, char **argv)
 
 		}
 		
+		// TODO this should be done only if writing out neutrals
+		if(true)
+		{
+			vector<Mat> face_neutral_images;
+			vector<Mat> neutral_hogs;
+			vector<Vec3d> orientations;
+			face_analyser.ExtractCurrentMedians(neutral_hogs, face_neutral_images, orientations);
+
+			for(size_t i = 0; i < orientations.size(); ++i)
+			{
+		
+				if(sum(face_neutral_images[i])[0] > 0.0001)
+				{
+					// TODO rem
+					stringstream sstream;			
+					sstream << "Neutral face" << i;
+					cv::imshow(sstream.str(), face_neutral_images[i]);
+
+					stringstream sstream2;			
+					sstream2 << "Hog face" << i;
+					Mat_<double> hog;
+					Psyche::Visualise_FHOG(neutral_hogs[i], 10, 10, hog);
+					cv::imshow(sstream2.str(), hog);
+				}
+			}
+				
+			cv::waitKey(0);
+		}
+
 		frame_count = 0;
 		curr_img = -1;
 

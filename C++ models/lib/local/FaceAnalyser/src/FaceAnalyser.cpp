@@ -45,10 +45,14 @@ FaceAnalyser::FaceAnalyser(std::string au_location, std::string av_location)
 	// Just using frontal currently
 	head_orientations.push_back(Vec3d(0,0,0));
 	// Adding orientations for slight profile and slight head up/down modes
-	head_orientations.push_back(Vec3d(    0, 0.6, 0));
-	head_orientations.push_back(Vec3d(    0,-0.6, 0));
-	head_orientations.push_back(Vec3d( 0.5,    0, 0));
-	head_orientations.push_back(Vec3d(-0.5,    0, 0));
+	head_orientations.push_back(Vec3d(    0, 0.4, 0));
+	head_orientations.push_back(Vec3d(    0,-0.4, 0));
+	//head_orientations.push_back(Vec3d(    0, 0.6, 0));
+	//head_orientations.push_back(Vec3d(    0,-0.6, 0));
+	head_orientations.push_back(Vec3d( 0.3,    0, 0));
+	head_orientations.push_back(Vec3d(-0.3,    0, 0));
+	//head_orientations.push_back(Vec3d( 0.6,    0, 0));
+	//head_orientations.push_back(Vec3d(-0.6,    0, 0));
 	hog_hist_sum.resize(head_orientations.size());
 	face_image_hist_sum.resize(head_orientations.size());
 	hog_desc_hist.resize(head_orientations.size());
@@ -123,29 +127,64 @@ int GetViewId(const vector<Vec3d> orientations_all, const cv::Vec3d& orientation
 	
 }
 
-void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm, double timestamp_seconds, bool visualise)
+void FaceAnalyser::ExtractCurrentMedians(vector<Mat>& hog_medians, vector<Mat>& face_image_medians, vector<Vec3d>& orientations)
 {
-	// Check if a reset is needed first
-	if(face_bounding_box.area() > 0)
+
+	orientations = this->head_orientations;
+
+	for(size_t i = 0; i < orientations.size(); ++i)
 	{
-		Rect_<double> new_bounding_box = clm.GetBoundingBox();
+		Mat_<double> median_face(this->face_image_median.rows, this->face_image_median.cols, 0.0);
+		Mat_<double> median_hog(this->hog_desc_median.rows, this->hog_desc_median.cols, 0.0);
 
-		// If the box overlaps do not need a reset
-		double intersection_area = (face_bounding_box & new_bounding_box).area();
-		double union_area = face_bounding_box.area() + new_bounding_box.area() - 2 * intersection_area;
+		ExtractMedian(this->face_image_hist[i], this->face_image_hist_sum[i], median_face, 256, 0, 255);		
+		ExtractMedian(this->hog_desc_hist[i], this->hog_hist_sum[i], median_hog, this->num_bins_hog, 0, 1);
 
-		// If the model is already tracking what we're detecting ignore the detection, this is determined by amount of overlap
-		if( intersection_area/union_area < 0.5)
+		// Add the HOG sample
+		hog_medians.push_back(median_hog.clone());
+
+		// For the face image need to convert it to suitable format
+		Mat_<uchar> aligned_face_cols_uchar;
+		median_face.convertTo(aligned_face_cols_uchar, CV_8U);
+
+		Mat aligned_face_uchar;
+		if(aligned_face.channels() == 1)
 		{
-			this->Reset();
+			aligned_face_uchar = Mat(aligned_face.rows, aligned_face.cols, CV_8U, aligned_face_cols_uchar.data);
+		}
+		else
+		{
+			aligned_face_uchar = Mat(aligned_face.rows, aligned_face.cols, CV_8UC3, aligned_face_cols_uchar.data);
 		}
 
-		face_bounding_box = new_bounding_box;
+		face_image_medians.push_back(aligned_face_uchar.clone());
+		
 	}
-	if(!clm.detection_success)
-	{
-		this->Reset();
-	}
+}
+
+void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm, double timestamp_seconds, bool visualise)
+{
+	// Check if a reset is needed first (TODO single person no reset)
+	//if(face_bounding_box.area() > 0)
+	//{
+	//	Rect_<double> new_bounding_box = clm.GetBoundingBox();
+
+	//	// If the box overlaps do not need a reset
+	//	double intersection_area = (face_bounding_box & new_bounding_box).area();
+	//	double union_area = face_bounding_box.area() + new_bounding_box.area() - 2 * intersection_area;
+
+	//	// If the model is already tracking what we're detecting ignore the detection, this is determined by amount of overlap
+	//	if( intersection_area/union_area < 0.5)
+	//	{
+	//		this->Reset();
+	//	}
+
+	//	face_bounding_box = new_bounding_box;
+	//}
+	//if(!clm.detection_success)
+	//{
+	//	this->Reset();
+	//}
 
 	frames_tracking++;
 
@@ -197,25 +236,7 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	Mat_<double> aligned_face_cols_double;
 	aligned_face_cols.convertTo(aligned_face_cols_double, CV_64F);
 	
-	update_median = true;
-
 	UpdateRunningMedian(this->face_image_hist[orientation_to_use], this->face_image_hist_sum[orientation_to_use], this->face_image_median, aligned_face_cols_double, true, 256, 0, 255);
-
-	// Convert back
-	Mat_<uchar> aligned_face_cols_uchar;
-	face_image_median.convertTo(aligned_face_cols_uchar, CV_8U);
-
-	Mat aligned_face_uchar;
-	if(aligned_face.channels() == 1)
-	{
-		aligned_face_uchar = Mat(aligned_face.rows, aligned_face.cols, CV_8U, aligned_face_cols_uchar.data);
-	}
-	else
-	{
-		aligned_face_uchar = Mat(aligned_face.rows, aligned_face.cols, CV_8UC3, aligned_face_cols_uchar.data);
-	}
-	
-	cv::imshow("Neutral face", aligned_face_uchar);
 
 	// Visualising the median HOG
 	if(visualise)
@@ -486,6 +507,45 @@ void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& h
 	}
 }
 
+
+void FaceAnalyser::ExtractMedian(cv::Mat_<unsigned int>& histogram, int hist_count, cv::Mat_<double>& median, int num_bins, double min_val, double max_val)
+{
+
+	double length = max_val - min_val;
+	if(length < 0)
+		length = -length;
+
+	// The median update
+	if(histogram.empty())
+	{
+		return;
+	}
+	else
+	{
+		if(median.empty())
+		{
+			median = Mat_<double>(1, histogram.rows, 0.0);
+		}
+
+		// Compute the median
+		int cutoff_point = (hist_count + 1)/2;
+
+		// For each dimension
+		for(int i = 0; i < histogram.rows; ++i)
+		{
+			int cummulative_sum = 0;
+			for(int j = 0; j < histogram.cols; ++j)
+			{
+				cummulative_sum += histogram.at<unsigned int>(i, j);
+				if(cummulative_sum > cutoff_point)
+				{
+					median.at<double>(i) = min_val + j * (max_val/num_bins) + (0.5*(length)/num_bins);
+					break;
+				}
+			}
+		}
+	}
+}
 // Apply the current predictors to the currently stored descriptors
 vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(int view, bool dyn_correct)
 {
