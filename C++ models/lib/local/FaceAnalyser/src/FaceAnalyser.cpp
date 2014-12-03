@@ -44,15 +44,13 @@ FaceAnalyser::FaceAnalyser(std::string au_location, std::string av_location)
 	
 	// Just using frontal currently
 	head_orientations.push_back(Vec3d(0,0,0));
+	
 	// Adding orientations for slight profile and slight head up/down modes
-	head_orientations.push_back(Vec3d(    0, 0.4, 0));
-	head_orientations.push_back(Vec3d(    0,-0.4, 0));
-	//head_orientations.push_back(Vec3d(    0, 0.6, 0));
-	//head_orientations.push_back(Vec3d(    0,-0.6, 0));
-	head_orientations.push_back(Vec3d( 0.3,    0, 0));
-	head_orientations.push_back(Vec3d(-0.3,    0, 0));
-	//head_orientations.push_back(Vec3d( 0.6,    0, 0));
-	//head_orientations.push_back(Vec3d(-0.6,    0, 0));
+	//head_orientations.push_back(Vec3d(    0, 0.5, 0));
+	//head_orientations.push_back(Vec3d(    0,-0.5, 0));
+	//head_orientations.push_back(Vec3d( 0.5,    0, 0));
+	//head_orientations.push_back(Vec3d(-0.5,    0, 0));
+
 	hog_hist_sum.resize(head_orientations.size());
 	face_image_hist_sum.resize(head_orientations.size());
 	hog_desc_hist.resize(head_orientations.size());
@@ -162,7 +160,7 @@ void FaceAnalyser::ExtractCurrentMedians(vector<Mat>& hog_medians, vector<Mat>& 
 	}
 }
 
-void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm, double timestamp_seconds, bool visualise)
+void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm_model, double timestamp_seconds, bool visualise)
 {
 	// Check if a reset is needed first (TODO single person no reset)
 	//if(face_bounding_box.area() > 0)
@@ -189,7 +187,7 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	frames_tracking++;
 
 	// First align the face
-	AlignFace(aligned_face, frame, clm);
+	AlignFace(aligned_face, frame, clm_model);
 	
 	if(aligned_face.channels() == 3)
 	{
@@ -199,9 +197,6 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	{
 		aligned_face_grayscale = aligned_face.clone();
 	}
-	//imshow("Aligned face", aligned_face);
-
-	//cv::waitKey(2);
 
 	// Extract HOG descriptor from the frame and convert it to a useable format
 	Mat_<double> hog_descriptor;
@@ -210,7 +205,7 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	// Store the descriptor
 	hog_desc_frame = hog_descriptor;
 
-	Vec3d curr_orient(clm.params_global[1], clm.params_global[2], clm.params_global[3]);
+	Vec3d curr_orient(clm_model.params_global[1], clm_model.params_global[2], clm_model.params_global[3]);
 	int orientation_to_use = GetViewId(this->head_orientations, curr_orient);
 
 	// Only update the running median if predictions are not high
@@ -227,16 +222,16 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 			}
 		}
 	}
+	update_median = update_median & clm_model.detection_success;
 
 	UpdateRunningMedian(this->hog_desc_hist[orientation_to_use], this->hog_hist_sum[orientation_to_use], this->hog_desc_median, hog_descriptor, update_median, this->num_bins_hog, this->min_val_hog, this->max_val_hog);
 	
-	// TODO add changed version
 	// First convert the face image to double representation as a row vector
 	Mat_<uchar> aligned_face_cols(1, aligned_face.cols * aligned_face.rows * aligned_face.channels(), aligned_face.data, 1);
 	Mat_<double> aligned_face_cols_double;
 	aligned_face_cols.convertTo(aligned_face_cols_double, CV_64F);
 	
-	UpdateRunningMedian(this->face_image_hist[orientation_to_use], this->face_image_hist_sum[orientation_to_use], this->face_image_median, aligned_face_cols_double, true, 256, 0, 255);
+	UpdateRunningMedian(this->face_image_hist[orientation_to_use], this->face_image_hist_sum[orientation_to_use], this->face_image_median, aligned_face_cols_double, update_median, 256, 0, 255);
 
 	// Visualising the median HOG
 	if(visualise)
@@ -254,19 +249,21 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 		}
 	}
 
-	// Perform AU prediction
-	AU_predictions = PredictCurrentAUs(orientation_to_use, true);
+	if(clm_model.detection_success)
+	{
+		// Perform AU prediction
+		AU_predictions = PredictCurrentAUs(orientation_to_use, true);
 
-	// Perform AV predictions
-	PredictCurrentAVs(clm);
-
+		// Perform AV predictions
+		PredictCurrentAVs(clm_model);
+	}
 	this->current_time_seconds = timestamp_seconds;
 
 	view_used = orientation_to_use;
 
 }
 
-void FaceAnalyser::PredictCurrentAVs(const CLMTracker::CLM& clm)
+void FaceAnalyser::PredictCurrentAVs(const CLMTracker::CLM& clm_model)
 {
 	// Can update the AU prediction track (used for predicting emotions)
 	// Pick out the predictions
@@ -291,9 +288,9 @@ void FaceAnalyser::PredictCurrentAVs(const CLMTracker::CLM& clm)
 	Mat_<double> geom_params;
 
 	// This is for tracking median of geometry parameters to subtract from the other models
-	Vec3d g_params(clm.params_global[1], clm.params_global[2], clm.params_global[3]);
+	Vec3d g_params(clm_model.params_global[1], clm_model.params_global[2], clm_model.params_global[3]);
 	geom_params.push_back(Mat(g_params));
-	geom_params.push_back(clm.params_local);
+	geom_params.push_back(clm_model.params_local);
 	geom_params = geom_params.t();
 
 	AddDescriptor(geom_desc_track, geom_params, this->frames_tracking - 1);

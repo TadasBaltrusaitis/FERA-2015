@@ -95,7 +95,7 @@ vector<string> get_arguments(int argc, char **argv)
 }
 
 // Extracting the following command line arguments -f, -fd, -op, -of, -ov (and possible ordered repetitions)
-void get_output_feature_params(vector<string> &output_similarity_aligned_files, vector<string> &output_hog_aligned_files, vector<string> &output_model_param_files, double &similarity_scale, int &similarity_size, bool &video, bool &grayscale, bool &rigid, vector<string> &arguments)
+void get_output_feature_params(vector<string> &output_similarity_aligned_files, vector<string> &output_hog_aligned_files, vector<string> &output_model_param_files, vector<string> &output_neutrals, vector<string> &output_aus, double &similarity_scale, int &similarity_size, bool &video, bool &grayscale, bool &rigid, vector<string> &arguments)
 {
 	output_similarity_aligned_files.clear();
 	output_hog_aligned_files.clear();
@@ -152,6 +152,20 @@ void get_output_feature_params(vector<string> &output_similarity_aligned_files, 
 		else if(arguments[i].compare("-oparams") == 0) 
 		{
 			output_model_param_files.push_back(output_root + arguments[i + 1]);
+			valid[i] = false;
+			valid[i+1] = false;			
+			i++;
+		}
+		else if(arguments[i].compare("-oneutral") == 0) 
+		{
+			output_neutrals.push_back(output_root + arguments[i + 1]);
+			valid[i] = false;
+			valid[i+1] = false;			
+			i++;
+		}
+		else if(arguments[i].compare("-oaus") == 0) 
+		{
+			output_aus.push_back(output_root + arguments[i + 1]);
 			valid[i] = false;
 			valid[i+1] = false;			
 			i++;
@@ -346,13 +360,15 @@ int main (int argc, char **argv)
 	vector<string> output_similarity_align_files;
 	vector<string> output_hog_align_files;
 	vector<string> params_output_files;
+	vector<string> output_neutrals;
+	vector<string> output_aus;
 
 	double sim_scale = 0.6;
 	int sim_size = 96;
 	bool video_output;
 	bool grayscale = false;
 	bool rigid = false;
-	get_output_feature_params(output_similarity_align_files, output_hog_align_files, params_output_files, sim_scale, sim_size, video_output, grayscale, rigid, arguments);
+	get_output_feature_params(output_similarity_align_files, output_hog_align_files, params_output_files, output_neutrals, output_aus, sim_scale, sim_size, video_output, grayscale, rigid, arguments);
 
 	// Will warp to scaled mean shape
 	Mat_<double> similarity_normalised_shape = clm_model.pdm.mean_shape * sim_scale;
@@ -499,9 +515,15 @@ int main (int argc, char **argv)
 
 		int frame_count = 0;
 		
+		// This is useful for a second pass run (if want AU predictions)
+		vector<Vec6d> params_global_video;
+		vector<bool> successes_video;
+		vector<Mat_<double>> params_local_video;
+		vector<Mat_<double>> detected_landmarks_video;
+
 		// For measuring the timings
 		int64 t1,t0 = cv::getTickCount();
-		double fps = 10;
+		double fps = 10;		
 
 		INFO_STREAM( "Starting tracking");
 		while(!captured_image.empty())
@@ -533,7 +555,10 @@ int main (int argc, char **argv)
 
 			face_analyser.AddNextFrame(captured_image, clm_model, 0, false);
 
-
+			params_global_video.push_back(clm_model.params_global);
+			params_local_video.push_back(clm_model.params_local.clone());
+			successes_video.push_back(detection_success);
+			detected_landmarks_video.push_back(clm_model.detected_landmarks.clone());
 
 			// Work out the pose of the head from the tracked model
 			Vec6d pose_estimate_CLM;
@@ -723,7 +748,7 @@ int main (int argc, char **argv)
 		}
 		
 		// TODO this should be done only if writing out neutrals
-		if(true)
+		if(!output_neutrals.empty())
 		{
 			vector<Mat> face_neutral_images;
 			vector<Mat> neutral_hogs;
@@ -733,6 +758,17 @@ int main (int argc, char **argv)
 			for(size_t i = 0; i < orientations.size(); ++i)
 			{
 		
+				stringstream sstream_out_img;			
+				sstream_out_img << output_neutrals[f_n] << "_" << orientations[i][0] << "_" << orientations[i][1] << "_" << orientations[i][2] << ".png";
+				cv::imwrite(sstream_out_img.str(), face_neutral_images[i]);
+
+				// Writing out the hog files
+				stringstream sstream_out_hog;			
+				sstream_out_hog << output_neutrals[f_n] << "_" << orientations[i][0] << "_" << orientations[i][1] << "_" << orientations[i][2] << ".hog";				
+				hog_output_file.open(sstream_out_hog.str(), ios_base::out | ios_base::binary);
+				output_HOG_frame(&hog_output_file, neutral_hogs[i], 10, 10);
+				hog_output_file.close();
+
 				if(sum(face_neutral_images[i])[0] > 0.0001)
 				{
 					// TODO rem
@@ -748,7 +784,54 @@ int main (int argc, char **argv)
 				}
 			}
 				
-			cv::waitKey(0);
+			//cv::waitKey(0);
+		}
+
+		// Do a second pass if AU outputs are needed (this need to be rethought TODO)
+		if(!output_aus.empty())
+		{
+			std::ofstream au_output_file;
+			au_output_file.open(output_aus[f_n], ios_base::out);
+
+			if(video)
+			{
+				video_capture = VideoCapture( current_file );
+			}
+
+			for(size_t frame = 0; frame < params_global_video.size(); ++frame)
+			{
+				clm_model.detected_landmarks = detected_landmarks_video[frame].clone();
+				clm_model.params_local = params_local_video[frame].clone();
+				clm_model.params_global = params_global_video[frame];
+				clm_model.detection_success = successes_video[frame];
+
+				if(video)
+				{
+					video_capture >> captured_image;
+				}
+				else
+				{
+					string curr_img_file = input_image_files[f_n][frame];
+					captured_image = imread(curr_img_file, -1);
+				}
+				face_analyser.AddNextFrame(captured_image, clm_model, 0, false);
+				
+				auto au_preds = face_analyser.GetCurrentAUs();
+
+				// Print the results here
+				au_output_file << successes_video[frame] << " ";
+				for(auto au_it = au_preds.begin(); au_it != au_preds.end(); ++au_it)
+				{
+					au_output_file << au_it->second << " ";					
+				}
+				au_output_file << endl;
+
+				CLMTracker::Draw(captured_image, clm_model.detected_landmarks);
+
+				cv::imshow("Rerun", captured_image);
+				cv::waitKey(1);
+			}			
+			au_output_file.close();
 		}
 
 		frame_count = 0;

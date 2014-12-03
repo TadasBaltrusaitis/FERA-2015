@@ -49,6 +49,7 @@
 #include <CLM_utils.h>
 
 #include <FaceAnalyser.h>
+#include <Face_Utils.h>
 
 #include <fstream>
 #include <sstream>
@@ -265,6 +266,10 @@ int main (int argc, char **argv)
 
 			vector<pair<string,double>> au_preds;
 				
+			Mat aligned;
+			Psyche::AlignFaceMask(aligned, captured_image, clm_model, clm_model.landmark_validator.paws[0].triangulation);
+			//Psyche::FaceAnalyser::Al
+
 			// Face analysis here
 			if(detection_success)
 			{
