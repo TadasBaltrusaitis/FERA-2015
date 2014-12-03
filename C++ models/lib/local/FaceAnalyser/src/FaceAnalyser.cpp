@@ -2,6 +2,8 @@
 
 #include "Face_utils.h"
 
+#include "CLM_utils.h"
+
 #include <stdio.h>
 #include <iostream>
 
@@ -17,11 +19,15 @@ using namespace Psyche;
 using namespace std;
 
 // Constructor from a model file (or a default one if not provided
-FaceAnalyser::FaceAnalyser(std::string au_location, std::string av_location)
+FaceAnalyser::FaceAnalyser(double scale, int width, int height, std::string au_location, std::string av_location)
 {
 	this->ReadAU(au_location);
 	this->ReadAV(av_location);
 		
+	align_scale = scale;	
+	align_width = width;
+	align_height = height;
+
 	// Initialise the histograms that will represent bins from 0 - 1 (as HoG values are only stored as those)
 	// Set the number of bins for the histograms
 	num_bins_hog = 300;
@@ -59,6 +65,11 @@ FaceAnalyser::FaceAnalyser(std::string au_location, std::string av_location)
 	au_prediction_correction_count.resize(head_orientations.size(), 0);
 	au_prediction_correction_histogram.resize(head_orientations.size());
 	dyn_scaling.resize(head_orientations.size());
+
+	// The triangulation used for masking out the non-face parts of aligned image
+	std::ifstream triangulation_file("model/tris_68_full.txt");	
+	CLMTracker::ReadMat(triangulation_file, triangulation);
+
 }
 
 void FaceAnalyser::GetLatestHOG(Mat_<double>& hog_descriptor, int& num_rows, int& num_cols)
@@ -187,7 +198,7 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	frames_tracking++;
 
 	// First align the face
-	AlignFace(aligned_face, frame, clm_model);
+	AlignFaceMask(aligned_face, frame, clm_model, triangulation, true, align_scale, align_width, align_height);
 	
 	if(aligned_face.channels() == 3)
 	{

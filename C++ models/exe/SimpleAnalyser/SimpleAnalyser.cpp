@@ -270,8 +270,8 @@ int main (int argc, char **argv)
 
 			vector<pair<string,double>> au_preds;
 				
-			Mat aligned;
-			Psyche::AlignFaceMask(aligned, captured_image, clm_model, triangulation);
+			//Mat aligned;
+			//Psyche::AlignFaceMask(aligned, captured_image, clm_model, triangulation);
 			//Psyche::FaceAnalyser::Al
 
 			// Face analysis here

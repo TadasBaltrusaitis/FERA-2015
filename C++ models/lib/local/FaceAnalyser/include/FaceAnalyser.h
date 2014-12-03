@@ -23,7 +23,8 @@ public:
 	enum RegressorType{ SVR_appearance_static_linear = 0, SVR_appearance_dynamic_linear = 1, SVR_dynamic_geom_linear = 2, SVR_combined_linear = 3};
 
 	// Constructor from a model file (or a default one if not provided
-	FaceAnalyser(std::string au_location = "AU_regressors/AU_regressors.txt", std::string av_location = "AV_regressors/AV_regressors.txt");
+	// TODO scale width and height should be part of the model?
+	FaceAnalyser(double scale = 0.6, int width = 96, int height = 96, std::string au_location = "AU_regressors/AU_regressors.txt", std::string av_location = "AV_regressors/AV_regressors.txt");
 
 	void AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm, double timestamp_seconds, bool visualise = true);
 
@@ -163,6 +164,11 @@ private:
 	// Keep track of the current time
 	double current_time_seconds;
 
+	// Used for face alignment
+	Mat_<int> triangulation;
+	double align_scale;	
+	int align_width;
+	int align_height;
 };
   //===========================================================================
 }

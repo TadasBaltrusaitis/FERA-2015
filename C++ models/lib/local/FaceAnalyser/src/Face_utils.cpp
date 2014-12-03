@@ -157,11 +157,7 @@ namespace Psyche
 		destination_landmarks = Mat(destination_landmarks.t()).reshape(1, 1).t();		
 
 		CLMTracker::PAW paw(destination_landmarks, triangulation, 0, 0, aligned_face.cols-1, aligned_face.rows-1);
-
-		// TODO rem
-		cv::imshow("mask", paw.pixel_mask*255);
-		//cv::waitKey(0);
-
+		
 		vector<Mat> aligned_face_channels;
 		cv::split(aligned_face, aligned_face_channels);
 
@@ -171,8 +167,6 @@ namespace Psyche
 		}
 
 		cv::merge(aligned_face_channels, aligned_face);
-
-		cv::imshow("aligned", aligned_face);
 
 	}
 

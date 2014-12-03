@@ -354,9 +354,6 @@ int main (int argc, char **argv)
 	// The modules that are being used for tracking
 	CLMTracker::CLM clm_model(clm_parameters.model_location);	
 
-	// Face analyser (used for neutral expression extraction)
-	Psyche::FaceAnalyser face_analyser;
-
 	vector<string> output_similarity_align_files;
 	vector<string> output_hog_align_files;
 	vector<string> params_output_files;
@@ -367,8 +364,14 @@ int main (int argc, char **argv)
 	int sim_size = 96;
 	bool video_output;
 	bool grayscale = false;
-	bool rigid = false;
+	bool rigid = false;	
+	int num_hog_rows;
+	int num_hog_cols;
+
 	get_output_feature_params(output_similarity_align_files, output_hog_align_files, params_output_files, output_neutrals, output_aus, sim_scale, sim_size, video_output, grayscale, rigid, arguments);
+
+	// Face analyser (used for neutral expression extraction)
+	Psyche::FaceAnalyser face_analyser(sim_scale, sim_size, sim_size);
 
 	// Will warp to scaled mean shape
 	Mat_<double> similarity_normalised_shape = clm_model.pdm.mean_shape * sim_scale;
@@ -385,8 +388,8 @@ int main (int argc, char **argv)
 	if(cx == 0 || cy == 0)
 	{
 		cx_undefined = true;
-	}		
-	
+	}			
+
 	while(!done) // this is not a for loop as we might also be reading from a webcam
 	{
 		
@@ -579,13 +582,11 @@ int main (int argc, char **argv)
 			cv::imshow("sim_warp", sim_warped_img);			
 			
 			Mat_<double> hog_descriptor;
-			int num_rows;
-			int num_cols;
-			face_analyser.GetLatestHOG(hog_descriptor, num_rows, num_cols);
+			face_analyser.GetLatestHOG(hog_descriptor, num_hog_rows, num_hog_cols);
 
-			//Mat_<double> hog_descriptor_vis;
-			//Psyche::Visualise_FHOG(hog_descriptor, num_rows, num_cols, hog_descriptor_vis);
-			//cv::imshow("hog", hog_descriptor_vis);	
+			Mat_<double> hog_descriptor_vis;
+			Psyche::Visualise_FHOG(hog_descriptor, num_hog_rows, num_hog_cols, hog_descriptor_vis);
+			cv::imshow("hog", hog_descriptor_vis);	
 
 			//Mat_<double> hog_descriptor_mean;
 			//face_analyser.GetLatestNeutralHOG(hog_descriptor_mean, num_rows, num_cols);
@@ -595,7 +596,7 @@ int main (int argc, char **argv)
 
 			if(hog_output_file.is_open())
 			{
-				output_HOG_frame(&hog_output_file, hog_descriptor, num_rows, num_cols);
+				output_HOG_frame(&hog_output_file, hog_descriptor, num_hog_rows, num_hog_cols);
 			}
 
 			// Write the similarity normalised output
@@ -766,7 +767,7 @@ int main (int argc, char **argv)
 				stringstream sstream_out_hog;			
 				sstream_out_hog << output_neutrals[f_n] << "_" << orientations[i][0] << "_" << orientations[i][1] << "_" << orientations[i][2] << ".hog";				
 				hog_output_file.open(sstream_out_hog.str(), ios_base::out | ios_base::binary);
-				output_HOG_frame(&hog_output_file, neutral_hogs[i], 10, 10);
+				output_HOG_frame(&hog_output_file, neutral_hogs[i], num_hog_rows, num_hog_cols);
 				hog_output_file.close();
 
 				if(sum(face_neutral_images[i])[0] > 0.0001)
