@@ -114,6 +114,8 @@ public:
 
 	// Construct a warp from a destination shape and triangulation
 	PAW(const Mat_<double>& destination_shape, const Mat_<int>& triangulation);
+	
+	PAW(const Mat_<double>& destination_shape, const Mat_<int>& triangulation, double in_min_x, double in_min_y, double in_max_x, double in_max_y);
 
 	// Copy constructor
 	PAW(const PAW& other): destination_landmarks(other.destination_landmarks.clone()), source_landmarks(other.source_landmarks.clone()), triangulation(other.triangulation.clone()),

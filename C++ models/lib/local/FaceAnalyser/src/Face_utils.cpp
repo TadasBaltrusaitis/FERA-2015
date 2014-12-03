@@ -138,16 +138,41 @@ namespace Psyche
 
 		destination_landmarks.col(0) = destination_landmarks.col(0) + warp_matrix(0,2);
 		destination_landmarks.col(1) = destination_landmarks.col(1) + warp_matrix(1,2);
-		destination_landmarks = destination_landmarks.reshape(1, destination_landmarks.rows * 2);
+		
+		// Move the eyebrows up to include more of upper face
+		destination_landmarks.at<double>(0,1) -= 15; 
+		destination_landmarks.at<double>(16,1) -= 15; 
 
+		destination_landmarks.at<double>(17,1) -= 7; 
+		destination_landmarks.at<double>(18,1) -= 7; 
+		destination_landmarks.at<double>(19,1) -= 7; 
+		destination_landmarks.at<double>(20,1) -= 7; 
+		destination_landmarks.at<double>(21,1) -= 7; 
+		destination_landmarks.at<double>(22,1) -= 7; 
+		destination_landmarks.at<double>(23,1) -= 7; 
+		destination_landmarks.at<double>(24,1) -= 7; 
+		destination_landmarks.at<double>(25,1) -= 7; 
+		destination_landmarks.at<double>(26,1) -= 7; 
 
-		CLMTracker::PAW paw(destination_landmarks, triangulation);
+		destination_landmarks = Mat(destination_landmarks.t()).reshape(1, 1).t();		
 
-		aligned_face = aligned_face * paw.pixel_mask;
+		CLMTracker::PAW paw(destination_landmarks, triangulation, 0, 0, aligned_face.cols-1, aligned_face.rows-1);
 
-		CLMTracker::Draw(aligned_face, destination_landmarks);
+		// TODO rem
+		cv::imshow("mask", paw.pixel_mask*255);
+		//cv::waitKey(0);
+
+		vector<Mat> aligned_face_channels;
+		cv::split(aligned_face, aligned_face_channels);
+
+		for(size_t i = 0; i < aligned_face_channels.size(); ++i)
+		{
+			aligned_face_channels[i] = aligned_face_channels[i].mul(paw.pixel_mask);
+		}
+
+		cv::merge(aligned_face_channels, aligned_face);
+
 		cv::imshow("aligned", aligned_face);
-		cv::waitKey(0);
 
 	}
 

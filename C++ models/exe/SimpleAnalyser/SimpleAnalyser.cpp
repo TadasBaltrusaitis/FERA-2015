@@ -211,6 +211,10 @@ int main (int argc, char **argv)
 			fps_vid = 30;
 		}
 
+		ifstream triangulation_file("model/tris_68_full.txt");
+		Mat_<int> triangulation;
+		CLMTracker::ReadMat(triangulation_file, triangulation);
+
 		INFO_STREAM( "Starting tracking");
 		while(!captured_image.empty())
 		{		
@@ -267,7 +271,7 @@ int main (int argc, char **argv)
 			vector<pair<string,double>> au_preds;
 				
 			Mat aligned;
-			Psyche::AlignFaceMask(aligned, captured_image, clm_model, clm_model.landmark_validator.paws[0].triangulation);
+			Psyche::AlignFaceMask(aligned, captured_image, clm_model, triangulation);
 			//Psyche::FaceAnalyser::Al
 
 			// Face analysis here
