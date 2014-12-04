@@ -61,6 +61,8 @@ public:
 	
 	void GetLatestNeutralHOG(Mat_<double>& hog_descriptor, int& num_rows, int& num_cols);
 	void GetLatestNeutralFace(Mat& image);
+	
+	Mat_<int> FaceAnalyser::GetTriangulation();
 
 	Mat_<uchar> GetLatestAlignedFaceGrayscale();
 

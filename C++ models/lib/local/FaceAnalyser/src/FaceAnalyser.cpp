@@ -72,6 +72,11 @@ FaceAnalyser::FaceAnalyser(double scale, int width, int height, std::string au_l
 
 }
 
+Mat_<int> FaceAnalyser::GetTriangulation()
+{
+	return triangulation.clone();
+}
+
 void FaceAnalyser::GetLatestHOG(Mat_<double>& hog_descriptor, int& num_rows, int& num_cols)
 {
 	hog_descriptor = this->hog_desc_frame.clone();

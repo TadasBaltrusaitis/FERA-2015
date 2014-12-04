@@ -20,37 +20,87 @@ namespace Psyche
 			source_points = Mat_<double>();
 
 			// Push back the rigid points (some face outline, eyes, and nose)
-			source_points.push_back(tmp_source.row(0));
+			//source_points.push_back(tmp_source.row(0));
+			//source_points.push_back(tmp_source.row(2));
+			//source_points.push_back(tmp_source.row(14));
+			//source_points.push_back(tmp_source.row(16));
+			//source_points.push_back(tmp_source.row(36));
+			//source_points.push_back(tmp_source.row(39));
+			//source_points.push_back(tmp_source.row(43));
+			//source_points.push_back(tmp_source.row(38));
+			//source_points.push_back(tmp_source.row(42));
+			//source_points.push_back(tmp_source.row(45));
+			//source_points.push_back(tmp_source.row(31));
+			//source_points.push_back(tmp_source.row(33));
+			//source_points.push_back(tmp_source.row(35));
+
+			source_points.push_back(tmp_source.row(1));
 			source_points.push_back(tmp_source.row(2));
+			source_points.push_back(tmp_source.row(3));
+			source_points.push_back(tmp_source.row(4));
+			source_points.push_back(tmp_source.row(12));
+			source_points.push_back(tmp_source.row(13));
 			source_points.push_back(tmp_source.row(14));
-			source_points.push_back(tmp_source.row(16));
+			source_points.push_back(tmp_source.row(15));
+			source_points.push_back(tmp_source.row(27));
+			source_points.push_back(tmp_source.row(28));
+			source_points.push_back(tmp_source.row(29));
+			source_points.push_back(tmp_source.row(31));
+			source_points.push_back(tmp_source.row(32));
+			source_points.push_back(tmp_source.row(33));
+			source_points.push_back(tmp_source.row(34));
+			source_points.push_back(tmp_source.row(35));
 			source_points.push_back(tmp_source.row(36));
 			source_points.push_back(tmp_source.row(39));
-			source_points.push_back(tmp_source.row(43));
-			source_points.push_back(tmp_source.row(38));
+			source_points.push_back(tmp_source.row(40));
+			source_points.push_back(tmp_source.row(41));
 			source_points.push_back(tmp_source.row(42));
 			source_points.push_back(tmp_source.row(45));
-			source_points.push_back(tmp_source.row(31));
-			source_points.push_back(tmp_source.row(33));
-			source_points.push_back(tmp_source.row(35));
+			source_points.push_back(tmp_source.row(46));
+			source_points.push_back(tmp_source.row(47));
 
 			Mat_<double> tmp_dest = destination_points.clone();
 			destination_points = Mat_<double>();
 
 			// Push back the rigid points
-			destination_points.push_back(tmp_dest.row(0));
+			//destination_points.push_back(tmp_dest.row(0));
+			//destination_points.push_back(tmp_dest.row(2));
+			//destination_points.push_back(tmp_dest.row(14));
+			//destination_points.push_back(tmp_dest.row(16));
+			//destination_points.push_back(tmp_dest.row(36));
+			//destination_points.push_back(tmp_dest.row(39));
+			//destination_points.push_back(tmp_dest.row(43));
+			//destination_points.push_back(tmp_dest.row(38));
+			//destination_points.push_back(tmp_dest.row(42));
+			//destination_points.push_back(tmp_dest.row(45));
+			//destination_points.push_back(tmp_dest.row(31));
+			//destination_points.push_back(tmp_dest.row(33));
+			//destination_points.push_back(tmp_dest.row(35));
+
+			destination_points.push_back(tmp_dest.row(1));
 			destination_points.push_back(tmp_dest.row(2));
+			destination_points.push_back(tmp_dest.row(3));
+			destination_points.push_back(tmp_dest.row(4));
+			destination_points.push_back(tmp_dest.row(12));
+			destination_points.push_back(tmp_dest.row(13));
 			destination_points.push_back(tmp_dest.row(14));
-			destination_points.push_back(tmp_dest.row(16));
+			destination_points.push_back(tmp_dest.row(15));
+			destination_points.push_back(tmp_dest.row(27));
+			destination_points.push_back(tmp_dest.row(28));
+			destination_points.push_back(tmp_dest.row(29));
+			destination_points.push_back(tmp_dest.row(31));
+			destination_points.push_back(tmp_dest.row(32));
+			destination_points.push_back(tmp_dest.row(33));
+			destination_points.push_back(tmp_dest.row(34));
+			destination_points.push_back(tmp_dest.row(35));
 			destination_points.push_back(tmp_dest.row(36));
 			destination_points.push_back(tmp_dest.row(39));
-			destination_points.push_back(tmp_dest.row(43));
-			destination_points.push_back(tmp_dest.row(38));
+			destination_points.push_back(tmp_dest.row(40));
+			destination_points.push_back(tmp_dest.row(41));
 			destination_points.push_back(tmp_dest.row(42));
 			destination_points.push_back(tmp_dest.row(45));
-			destination_points.push_back(tmp_dest.row(31));
-			destination_points.push_back(tmp_dest.row(33));
-			destination_points.push_back(tmp_dest.row(35));
+			destination_points.push_back(tmp_dest.row(46));
+			destination_points.push_back(tmp_dest.row(47));
 		}
 	}
 

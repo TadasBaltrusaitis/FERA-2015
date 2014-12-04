@@ -556,12 +556,36 @@ int main (int argc, char **argv)
 				detection_success = CLMTracker::DetectLandmarksInImage(grayscale_image, clm_model, clm_parameters);
 			}
 
-			face_analyser.AddNextFrame(captured_image, clm_model, 0, false);
+			
+			// Do face alignment
+			Mat sim_warped_img;			
+			Mat_<double> hog_descriptor;
 
-			params_global_video.push_back(clm_model.params_global);
-			params_local_video.push_back(clm_model.params_local.clone());
-			successes_video.push_back(detection_success);
-			detected_landmarks_video.push_back(clm_model.detected_landmarks.clone());
+			// Use face analyser only if outputting neutrals and AUs
+			if(!output_aus.empty() || !output_neutrals.empty())
+			{
+				face_analyser.AddNextFrame(captured_image, clm_model, 0, false);
+
+				params_global_video.push_back(clm_model.params_global);
+				params_local_video.push_back(clm_model.params_local.clone());
+				successes_video.push_back(detection_success);
+				detected_landmarks_video.push_back(clm_model.detected_landmarks.clone());
+				
+				face_analyser.GetLatestAlignedFace(sim_warped_img);
+				face_analyser.GetLatestHOG(hog_descriptor, num_hog_rows, num_hog_cols);
+
+			}
+			else
+			{
+				Psyche::AlignFaceMask(sim_warped_img, captured_image, clm_model, face_analyser.GetTriangulation(), rigid, sim_scale, sim_size, sim_size);
+				Psyche::Extract_FHOG_descriptor(hog_descriptor, sim_warped_img, num_hog_rows, num_hog_cols);			
+			}
+
+			cv::imshow("sim_warp", sim_warped_img);			
+			
+			Mat_<double> hog_descriptor_vis;
+			Psyche::Visualise_FHOG(hog_descriptor, num_hog_rows, num_hog_cols, hog_descriptor_vis);
+			cv::imshow("hog", hog_descriptor_vis);	
 
 			// Work out the pose of the head from the tracked model
 			Vec6d pose_estimate_CLM;
@@ -573,20 +597,6 @@ int main (int argc, char **argv)
 			{
 				pose_estimate_CLM = CLMTracker::GetCorrectedPoseCamera(clm_model, fx, fy, cx, cy, clm_parameters);
 			}
-
-			// Do face alignment
-			Mat sim_warped_img;
-			face_analyser.GetLatestAlignedFace(sim_warped_img);
-
-			//Psyche::AlignFace(sim_warped_img, captured_image, clm_model, rigid, sim_scale, sim_size, sim_size);
-			cv::imshow("sim_warp", sim_warped_img);			
-			
-			Mat_<double> hog_descriptor;
-			face_analyser.GetLatestHOG(hog_descriptor, num_hog_rows, num_hog_cols);
-
-			Mat_<double> hog_descriptor_vis;
-			Psyche::Visualise_FHOG(hog_descriptor, num_hog_rows, num_hog_cols, hog_descriptor_vis);
-			cv::imshow("hog", hog_descriptor_vis);	
 
 			//Mat_<double> hog_descriptor_mean;
 			//face_analyser.GetLatestNeutralHOG(hog_descriptor_mean, num_rows, num_cols);
