@@ -1,4 +1,4 @@
-oldDir = chdir('C:\Users\Tadas-local-Quadros\Documents\CLM-framework\Release');
+oldDir = chdir('..\C++ models\Release\');
 
 features_exe = '"FeatureExtraction.exe"';
 
@@ -35,10 +35,12 @@ parfor f1=1:numel(ck_dirs)
             continue;    
         end
 
-        command = cat(2, command, [' -rigid -asvid -fdir "' curr_vid '" -simalign "' output_file  '" -simscale 0.6 -simsize 96 -g']);
+        command = cat(2, command, [' -rigid -asvid -fdir "' curr_vid '" -simalign "' output_file  '" -simscale 0.7 -simsize 112 -g']);
         command = cat(2, command, [' -hogalign "' output_hog ]);
         dos(command);
             
     end    
     
 end
+
+chdir(oldDir);

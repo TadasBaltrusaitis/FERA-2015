@@ -1,16 +1,14 @@
 % Biwi dataset experiment
 
 features_exe = '"FeatureExtraction.exe"';
+oldDir = chdir('..\C++ models\Release\');
 
 if(exist('D:/Databases/DISFA/', 'dir'))
     DISFA_loc = 'D:/Databases/DISFA/';    
-    oldDir = chdir('C:\Users\tb346\Documents\CLM-framework\Release');
 elseif(exist('E:/datasets/DISFA/', 'dir'))
-    DISFA_loc = 'E:/datasets/DISFA/';    
-    oldDir = chdir('C:\Users\Tadas\Documents\CLM-framework\Release');    
+    DISFA_loc = 'E:/datasets/DISFA/';       
 elseif(exist('C:/tadas/DISFA', 'dir'))
     DISFA_loc = 'C:/tadas/DISFA/';
-    oldDir = chdir('C:\Users\Tadas-local-Quadros\Documents\CLM-framework\Release');
 else
    fprintf('DISFA not found\n'); 
 end
@@ -53,33 +51,33 @@ parfor i=1:numel(disfa_loc_1_files)
     output_hog = [output_hog_root name '.hog'];
     output_params = [output_params_root '/' name '.txt'];
         
-    command = cat(2, command, [' -rigid -f "' input_file '" -simalign "' output_file  '" -simscale 0.6 -simsize 96 -g']);
+    command = cat(2, command, [' -rigid -f "' input_file '" -simalign "' output_file  '" -simscale 0.7 -simsize 112']);
     command = cat(2, command, [' -hogalign "' output_hog '"' ]);
     command = cat(2, command, [' -oparams "' output_params '"']);
 
     dos(command);
 end
 
-%%
-parfor i=1:numel(disfa_loc_2_files)
-           
-    command = features_exe;
-               
-    input_file = [DISFA_loc_2 disfa_loc_2_files(i).name];
-        
-    [~,name,~] = fileparts(disfa_loc_2_files(i).name);
-    output_file = [output name '/'];
-    
-    output_hog = [output_hog_root name '.hog'];
-        
-    output_params = [output_params_root '/' name '.txt'];
-        
-    command = cat(2, command, [' -rigid -f "' input_file '" -simalign "' output_file  '" -simscale 0.6 -simsize 96 -g']);  
-    command = cat(2, command, [' -hogalign "' output_hog '"']);
-    command = cat(2, command, [' -oparams "' output_params '"']);
-    
-    dos(command);
-end
+% %%
+% parfor i=1:numel(disfa_loc_2_files)
+%            
+%     command = features_exe;
+%                
+%     input_file = [DISFA_loc_2 disfa_loc_2_files(i).name];
+%         
+%     [~,name,~] = fileparts(disfa_loc_2_files(i).name);
+%     output_file = [output name '/'];
+%     
+%     output_hog = [output_hog_root name '.hog'];
+%         
+%     output_params = [output_params_root '/' name '.txt'];
+%         
+%     command = cat(2, command, [' -rigid -f "' input_file '" -simalign "' output_file  '" -simscale 0.6 -simsize 96 -g']);  
+%     command = cat(2, command, [' -hogalign "' output_hog '"']);
+%     command = cat(2, command, [' -oparams "' output_params '"']);
+%     
+%     dos(command);
+% end
 
 timeTaken = toc;
 chdir(oldDir);
