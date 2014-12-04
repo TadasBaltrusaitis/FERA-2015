@@ -1,4 +1,5 @@
 hog_dir = 'C:/tadas/face_datasets/hog_aligned/';
+hog_dir = 'I:\datasets\FERA_2015\BP4D\processed_data_big/';
 hog_files = dir([hog_dir, '*.hog']);
 
 [appearance_data, vid_ids_train] = Read_HOG_files_small(hog_files, hog_dir);
