@@ -1,4 +1,4 @@
-function [hog_data, vid_id] = Read_HOG_files_small(hog_files, hog_data_dir)
+function [hog_data, vid_id] = Read_HOG_files_small(hog_files, hog_data_dir, num_samples)
 
     hog_data = [];
     vid_id = {};
@@ -10,6 +10,8 @@ function [hog_data, vid_id] = Read_HOG_files_small(hog_files, hog_data_dir)
     for i=1:numel(hog_files)
         
         hog_file = [hog_data_dir, hog_files(i).name];
+        
+        fprintf('%d %s\n', i, hog_file);
         
         f = fopen(hog_file, 'r');
                          
@@ -65,7 +67,11 @@ function [hog_data, vid_id] = Read_HOG_files_small(hog_files, hog_data_dir)
         % Keep up to 20 frames from the whole video (so that it is balanced
         % per dataset/video/participant)
         
-        num_instances = 20;
+        if(nargin > 2)
+            num_instances = num_samples;
+        else
+            num_instances = 20;
+        end
         
         increment = round(curr_ind / num_instances);
         if(increment == 0)

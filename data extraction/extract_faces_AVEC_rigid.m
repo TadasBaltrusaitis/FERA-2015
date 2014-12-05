@@ -10,7 +10,7 @@ out_loc = 'C:\tadas\face_datasets\hog_aligned_rigid\';
 avec_dirs = dir(avec_loc);
 avec_dirs = avec_dirs(3:end);
 
-parfor f1=1:numel(avec_dirs)
+for f1=1:numel(avec_dirs)
 
     avecf_dirs_level_2 = dir([avec_loc, avec_dirs(f1).name]);
     avecf_dirs_level_2 = avecf_dirs_level_2(3:end);
@@ -19,8 +19,7 @@ parfor f1=1:numel(avec_dirs)
 
         vid_files = dir([avec_loc, avec_dirs(f1).name, '/', avecf_dirs_level_2(f2).name, '/*.avi']);
         
-        % As there are roughly four vids per person save some space
-        for v=1:4:numel(vid_files)
+        parfor v=1:numel(vid_files)
             
             command = features_exe;
             

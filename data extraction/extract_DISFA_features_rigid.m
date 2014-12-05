@@ -58,26 +58,26 @@ parfor i=1:numel(disfa_loc_1_files)
     dos(command);
 end
 
-% %%
-% parfor i=1:numel(disfa_loc_2_files)
-%            
-%     command = features_exe;
-%                
-%     input_file = [DISFA_loc_2 disfa_loc_2_files(i).name];
-%         
-%     [~,name,~] = fileparts(disfa_loc_2_files(i).name);
-%     output_file = [output name '/'];
-%     
-%     output_hog = [output_hog_root name '.hog'];
-%         
-%     output_params = [output_params_root '/' name '.txt'];
-%         
-%     command = cat(2, command, [' -rigid -f "' input_file '" -simalign "' output_file  '" -simscale 0.6 -simsize 96 -g']);  
-%     command = cat(2, command, [' -hogalign "' output_hog '"']);
-%     command = cat(2, command, [' -oparams "' output_params '"']);
-%     
-%     dos(command);
-% end
+%%
+parfor i=1:numel(disfa_loc_2_files)
+           
+    command = features_exe;
+               
+    input_file = [DISFA_loc_2 disfa_loc_2_files(i).name];
+        
+    [~,name,~] = fileparts(disfa_loc_2_files(i).name);
+    output_file = [output name '/'];
+    
+    output_hog = [output_hog_root name '.hog'];
+        
+    output_params = [output_params_root '/' name '.txt'];
+        
+    command = cat(2, command, [' -rigid -f "' input_file '" -simalign "' output_file  '" -simscale 0.6 -simsize 96 -g']);  
+    command = cat(2, command, [' -hogalign "' output_hog '"']);
+    command = cat(2, command, [' -oparams "' output_params '"']);
+    
+    dos(command);
+end
 
 timeTaken = toc;
 chdir(oldDir);
