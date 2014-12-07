@@ -42,7 +42,7 @@ labels_valid = labels_train(valid_inds);
 labels_train = labels_train(inds_train_rebalanced);
 
 % normalise the data
-pca_file = '../../data_extraction/generic_face_rigid.mat';
+pca_file = '../../pca_generation/generic_face_rigid.mat';
 load(pca_file);
      
 % Grab all data for validation as want good params for all the data

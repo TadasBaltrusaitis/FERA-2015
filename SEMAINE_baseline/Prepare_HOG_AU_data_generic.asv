@@ -1,37 +1,24 @@
 function [data_train, labels_train, data_valid, labels_valid, raw_valid, PC, means_norm, stds_norm] = ...
-    Prepare_HOG_AU_data_generic_dynamic(train_users, au_train, rest_aus, hog_data_dir)
+    Prepare_HOG_AU_data_generic(train_users, devel_users, au_train, rest_aus, semaine_dir, hog_data_dir)
 
-%% This should be a separate function?
-
+%%
 input_train_label_files = cell(numel(train_users),1);
-    
-if(exist('D:/Databases/DISFA', 'file'))
-    root = 'D:/Databases/DISFA/';
-elseif(exist('F:/datasets/DISFA', 'file'))
-    root = 'F:/datasets/DISFA/';
-elseif(exist('E:/datasets/DISFA', 'file'))
-    root = 'E:/datasets/DISFA/';
-elseif(exist('C:/tadas/DISFA/', 'file'))        
-    root = 'C:/tadas/DISFA/';    
-else
-   fprintf('Can not find the dataset\n'); 
-end
-    
+        
 % This is for loading the labels
 for i=1:numel(train_users)   
-    input_train_label_files{i} = [root, '/ActionUnit_Labels/', train_users{i}, '/', train_users{i}];
+    filename = 
+    input_train_label_files{i} = [semaine_dir, '/', train_users{i}, '/', train_users{i}];
 end
 
 % First extracting the labels
+labels_train = extract_au_labels(input_train_label_files, au_train);
 
 % Reading in the HOG data
-[train_appearance_data, vid_ids_train] = Read_HOG_files_dynamic(train_users, hog_data_dir);
+[train_appearance_data, vid_ids_train] = Read_HOG_files(train_users, hog_data_dir);
 
 % Getting the indices describing the splits (full version)
 [training_inds, valid_inds, split] = construct_indices(vid_ids_train, train_users);
 
-% Extracting the labels
-labels_train = extract_au_labels(input_train_label_files, au_train);
 
 % Getting the rebalanced training and validation indices and data
 [inds_train_rebalanced, inds_valid_rebalanced, ~] = construct_balanced(labels_train, training_inds, valid_inds, rest_aus, input_train_label_files);
@@ -42,7 +29,7 @@ labels_valid = labels_train(valid_inds);
 labels_train = labels_train(inds_train_rebalanced);
 
 % normalise the data
-pca_file = '../../pca_generation/generic_face_rigid.mat';
+pca_file = '../../data_extraction/generic_face_rigid.mat';
 load(pca_file);
      
 % Grab all data for validation as want good params for all the data

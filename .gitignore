@@ -65,3 +65,4 @@ C++ models/exe/SimpleCLMImg/Debug/
 C++ models/lib/3rdParty/dlib/Debug/
 C++ models/lib/local/CLM/Debug/
 *.vspx
+DISFA_baseline/training/medians/

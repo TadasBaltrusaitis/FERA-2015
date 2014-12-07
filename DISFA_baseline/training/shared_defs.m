@@ -2,7 +2,7 @@
 
 % Defining which AU's we are extracting (all corrs above 0.5)
 all_aus = [1,2,4,5,6,9,12,15,17,20,25,26];
-aus = [4,5,12,25,26];
+aus = [1,2,4,5,6,9,12,15,17,20,25,26];
 
 % load all of the data together (for efficiency)
 % it will be split up accordingly at later stages
