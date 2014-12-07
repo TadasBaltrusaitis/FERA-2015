@@ -64,7 +64,7 @@ for a=1:numel(aus)
 
     [ accuracies, F1s, corrs, rms, classes ] = evaluate_classification_results( prediction, valid_labels );    
 
-    save(name, 'accuracies', 'F1s', 'corrs', 'rms');
+    save(name, 'model', 'accuracies', 'F1s', 'corrs', 'rms');
         
 end
 
