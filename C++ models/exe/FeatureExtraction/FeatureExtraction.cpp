@@ -281,7 +281,7 @@ void get_image_input_output_params_feats(vector<vector<string> > &input_image_fi
 
 }
 
-void output_HOG_frame(std::ofstream* hog_file, const Mat_<double>& hog_descriptor, int num_rows, int num_cols)
+void output_HOG_frame(std::ofstream* hog_file, bool good_frame, const Mat_<double>& hog_descriptor, int num_rows, int num_cols)
 {
 
 	// Using FHOGs, hence 31 channels
@@ -290,6 +290,15 @@ void output_HOG_frame(std::ofstream* hog_file, const Mat_<double>& hog_descripto
 	hog_file->write((char*)(&num_cols), 4);
 	hog_file->write((char*)(&num_rows), 4);
 	hog_file->write((char*)(&num_channels), 4);
+
+	// Not the best way to store a bool, but will be much easier to read it
+	float good_frame_float;
+	if(good_frame)
+		good_frame_float = 1;
+	else
+		good_frame_float = -1;
+
+	hog_file->write((char*)(&good_frame_float), 4);
 
 	cv::MatConstIterator_<double> descriptor_it = hog_descriptor.begin();
 
@@ -583,9 +592,9 @@ int main (int argc, char **argv)
 
 			cv::imshow("sim_warp", sim_warped_img);			
 			
-			Mat_<double> hog_descriptor_vis;
-			Psyche::Visualise_FHOG(hog_descriptor, num_hog_rows, num_hog_cols, hog_descriptor_vis);
-			cv::imshow("hog", hog_descriptor_vis);	
+			//Mat_<double> hog_descriptor_vis;
+			//Psyche::Visualise_FHOG(hog_descriptor, num_hog_rows, num_hog_cols, hog_descriptor_vis);
+			//cv::imshow("hog", hog_descriptor_vis);	
 
 			// Work out the pose of the head from the tracked model
 			Vec6d pose_estimate_CLM;
@@ -606,7 +615,7 @@ int main (int argc, char **argv)
 
 			if(hog_output_file.is_open())
 			{
-				output_HOG_frame(&hog_output_file, hog_descriptor, num_hog_rows, num_hog_cols);
+				output_HOG_frame(&hog_output_file, detection_success, hog_descriptor, num_hog_rows, num_hog_cols);
 			}
 
 			// Write the similarity normalised output
@@ -777,7 +786,7 @@ int main (int argc, char **argv)
 				stringstream sstream_out_hog;			
 				sstream_out_hog << output_neutrals[f_n] << "_" << orientations[i][0] << "_" << orientations[i][1] << "_" << orientations[i][2] << ".hog";				
 				hog_output_file.open(sstream_out_hog.str(), ios_base::out | ios_base::binary);
-				output_HOG_frame(&hog_output_file, neutral_hogs[i], num_hog_rows, num_hog_cols);
+				output_HOG_frame(&hog_output_file, true, neutral_hogs[i], num_hog_rows, num_hog_cols);
 				hog_output_file.close();
 
 				if(sum(face_neutral_images[i])[0] > 0.0001)

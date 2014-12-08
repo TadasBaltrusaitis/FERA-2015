@@ -1,12 +1,12 @@
-function [hog_data, vid_id] = Read_HOG_files_small(hog_files, hog_data_dir, num_samples)
+function [hog_data, valid_inds, vid_id] = Read_HOG_files_small(hog_files, hog_data_dir, num_samples)
 
     hog_data = [];
     vid_id = {};
     
     feats_filled = 0;
 
-    curr_data_buff = [];
-        
+    curr_data_buff = [];   
+    
     for i=1:numel(hog_files)
         
         hog_file = [hog_data_dir, hog_files(i).name];
@@ -27,31 +27,33 @@ function [hog_data, vid_id] = Read_HOG_files_small(hog_files, hog_data_dir, num_
 
                 num_rows = fread(f, 1, 'int32');
                 num_chan = fread(f, 1, 'int32');
-
+                
                 curr_ind = curr_ind + 1;            
 
                 % preallocate some space
                 if(curr_ind == 1)
-                    curr_data_buff = zeros(5000, num_rows * num_cols * num_chan);
-                    num_feats =  num_rows * num_cols * num_chan;
+                    curr_data_buff = zeros(5000, 1 + num_rows * num_cols * num_chan);
+                    
+                    num_feats =  1 + num_rows * num_cols * num_chan;
                 end
 
                 if(curr_ind > size(curr_data_buff,1))
                     curr_data_buff = cat(1, curr_data_buff, zeros(6000, num_rows * num_cols * num_chan));
                 end
-                feature_vec = fread(f, [1, num_rows * num_cols * num_chan], 'float32');
+                feature_vec = fread(f, [1, 1 + num_rows * num_cols * num_chan], 'float32');
                 curr_data_buff(curr_ind, :) = feature_vec;
+                
             else
             
                 % Reading in batches of 5000
                 
-                feature_vec = fread(f, [3 + num_rows * num_cols * num_chan, 5000], 'float32');
+                feature_vec = fread(f, [4 + num_rows * num_cols * num_chan, 5000], 'float32');
                 feature_vec = feature_vec(4:end,:)';
                 
                 num_rows_read = size(feature_vec,1);
                 
                 curr_data_buff(curr_ind+1:curr_ind+num_rows_read,:) = feature_vec;
-                
+                %valid_data_buff = 
                 curr_ind = curr_ind + size(feature_vec,1);
                 
             end
@@ -98,6 +100,7 @@ function [hog_data, vid_id] = Read_HOG_files_small(hog_files, hog_data_dir, num_
         
     end
     
-    hog_data = hog_data(1:feats_filled,:);
+    valid_inds = hog_data(1:feats_filled,1) > 0;
+    hog_data = hog_data(1:feats_filled,2:end);
     
 end
