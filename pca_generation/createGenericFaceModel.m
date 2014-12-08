@@ -4,13 +4,18 @@ clear;
 hog_dir = 'C:/tadas/face_datasets/hog_aligned_rigid/';
 hog_files = dir([hog_dir, '*.hog']);
 
-[appearance_data, vid_ids_train] = Read_HOG_files_small(hog_files, hog_dir);
+[appearance_data, valid_inds, vid_ids_train] = Read_HOG_files_small(hog_files, hog_dir);
+appearance_data = appearance_data(valid_inds,:);
+vid_ids_train = vid_ids_train(valid_inds,:);
 
 %% DISFA
 hog_dir = 'C:\tadas\DISFA\hog_aligned_rigid/';
 hog_files = dir([hog_dir, '*.hog']);
 
-[appearance_data_disfa, vid_ids_train_disfa] = Read_HOG_files_small(hog_files, hog_dir, 50);
+[appearance_data_disfa, valid_inds, vid_ids_train_disfa] = Read_HOG_files_small(hog_files, hog_dir, 50);
+
+appearance_data_disfa = appearance_data_disfa(valid_inds,:);
+vid_ids_train_disfa = vid_ids_train_disfa(valid_inds,:);
 
 appearance_data = cat(1,appearance_data, appearance_data_disfa);
 vid_ids_train = cat(1,vid_ids_train, vid_ids_train_disfa);
@@ -19,7 +24,10 @@ vid_ids_train = cat(1,vid_ids_train, vid_ids_train_disfa);
 hog_dir = 'C:\tadas\face_datasets\dim_red\hog_bp4d/';
 hog_files = dir([hog_dir, '*.hog']);
 
-[appearance_data_bp, vid_ids_train_bp] = Read_HOG_files_small(hog_files, hog_dir, 50);
+[appearance_data_bp, valid_inds, vid_ids_train_bp] = Read_HOG_files_small(hog_files, hog_dir, 50);
+
+appearance_data_bp = appearance_data_bp(valid_inds,:);
+vid_ids_train_bp = vid_ids_train_bp(valid_inds,:);
 
 appearance_data = cat(1,appearance_data, appearance_data_bp);
 vid_ids_train = cat(1,vid_ids_train, vid_ids_train_bp);
@@ -28,7 +36,10 @@ vid_ids_train = cat(1,vid_ids_train, vid_ids_train_bp);
 hog_dir = 'C:\tadas\face_datasets\dim_red\semaine/';
 hog_files = dir([hog_dir, '*.hog']);
 
-[appearance_data_semaine, vid_ids_train_semaine] = Read_HOG_files_small(hog_files, hog_dir, 200);
+[appearance_data_semaine, valid_inds, vid_ids_train_semaine] = Read_HOG_files_small(hog_files, hog_dir, 200);
+
+appearance_data_semaine = appearance_data_semaine(valid_inds,:);
+vid_ids_train_semaine = vid_ids_train_semaine(valid_inds,:);
 
 appearance_data = cat(1,appearance_data, appearance_data_semaine);
 vid_ids_train = cat(1,vid_ids_train, vid_ids_train_semaine);
