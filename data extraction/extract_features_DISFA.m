@@ -72,7 +72,7 @@ parfor i=1:numel(disfa_loc_2_files)
         
     output_params = [output_params_root '/' name '.txt'];
         
-    command = cat(2, command, [' -rigid -f "' input_file '" -simalign "' output_file  '" -simscale 0.6 -simsize 96 -g']);  
+    command = cat(2, command, [' -rigid -f "' input_file '" -simalign "' output_file  '" -simscale 0.7 -simsize 112 -g']);  
     command = cat(2, command, [' -hogalign "' output_hog '"']);
     command = cat(2, command, [' -oparams "' output_params '"']);
     

@@ -30,11 +30,6 @@ for f1=1:numel(avec_dirs)
 
             output_hog = [out_loc name '.hog'];
     
-            if(exist(output_hog, 'file'))
-                output_file = [out_loc name '_1/'];
-                output_hog = [out_loc name '_1.hog'];      
-            end
-            
             command = cat(2, command, [' -rigid -f "' curr_vid '" -simalign "' output_file  '" -simscale 0.7 -simsize 112']);
             command = cat(2, command, [' -hogalign "' output_hog ]);
             dos(command);

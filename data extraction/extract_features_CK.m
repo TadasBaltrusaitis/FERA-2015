@@ -31,10 +31,6 @@ parfor f1=1:numel(ck_dirs)
 
         output_hog = [out_loc name '.hog'];
 
-        if(exist(output_hog, 'file'))
-            continue;    
-        end
-
         command = cat(2, command, [' -rigid -asvid -fdir "' curr_vid '" -simalign "' output_file  '" -simscale 0.7 -simsize 112 -g']);
         command = cat(2, command, [' -hogalign "' output_hog ]);
         dos(command);
