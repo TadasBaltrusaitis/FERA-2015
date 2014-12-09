@@ -1,10 +1,12 @@
 clear;
 
 %%
-hog_dir = 'C:\tadas\face_datasets\dim_red\semaine/';
+hog_dir = 'C:\tadas\face_datasets\fera_2015\semaine\train\processed\';
 hog_files = dir([hog_dir, '*.hog']);
 
-[appearance_data, vid_ids_train] = Read_HOG_files_small(hog_files, hog_dir, 400);
+[appearance_data, valid_ids, vid_ids_train] = Read_HOG_files_small(hog_files, hog_dir, 800);
+appearance_data = appearance_data(valid_ids, :);
+vid_ids_train = vid_ids_train(valid_ids,:);
 
 %%
 means_norm = mean(appearance_data);
