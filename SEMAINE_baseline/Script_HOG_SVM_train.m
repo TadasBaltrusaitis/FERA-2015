@@ -7,11 +7,8 @@ addpath('C:\liblinear\matlab')
 shared_defs;
 
 % Set up the hyperparameters to be validated
-% hyperparams.c = 10.^(-6:1:3);
-% hyperparams.e = 10.^(-7:1:-1);
-
-hyperparams.c = 10.^(0);
-hyperparams.e = 10.^(-2);
+hyperparams.c = 10.^(-6:1:3);
+hyperparams.e = 10.^(-6:1:-1);
 
 hyperparams.validate_params = {'c', 'e'};
 
@@ -41,7 +38,7 @@ for a=1:numel(aus)
 
     model = svm_train(train_labels, train_samples, best_params);        
 
-    [~, prediction] = svm_test(valid_labels, valid_samples, model);
+    [prediction, a, actual_vals] = predict(valid_labels, valid_samples, model);
 
     % Go from raw data to the prediction
     w = model.w(1:end-1)';
@@ -52,7 +49,7 @@ for a=1:numel(aus)
     % Attempt own prediction
     preds_mine = bsxfun(@plus, raw_valid, -means) * svs + b;
 
-    assert(norm(preds_mine - prediction) < 1e-8);
+    assert(norm(preds_mine - actual_vals) < 1e-8);
 
     name = sprintf('trained/AU_%d_static.dat', au);
 
@@ -60,9 +57,17 @@ for a=1:numel(aus)
 
     name = sprintf('trained/AU_%d_static.mat', au);
 
-    [ accuracies, F1s, corrs, rms, classes ] = evaluate_classification_results( prediction, valid_labels );    
+    tp = sum(valid_labels == 1 & prediction == 1);
+    fp = sum(valid_labels == 0 & prediction == 1);
+    fn = sum(valid_labels == 1 & prediction == 0);
+    tn = sum(valid_labels == 0 & prediction == 0);
 
-    save(name, 'accuracies', 'F1s', 'corrs', 'rms');
+    precision = tp/(tp+fp);
+    recall = tp/(tp+fn);
+
+    f1 = 2 * precision * recall / (precision + recall);    
+    
+    save(name, 'accuracies', 'f1', 'precision', 'recall');
         
 end
 
@@ -75,12 +80,22 @@ end
 
 function [result, prediction] = svm_test_linear(test_labels, test_samples, model)
 
-    prediction = predict(test_labels, test_samples, model);
+    [prediction, a, actual_vals] = predict(test_labels, test_samples, model);           
     
-    result = corr(test_labels, prediction);
+    tp = sum(test_labels == 1 & prediction == 1);
+    fp = sum(test_labels == 0 & prediction == 1);
+    fn = sum(test_labels == 1 & prediction == 0);
+    tn = sum(test_labels == 0 & prediction == 0);
+
+    precision = tp/(tp+fp);
+    recall = tp/(tp+fn);
+
+    f1 = 2 * precision * recall / (precision + recall);
+
+%     result = corr(test_labels, prediction);
     
-    if(isnan(result))
-        result = 0;
+    if(isnan(f1))
+        f1 = 0;
     end
-    
+    result = f1;
 end

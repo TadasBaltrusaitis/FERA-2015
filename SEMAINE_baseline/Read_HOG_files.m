@@ -1,4 +1,4 @@
-function [hog_data, vid_id] = Read_HOG_files(users, vid_ids, hog_data_dir)
+function [hog_data, valid_inds, vid_id] = Read_HOG_files(users, vid_ids, hog_data_dir)
 
     hog_data = [];
     vid_id = {};
@@ -18,7 +18,7 @@ function [hog_data, vid_id] = Read_HOG_files(users, vid_ids, hog_data_dir)
 
         num_rows = fread(f, 1, 'int32');
         num_chan = fread(f, 1, 'int32');
-        num_feats = num_rows * num_cols * num_chan;
+        num_feats = num_rows * num_cols * num_chan + 1;
         
         % go to the beginning
         fseek(f, 0, 'bof');
@@ -26,9 +26,9 @@ function [hog_data, vid_id] = Read_HOG_files(users, vid_ids, hog_data_dir)
         % Read only the relevant bits
         
         % Skip to the right start element (1 indexed)
-        fseek(f, 4*(3+num_rows*num_rows*num_chan)*(vid_ids(i,1)-1), 'bof');
+        fseek(f, 4*(4+num_rows*num_rows*num_chan)*(vid_ids(i,1)-1), 'bof');
         
-        feature_vec = fread(f, [3 + num_rows * num_cols * num_chan, vid_ids(i,2) - vid_ids(i,1)], 'float32');
+        feature_vec = fread(f, [4 + num_rows * num_cols * num_chan, vid_ids(i,2) - vid_ids(i,1)], 'float32');
         fclose(f);
         
         curr_data = feature_vec(4:end,:)';
@@ -49,5 +49,6 @@ function [hog_data, vid_id] = Read_HOG_files(users, vid_ids, hog_data_dir)
         feats_filled = feats_filled + curr_ind;
         
     end
-    
+    valid_inds = hog_data(:,1) > 0;
+    hog_data = hog_data(:,2:end);
 end
