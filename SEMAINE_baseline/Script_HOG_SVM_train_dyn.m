@@ -19,6 +19,7 @@ svr_train = @svm_train_linear;
     
 % Set the test function (the first output will be used for validation)
 svr_test = @svm_test_linear;
+pca_loc = '../pca_generation/generic_face_rigid.mat';
 
 %%
 for a=1:numel(aus)
@@ -31,7 +32,7 @@ for a=1:numel(aus)
     rest_aus = setdiff(all_aus, au);        
 
     % load the training and testing data for the current fold
-    [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic_dynamic(users(train_users), au, rest_aus, hog_data_dir);
+    [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic_dynamic(users(train_users), au, rest_aus, hog_data_dir, pca_loc);
 
     train_samples = sparse(train_samples);
     valid_samples = sparse(valid_samples);

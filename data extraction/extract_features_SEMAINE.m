@@ -24,7 +24,7 @@ for f1=1:numel(semaine_dirs)
 
         f1_dir = semaine_dirs(f1).name;
         
-        parfor v=1:numel(vid_files)
+        for v=1:numel(vid_files)
 
             command = features_exe;
 

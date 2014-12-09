@@ -5,7 +5,7 @@ features_exe = '"FeatureExtraction.exe"';
 
 bp4d_loc = 'I:\datasets\FERA_2015\BP4D\BP4D\BP4D-training/';
 
-out_loc = 'I:/datasets/FERA_2015/BP4D/processed_data_big/';
+out_loc = 'I:/datasets/FERA_2015/BP4D/processed_data/';
 
 % Go two levels deep
 bp4d_dirs = dir(bp4d_loc);

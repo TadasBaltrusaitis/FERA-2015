@@ -8,6 +8,8 @@ aus = [2 12 17 25 28 45];
 % it will be split up accordingly at later stages
 if(exist('E:\datasets\FERA_2015\semaine/SEMAINE-Sessions/', 'file'))
     SEMAINE_dir = 'E:\datasets\FERA_2015\semaine/SEMAINE-Sessions/';   
+elseif(exist('I:\datasets\FERA_2015\Semaine\SEMAINE-Sessions/', 'file'))
+    SEMAINE_dir = 'I:\datasets\FERA_2015\Semaine\SEMAINE-Sessions/';   
 else
     fprintf('DISFA location not found (or not defined)\n'); 
 end

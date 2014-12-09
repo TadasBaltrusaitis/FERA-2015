@@ -1,4 +1,4 @@
-function Script_HOG_SVR_train()
+function Script_HOG_SVM_train()
 
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
@@ -21,6 +21,8 @@ svm_train = @svm_train_linear;
 % Set the test function (the first output will be used for validation)
 svm_test = @svm_test_linear;
 
+pca_loc = '../pca_generation/generic_face_rigid.mat';
+
 %%
 for a=1:numel(aus)
     
@@ -29,7 +31,7 @@ for a=1:numel(aus)
     rest_aus = setdiff(all_aus, au);        
 
     % load the training and testing data for the current fold
-    [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir);
+    [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);
 
     train_samples = sparse(train_samples);
     valid_samples = sparse(valid_samples);
@@ -49,8 +51,6 @@ for a=1:numel(aus)
 
     % Attempt own prediction
     preds_mine = bsxfun(@plus, raw_valid, -means) * svs + b;
-    preds_mine(preds_mine <0) = 0;
-    preds_mine(preds_mine >5) = 5;
 
     assert(norm(preds_mine - prediction) < 1e-8);
 
@@ -76,10 +76,7 @@ end
 function [result, prediction] = svm_test_linear(test_labels, test_samples, model)
 
     prediction = predict(test_labels, test_samples, model);
-%     prediction(prediction<0)=0;
-%     prediction(prediction>5)=5;
-    % using the average of RMS errors
-%     result = mean(sqrt(mean((prediction - test_labels).^2)));  
+    
     result = corr(test_labels, prediction);
     
     if(isnan(result))
