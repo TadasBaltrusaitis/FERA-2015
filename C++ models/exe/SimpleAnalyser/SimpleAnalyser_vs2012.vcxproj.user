@@ -3,11 +3,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerWorkingDirectory>$(TargetDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-f "../videos/default.wmv"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-root "D:\Databases\amandine\for_asc_run_day_1\" -outroot "D:\Databases\amandine\for_asc_run_day_1\av_predictions/" -f "neutral.MTS" -oav "neutral.txt" </LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerWorkingDirectory>$(TargetDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-f "../videos/default.wmv"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-root "D:\Databases\amandine\for_asc_run_day_1\" -outroot "D:\Databases\amandine\for_asc_run_day_1\av_predictions/" -f "neutral.MTS" -oav "neutral.txt" </LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

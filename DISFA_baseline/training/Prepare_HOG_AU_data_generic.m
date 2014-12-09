@@ -22,8 +22,6 @@ for i=1:numel(train_users)
     input_train_label_files{i} = [root, '/ActionUnit_Labels/', train_users{i}, '/', train_users{i}];
 end
 
-% First extracting the labels
-
 % Reading in the HOG data
 [train_appearance_data, vid_ids_train] = Read_HOG_files(train_users, hog_data_dir);
 

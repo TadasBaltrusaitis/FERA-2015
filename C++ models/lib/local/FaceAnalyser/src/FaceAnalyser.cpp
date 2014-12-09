@@ -19,7 +19,7 @@ using namespace Psyche;
 using namespace std;
 
 // Constructor from a model file (or a default one if not provided
-FaceAnalyser::FaceAnalyser(double scale, int width, int height, std::string au_location, std::string av_location)
+FaceAnalyser::FaceAnalyser(vector<Vec3d> orientation_bins, double scale, int width, int height, std::string au_location, std::string av_location)
 {
 	this->ReadAU(au_location);
 	this->ReadAV(av_location);
@@ -48,15 +48,15 @@ FaceAnalyser::FaceAnalyser(double scale, int width, int height, std::string au_l
 	frames_for_adaptation = 120;
 	frames_tracking = 0;
 	
-	// Just using frontal currently
-	head_orientations.push_back(Vec3d(0,0,0));
-	
-	// Adding orientations for slight profile and slight head up/down modes
-	//head_orientations.push_back(Vec3d(    0, 0.5, 0));
-	//head_orientations.push_back(Vec3d(    0,-0.5, 0));
-	//head_orientations.push_back(Vec3d( 0.5,    0, 0));
-	//head_orientations.push_back(Vec3d(-0.5,    0, 0));
-
+	if(orientation_bins.empty())
+	{
+		// Just using frontal currently
+		head_orientations.push_back(Vec3d(0,0,0));
+	}
+	else
+	{
+		head_orientations = orientation_bins;
+	}
 	hog_hist_sum.resize(head_orientations.size());
 	face_image_hist_sum.resize(head_orientations.size());
 	hog_desc_hist.resize(head_orientations.size());
@@ -397,6 +397,25 @@ void FaceAnalyser::Reset()
 	this->av_prediction_correction_histogram = Mat_<unsigned int>(av_prediction_correction_histogram.rows, av_prediction_correction_histogram.cols, (unsigned int)0);
 
 	dyn_scaling = vector<vector<double>>(dyn_scaling.size(), vector<double>(dyn_scaling[0].size(), 5.0));	
+
+}
+
+void FaceAnalyser::ResetAV()
+{
+
+	this->geom_descriptor_median.setTo(Scalar(0));
+	this->geom_desc_hist = Mat_<unsigned int>(geom_desc_hist.rows, geom_desc_hist.cols, (unsigned int)0);
+
+	// Reset the predictions
+	AU_prediction_track = Mat_<double>(AU_prediction_track.rows, AU_prediction_track.cols, 0.0);
+
+	geom_desc_track = Mat_<double>(geom_desc_track.rows, geom_desc_track.cols, 0.0);
+
+	arousal_value = 0.0;
+	valence_value = 0.0;
+
+	this->av_prediction_correction_count = 0;
+	this->av_prediction_correction_histogram = Mat_<unsigned int>(av_prediction_correction_histogram.rows, av_prediction_correction_histogram.cols, (unsigned int)0);
 
 }
 

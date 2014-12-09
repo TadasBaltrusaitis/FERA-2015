@@ -89,6 +89,53 @@ vector<string> get_arguments(int argc, char **argv)
 	return arguments;
 }
 
+// Extracting the following command line arguments -f, -fd, -op, -of, -ov (and possible ordered repetitions)
+void get_output_feature_params(vector<string> &output_av_files, vector<string> &arguments)
+{
+	output_av_files.clear();
+
+	bool* valid = new bool[arguments.size()];
+
+	for(size_t i = 0; i < arguments.size(); ++i)
+	{
+		valid[i] = true;
+	}
+
+	string output_root = "";
+
+	// First check if there is a root argument (so that videos and outputs could be defined more easilly)
+	for(size_t i = 0; i < arguments.size(); ++i)
+	{
+		if (arguments[i].compare("-outroot") == 0) 
+		{                    
+			output_root = arguments[i + 1];
+			i++;
+		}
+	}
+
+	for(size_t i = 0; i < arguments.size(); ++i)
+	{
+		
+		if(arguments[i].compare("-oav") == 0) 
+		{
+			output_av_files.push_back(output_root + arguments[i + 1]);
+			valid[i] = false;
+			valid[i+1] = false;			
+			i++;
+		}
+	}
+
+	for(int i=arguments.size()-1; i >= 0; --i)
+	{
+		if(!valid[i])
+		{
+			arguments.erase(arguments.begin()+i);
+		}
+	}
+
+}
+
+
 int main (int argc, char **argv)
 {
 
@@ -113,10 +160,25 @@ int main (int argc, char **argv)
 	// Get camera parameters
 	CLMTracker::get_camera_params(device, fx, fy, cx, cy, arguments);    
 	
+	vector<string> output_av_files;
+	get_output_feature_params(output_av_files, arguments);
+
 	// The modules that are being used for tracking
 	CLMTracker::CLM clm_model(clm_parameters.model_location);	
-	
-	Psyche::FaceAnalyser face_analyser;
+
+	vector<Vec3d> head_orientations;
+	// Adding orientations for slight profile and slight head up/down modes
+	head_orientations.push_back(Vec3d(    0, 0.0, 0));
+	head_orientations.push_back(Vec3d(    0, 0.4, 0));
+	head_orientations.push_back(Vec3d(    0,-0.4, 0));
+	head_orientations.push_back(Vec3d(    0, 0.7, 0));
+	head_orientations.push_back(Vec3d(    0,-0.7, 0));
+	head_orientations.push_back(Vec3d( 0.3,    0, 0));
+	head_orientations.push_back(Vec3d(-0.3,    0, 0));
+	head_orientations.push_back(Vec3d( 0.6,    0, 0));
+	head_orientations.push_back(Vec3d(-0.6,    0, 0));
+
+	Psyche::FaceAnalyser face_analyser(head_orientations);
 
 	// If multiple video files are tracked, use this to indicate if we are done
 	bool done = false;	
@@ -191,6 +253,12 @@ int main (int argc, char **argv)
 			landmarks_output_file.open(landmark_output_files[f_n]);
 		}
 	
+		std::ofstream avs_output_file;		
+		if(!output_av_files.empty())
+		{
+			avs_output_file.open(output_av_files[f_n]);
+		}
+
 		int frame_count = 0;
 		
 		// saving the videos
@@ -281,6 +349,7 @@ int main (int argc, char **argv)
 							
 				au_preds = face_analyser.GetCurrentAUs();
 
+
 				// Print the results here (for now)
 				//cout << face_analyser.GetConfidence() << " ";
 				//for(auto au_it = au_preds.begin(); au_it != au_preds.end(); ++au_it)
@@ -292,11 +361,16 @@ int main (int argc, char **argv)
 			}
 			else
 			{
-				face_analyser.Reset();
-				face_analyser.AddNextFrame(grayscale_image, clm_model, 0);
-				au_preds = face_analyser.GetCurrentAUs();
+				//face_analyser.Reset();
+				//face_analyser.AddNextFrame(grayscale_image, clm_model, 0);
+				//au_preds = face_analyser.GetCurrentAUs();
 			}
-			
+
+			if(!output_av_files.empty())
+			{
+				avs_output_file << detection_success << " " << face_analyser.GetCurrentArousal() << " " << face_analyser.GetCurrentValence() << endl;
+			}
+
 			// Output the estimated head pose
 			if(!pose_output_files.empty())
 			{
@@ -337,6 +411,31 @@ int main (int argc, char **argv)
 				vector<pair<Point,Point>> lines = CLMTracker::CalculateBox(pose_estimate_to_draw, fx, fy, cx, cy);
 				CLMTracker::DrawBox(lines, captured_image, Scalar((1-detection_certainty)*255.0,0, detection_certainty*255), thickness);
 
+			}
+
+			vector<Mat> face_neutral_images;
+			vector<Mat> neutral_hogs;
+			vector<Vec3d> orientations;
+			face_analyser.ExtractCurrentMedians(neutral_hogs, face_neutral_images, orientations);
+
+			for(size_t i = 0; i < orientations.size(); ++i)
+			{
+		
+				// Writing out the hog files
+
+				if(sum(face_neutral_images[i])[0] > 0.0001)
+				{
+					// TODO rem
+					stringstream sstream;			
+					sstream << "Neutral face" << i;
+					cv::imshow(sstream.str(), face_neutral_images[i]);
+
+					//stringstream sstream2;			
+					//sstream2 << "Hog face" << i;
+					//Mat_<double> hog;
+					//Psyche::Visualise_FHOG(neutral_hogs[i], 10, 10, hog);
+					//cv::imshow(sstream2.str(), hog);
+				}
 			}
 
 			// Work out the framerate
@@ -405,6 +504,10 @@ int main (int argc, char **argv)
 
 		}
 		
+		avs_output_file.close();
+
+		face_analyser.ResetAV();
+
 		frame_count = 0;
 
 		// Reset the model, for the next video
