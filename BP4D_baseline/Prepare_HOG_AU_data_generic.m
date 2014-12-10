@@ -31,7 +31,7 @@ vid_ids_train_string = vid_ids_train_string(reduced_inds,:);
 %% Extract devel data
 
 % First extracting the labels
-[ labels_devel, valid_ids_devel, vid_ids_devel ] = extract_SEMAINE_labels(bp4d_dir, devel_users, au_train);
+[ labels_devel, valid_ids_devel, vid_ids_devel ] = extract_BP4D_labels(bp4d_dir, devel_users, au_train);
 
 % Reading in the HOG data (of only relevant frames)
 [devel_appearance_data, valid_ids_devel_hog, vid_ids_devel_string] = Read_HOG_files(devel_users, [hog_data_dir, '/devel/']);

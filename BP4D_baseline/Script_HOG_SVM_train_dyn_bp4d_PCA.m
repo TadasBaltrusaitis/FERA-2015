@@ -1,4 +1,4 @@
-function Script_HOG_SVM_train_semaine_PCA()
+function Script_HOG_SVM_train_dyn_bp4d_PCA()
 
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
@@ -18,7 +18,7 @@ svm_train = @svm_train_linear;
 % Set the test function (the first output will be used for validation)
 svm_test = @svm_test_linear;
 
-pca_loc = '../pca_generation/semaine_model.mat';
+pca_loc = '../pca_generation/bp4d_model.mat';
 
 %%
 for a=1:numel(aus)
@@ -28,7 +28,7 @@ for a=1:numel(aus)
     rest_aus = setdiff(all_aus, au);        
 
     % load the training and testing data for the current fold
-    [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);
+    [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic_dynamic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);
 
     train_samples = sparse(train_samples);
     valid_samples = sparse(valid_samples);
@@ -51,11 +51,11 @@ for a=1:numel(aus)
 
     assert(norm(preds_mine - actual_vals) < 1e-8);
 
-    name = sprintf('trained/AU_%d_static_semaine_pca.dat', au);
+    name = sprintf('trained/AU_%d_dynamic_semaine_pca.dat', au);
 
     write_lin_svr(name, means, svs, b);
 
-    name = sprintf('trained/AU_%d_static_semaine_pca.mat', au);
+    name = sprintf('trained/AU_%d_dynamic_semaine_pca.mat', au);
 
     tp = sum(valid_labels == 1 & prediction == 1);
     fp = sum(valid_labels == 0 & prediction == 1);

@@ -1,4 +1,4 @@
-function [hog_data, valid_inds, vid_id] = Read_HOG_files(users, vid_ids, hog_data_dir)
+function [hog_data, valid_inds, vid_id] = Read_HOG_files_dynamic(users, vid_ids, hog_data_dir)
 
     hog_data = [];
     vid_id = {};

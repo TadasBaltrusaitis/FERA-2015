@@ -1,14 +1,14 @@
 function [data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means_norm, stds_norm] = ...
-    Prepare_HOG_AU_data_generic_dynamic(train_users, devel_users, au_train, rest_aus, semaine_dir, hog_data_dir, pca_file)
+    Prepare_HOG_AU_data_generic_dynamic(train_users, devel_users, au_train, rest_aus, bp4d_dir, hog_data_dir, pca_file)
 
 %%
 addpath(genpath('../data extraction/'));
 
 % First extracting the labels
-[ labels_train, valid_ids_train, vid_ids_train ] = extract_SEMAINE_labels(semaine_dir, train_users, au_train);
+[ labels_train, valid_ids_train, vid_ids_train ] = extract_BP4D_labels(bp4d_dir, train_users, au_train);
 
 % Reading in the HOG data (of only relevant frames)
-[train_appearance_data, valid_ids_train_hog, vid_ids_train_string] = Read_HOG_files_dynamic(train_users, vid_ids_train, [hog_data_dir, '/train/']);
+[train_appearance_data, valid_ids_train_hog, vid_ids_train_string] = Read_HOG_files_dynamic_pp(train_users, [hog_data_dir, '/train/']);
 
 % Subsample the data to make training quicker
 labels_train = cat(1, labels_train{:});
@@ -31,10 +31,10 @@ vid_ids_train_string = vid_ids_train_string(reduced_inds,:);
 %% Extract devel data
 
 % First extracting the labels
-[ labels_devel, valid_ids_devel, vid_ids_devel ] = extract_SEMAINE_labels(semaine_dir, devel_users, au_train);
+[ labels_devel, valid_ids_devel, vid_ids_devel ] = extract_BP4D_labels(bp4d_dir, devel_users, au_train);
 
 % Reading in the HOG data (of only relevant frames)
-[devel_appearance_data, valid_ids_devel_hog, vid_ids_devel_string] = Read_HOG_files_dynamic(devel_users, vid_ids_devel, [hog_data_dir, '/devel/']);
+[devel_appearance_data, valid_ids_devel_hog, vid_ids_devel_string] = Read_HOG_files_dynamic_pp(devel_users, [hog_data_dir, '/devel/']);
 
 labels_devel = cat(1, labels_devel{:});
 

@@ -2,6 +2,7 @@ function [hog_data, valid_inds, vid_id] = Read_HOG_files(users, hog_data_dir)
 
     hog_data = [];
     vid_id = {};
+    valid_inds = [];
     
     feats_filled = 0;
 
@@ -66,7 +67,7 @@ function [hog_data, valid_inds, vid_id] = Read_HOG_files(users, hog_data_dir)
             vid_id = cat(1, vid_id, vid_id_curr);
 
             % Assume same number of frames per video
-            if(i==1)
+            if(i==1 && h == 1)
                 hog_data = zeros(curr_ind*numel(users), num_feats);
             end
 
@@ -80,7 +81,8 @@ function [hog_data, valid_inds, vid_id] = Read_HOG_files(users, hog_data_dir)
         end
     end
     
-    valid_inds = hog_data(1:feats_filled,1);
-    hog_data = hog_data(1:feats_filled,2:end);
-    
+    if(~isempty(hog_data))        
+        valid_inds = hog_data(1:feats_filled,1);
+        hog_data = hog_data(1:feats_filled,2:end);
+    end
 end

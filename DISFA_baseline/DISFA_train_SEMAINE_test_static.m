@@ -1,5 +1,6 @@
 clear 
-SEMAINE_dir = 'I:\datasets\FERA_2015\Semaine\SEMAINE-Sessions\';
+addpath(genpath('../data extraction/'));
+find_SEMAINE;
 
 % train_recs = {'rec1', 'rec12', 'rec14', 'rec19', 'rec23', 'rec25', 'rec37', 'rec39', 'rec43', 'rec45', 'rec48', 'rec50', 'rec52', 'rec54', 'rec56', 'rec60'};
 % devel_recs = {'rec9', 'rec13', 'rec15', 'rec20', 'rec24', 'rec26', 'rec38', 'rec42', 'rec44', 'rec46', 'rec49', 'rec51', 'rec53', 'rec55', 'rec58'};
@@ -28,15 +29,43 @@ for i=1:numel(aus_to_test)
 
 end
 
-labels_pred = cell(numel(to_test), 1);
+%% Predict using the DISFA trained models (static)
 
-for i=1:numel(to_test)   
-    labels = dlmread([output_semaine, to_test{i}, '.au.txt'], ' ');
-    labels_pred{i} = labels(vid_inds(i,1):vid_inds(i,2)-1, inds_to_use+1);
+addpath('../SEMAINE_baseline/');
+labels_pred = cell(numel(labels_gt), 1);
+labels_all_pred = [];
+
+load('../pca_generation/generic_face_rigid.mat');
+
+[ ~, ~, vid_ids_devel ] = extract_SEMAINE_labels(SEMAINE_dir, devel_recs, aus_to_test);
+
+% Reading in the HOG data (of only relevant frames)
+[raw_devel, ~, ~] = Read_HOG_files(devel_recs, vid_ids_devel, [hog_data_dir, '/devel/']);
+
+for i=1:numel(aus_to_test)   
+
+    % load the appropriate model from the trained DISFA files
+    model_file = sprintf('../DISFA_baseline/training/trained/AU_%d_static.mat', aus_to_test(i));
+    load(model_file);
+    
+    % perform prediction with the model file
+    % Go from raw data to the prediction
+    w = model.w(1:end-1)';
+    b = model.w(end);
+
+    svs = bsxfun(@times, PC, 1./stds_norm') * w;
+
+    % Attempt own prediction
+    preds_mine = bsxfun(@plus, raw_devel, -means_norm) * svs + b;
+    preds_mine(preds_mine <0) = 0;
+    preds_mine(preds_mine >5) = 5;
+    
+    labels_all_pred = cat(2, labels_all_pred, preds_mine);
+    
 end
 
+%%
 labels_all_gt = cat(1, labels_gt{:});
-labels_all_pred = cat(1, labels_pred{:});
 
 labels_bin_pred = labels_all_pred > 0.99;
 
