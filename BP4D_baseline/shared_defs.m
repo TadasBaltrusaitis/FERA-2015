@@ -9,7 +9,9 @@ aus = [1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23];
 if(exist('C:\tadas\face_datasets\fera_2015\bp4d\AUCoding/', 'file'))
     BP4D_dir = 'C:\tadas\face_datasets\fera_2015\bp4d\AUCoding/';   
 elseif(exist('E:\datasets\FERA_2015\BP4D\AUCoding/', 'file'))
-    BP4D_dir = 'E:\datasets\FERA_2015\BP4D\AUCoding/';   
+    BP4D_dir = 'E:\datasets\FERA_2015\BP4D\AUCoding/';       
+elseif(exist('D:\datasets\face_datasets\fera_2015\bp4d\AUCoding/','file'))
+    BP4D_dir = 'D:\datasets\face_datasets\fera_2015\bp4d\AUCoding/';
 else
     fprintf('BP4D location not found (or not defined)\n'); 
 end
