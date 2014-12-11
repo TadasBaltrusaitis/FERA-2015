@@ -8,7 +8,8 @@ shared_defs;
 
 % Set up the hyperparameters to be validated
 hyperparams.c = 10.^(-6:1:3);
-hyperparams.e = 10.^(-6:1:-1);
+% hyperparams.e = 10.^(-6:1:-1);
+hyperparams.e = 10.^(-3);
 
 hyperparams.validate_params = {'c', 'e'};
 
@@ -80,7 +81,14 @@ end
 
 function [result, prediction] = svm_test_linear(test_labels, test_samples, model)
 
-    [prediction, a, actual_vals] = predict(test_labels, test_samples, model);           
+    w = model.w(1:end-1)';
+    b = model.w(end);
+
+    % Attempt own prediction
+    prediction = test_samples * w + b;
+    prediction = prediction < 0;
+ 
+    %[prediction, a, actual_vals] = predict(test_labels, test_samples, model);           
     
     tp = sum(test_labels == 1 & prediction == 1);
     fp = sum(test_labels == 0 & prediction == 1);
@@ -93,7 +101,7 @@ function [result, prediction] = svm_test_linear(test_labels, test_samples, model
     f1 = 2 * precision * recall / (precision + recall);
 
 %     result = corr(test_labels, prediction);
-    
+    fprintf('F1:%.3f\n', f1);
     if(isnan(f1))
         f1 = 0;
     end

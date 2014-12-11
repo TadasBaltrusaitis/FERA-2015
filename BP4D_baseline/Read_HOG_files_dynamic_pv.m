@@ -32,12 +32,12 @@ function [hog_data, valid_inds, vid_id] = Read_HOG_files_dynamic_pv(users, hog_d
 
                     % preallocate some space
                     if(curr_ind == 1)
-                        curr_data = zeros(5000, 1 + num_rows * num_cols * num_chan);
+                        curr_data = zeros(1000, 1 + num_rows * num_cols * num_chan);
                         num_feats =  1 + num_rows * num_cols * num_chan;
                     end
 
                     if(curr_ind > size(curr_data,1))
-                        curr_data = cat(1, curr_data, zeros(6000, 1 + num_rows * num_cols * num_chan));
+                        curr_data = cat(1, curr_data, zeros(1000, 1 + num_rows * num_cols * num_chan));
                     end
                     feature_vec = fread(f, [1, 1 + num_rows * num_cols * num_chan], 'float32');
                     curr_data(curr_ind, :) = feature_vec;
@@ -68,11 +68,11 @@ function [hog_data, valid_inds, vid_id] = Read_HOG_files_dynamic_pv(users, hog_d
 
             % Assume same number of frames per video
             if(i==1 && h == 1)
-                hog_data = zeros(curr_ind*numel(users), num_feats);
+                hog_data = zeros(curr_ind * numel(users) * 8, num_feats);
             end
 
             if(size(hog_data,1) < feats_filled+curr_ind)
-               hog_data = cat(1, hog_data, zeros(feats_filled + curr_ind - size(hog_data,1), num_feats));
+               hog_data = cat(1, hog_data, zeros(size(hog_data,1), num_feats));
             end
 
             % Do the median normalisation per video here
