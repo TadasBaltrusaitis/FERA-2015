@@ -40,7 +40,10 @@ for i=1:numel(aus_to_test)
 
     % Attempt own prediction
     preds_mine = bsxfun(@plus, raw_devel, -means_norm) * svs + b;
-    preds_mine = preds_mine < 0;
+    l1_inds = preds_mine > 0;
+    l2_inds = preds_mine <= 0;
+    preds_mine(l1_inds) = model.Label(1);
+    preds_mine(l2_inds) = model.Label(2);
     
     labels_all_pred = cat(2, labels_all_pred, preds_mine);
     

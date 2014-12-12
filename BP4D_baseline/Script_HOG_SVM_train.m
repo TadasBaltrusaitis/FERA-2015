@@ -86,7 +86,10 @@ function [result, prediction] = svm_test_linear(test_labels, test_samples, model
 
     % Attempt own prediction
     prediction = test_samples * w + b;
-    prediction = prediction < 0;
+    l1_inds = prediction > 0;
+    l2_inds = prediction <= 0;
+    prediction(l1_inds) = model.Label(1);
+    prediction(l2_inds) = model.Label(2);
  
     %[prediction, a, actual_vals] = predict(test_labels, test_samples, model);           
     

@@ -1,0 +1,16 @@
+BP4D_train_SEMAINE_test_dynamic
+AU2: corr - 0.257, precision - 0.242, recall - 0.491, F1 - 0.324
+AU12: corr - 0.192, precision - 0.349, recall - 0.627, F1 - 0.448
+AU17: corr - 0.125, precision - 0.055, recall - 0.970, F1 - 0.105
+BP4D_train_SEMAINE_test_dynamic_spec_pca
+AU2: corr - 0.204, precision - 0.190, recall - 0.509, F1 - 0.277
+AU12: corr - 0.208, precision - 0.386, recall - 0.504, F1 - 0.437
+AU17: corr - 0.131, precision - 0.058, recall - 0.957, F1 - 0.109
+BP4D_train_SEMAINE_test_static
+AU2: corr - 0.161, precision - 0.130, recall - 0.763, F1 - 0.223
+AU12: corr - 0.223, precision - 0.317, recall - 0.900, F1 - 0.469
+AU17: corr - 0.125, precision - 0.055, recall - 0.976, F1 - 0.104
+BP4D_train_SEMAINE_test_static_spec_pca
+AU2: corr - 0.222, precision - 0.163, recall - 0.744, F1 - 0.267
+AU12: corr - 0.192, precision - 0.295, recall - 0.962, F1 - 0.451
+AU17: corr - 0.121, precision - 0.054, recall - 0.975, F1 - 0.103

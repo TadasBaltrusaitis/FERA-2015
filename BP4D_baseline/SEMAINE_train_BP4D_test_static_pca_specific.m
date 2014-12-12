@@ -28,7 +28,7 @@ load('../pca_generation/semaine_model.mat');
 for i=1:numel(aus_to_test)   
 
     % load the appropriate model from the trained DISFA files
-    model_file = sprintf('../SEMAINE_baseline/trained/AU_%d_static.mat', aus_to_test(i));
+    model_file = sprintf('../SEMAINE_baseline/trained/AU_%d_static_semaine_pca.mat', aus_to_test(i));
     load(model_file);
     
     % perform prediction with the model file
@@ -40,7 +40,10 @@ for i=1:numel(aus_to_test)
 
     % Attempt own prediction
     preds_mine = bsxfun(@plus, raw_devel, -means_norm) * svs + b;
-    preds_mine = preds_mine < 0;
+    l1_inds = preds_mine > 0;
+    l2_inds = preds_mine <= 0;
+    preds_mine(l1_inds) = model.Label(1);
+    preds_mine(l2_inds) = model.Label(2);
     
     labels_all_pred = cat(2, labels_all_pred, preds_mine);
     

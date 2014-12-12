@@ -24,11 +24,10 @@ labels_all_pred = [];
 
 load('../pca_generation/bp4d_model.mat');
 
-[ ~, ~, vid_ids_devel ] = extract_SEMAINE_labels(SEMAINE_dir, devel_recs, aus_to_test);
-
 % Reading in the HOG data (of only relevant frames)
-[raw_devel, ~, ~] = Read_HOG_files(devel_recs, vid_ids_devel, [hog_data_dir, '/devel/']);
+[raw_devel, ~, ~] = Read_HOG_files(devel_recs, vid_inds, [hog_data_dir, '/devel/']);
 
+%%
 for i=1:numel(aus_to_test)   
 
     % load the appropriate model from the trained DISFA files
@@ -44,7 +43,10 @@ for i=1:numel(aus_to_test)
 
     % Attempt own prediction
     preds_mine = bsxfun(@plus, raw_devel, -means_norm) * svs + b;
-    preds_mine = preds_mine < 0;
+    l1_inds = preds_mine > 0;
+    l2_inds = preds_mine <= 0;
+    preds_mine(l1_inds) = model.Label(1);
+    preds_mine(l2_inds) = model.Label(2);
     
     labels_all_pred = cat(2, labels_all_pred, preds_mine);
     
