@@ -14,16 +14,6 @@ aus_to_test = [1, 2, 4, 6, 12, 15, 17];
 % Extract our baseline C++ results
 output_bp4d = 'I:\datasets\FERA_2015\BP4D\processed_data\';
 
-pred_aus = [4,12,25,26,1,2,5,6,9,15,17];
-
-inds_to_use = [];
-
-for i=1:numel(aus_to_test)
-
-    inds_to_use = cat(1, inds_to_use, find(pred_aus == aus_to_test(i)));
-
-end
-
 %% Predict using the DISFA trained models (dynamic)
 
 addpath('../BP4D_baseline/');

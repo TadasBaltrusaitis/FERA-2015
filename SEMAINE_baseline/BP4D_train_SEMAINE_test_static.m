@@ -16,9 +16,6 @@ aus_to_test = [2, 12, 17, 25];
 
 [labels_gt, valid_ids, vid_inds] = extract_SEMAINE_labels(SEMAINE_dir, to_test, aus_to_test);
 
-% Extract our baseline C++ results
-output_semaine = 'I:\datasets\FERA_2015\Semaine\processed_data\';
-
 %% Predict using the DISFA trained models (static)
 
 addpath('../SEMAINE_baseline/');
@@ -35,7 +32,7 @@ load('../pca_generation/generic_face_rigid.mat');
 for i=1:numel(aus_to_test)   
 
     % load the appropriate model from the trained DISFA files
-    model_file = sprintf('../DISFA_baseline/training/trained/AU_%d_static.mat', aus_to_test(i));
+    model_file = sprintf('../BP4D_baseline/training/trained/AU_%d_static.mat', aus_to_test(i));
     load(model_file);
     
     % perform prediction with the model file
