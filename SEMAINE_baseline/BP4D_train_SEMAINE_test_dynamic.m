@@ -12,7 +12,7 @@ devel_recs = {'rec13', 'rec15', 'rec20', 'rec24', 'rec26', 'rec38', 'rec42', 're
 
 to_test = devel_recs;
 
-aus_to_test = [2, 12, 17, 25];
+aus_to_test = [2, 12, 17];
 
 [labels_gt, valid_ids, vid_inds] = extract_SEMAINE_labels(SEMAINE_dir, to_test, aus_to_test);
 
@@ -32,7 +32,7 @@ load('../pca_generation/generic_face_rigid.mat');
 for i=1:numel(aus_to_test)   
 
     % load the appropriate model from the trained DISFA files
-    model_file = sprintf('../BP4D_baseline/training/trained/AU_%d_dyn.mat', aus_to_test(i));
+    model_file = sprintf('../BP4D_baseline/trained/AU_%d_dyn.mat', aus_to_test(i));
     load(model_file);
     
     % perform prediction with the model file
@@ -44,8 +44,7 @@ for i=1:numel(aus_to_test)
 
     % Attempt own prediction
     preds_mine = bsxfun(@plus, raw_devel, -means_norm) * svs + b;
-    preds_mine(preds_mine <0) = 0;
-    preds_mine(preds_mine >5) = 5;
+    preds_mine = preds_mine < 0;
     
     labels_all_pred = cat(2, labels_all_pred, preds_mine);
     

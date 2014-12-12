@@ -1,38 +1,34 @@
 clear 
-addpath(genpath('../data extraction/'));
-find_SEMAINE;
+addpath('../data extraction/');
+find_BP4D;
 
-% train_recs = {'rec1', 'rec12', 'rec14', 'rec19', 'rec23', 'rec25', 'rec37', 'rec39', 'rec43', 'rec45', 'rec48', 'rec50', 'rec52', 'rec54', 'rec56', 'rec60'};
-% devel_recs = {'rec9', 'rec13', 'rec15', 'rec20', 'rec24', 'rec26', 'rec38', 'rec42', 'rec44', 'rec46', 'rec49', 'rec51', 'rec53', 'rec55', 'rec58'};
-
-% Issues with the following recordings 9, 50, 56, so they are omitted for
-% now
-train_recs = {'rec1', 'rec12', 'rec14', 'rec19', 'rec23', 'rec25', 'rec37', 'rec39', 'rec43', 'rec45', 'rec48', 'rec52', 'rec54', 'rec60'};
-devel_recs = {'rec13', 'rec15', 'rec20', 'rec24', 'rec26', 'rec38', 'rec42', 'rec44', 'rec46', 'rec49', 'rec51', 'rec53', 'rec55', 'rec58'};
+train_recs = {'F001', 'F003', 'F005', 'F007', 'F009', 'F011', 'F013', 'F015', 'F017', 'F019', 'F021', 'F023', 'M001', 'M003', 'M005', 'M007', 'M009', 'M011', 'M013', 'M015' 'M017'};
+devel_recs = {'F002', 'F004', 'F006', 'F008', 'F010', 'F012', 'F014', 'F016', 'F018', 'F020', 'F022', 'M002', 'M004', 'M006', 'M008', 'M010', 'M012', 'M014', 'M016', 'M018'};
 
 to_test = devel_recs;
 
 aus_to_test = [2, 12, 17];
 
-[labels_gt, valid_ids, vid_inds] = extract_SEMAINE_labels(SEMAINE_dir, to_test, aus_to_test);
+[labels_gt, valid_ids, vid_inds, filenames] = extract_BP4D_labels(BP4D_dir, to_test, aus_to_test);
+
+% Extract our baseline C++ results
+output_bp4d = 'I:\datasets\FERA_2015\BP4D\processed_data\';
 
 %% Predict using the DISFA trained models (static)
 
-addpath('../SEMAINE_baseline/');
+addpath('../BP4D_baseline/');
 labels_pred = cell(numel(labels_gt), 1);
 labels_all_pred = [];
 
-load('../pca_generation/bp4d_model.mat');
-
-[ ~, ~, vid_ids_devel ] = extract_SEMAINE_labels(SEMAINE_dir, devel_recs, aus_to_test);
+load('../pca_generation/semaine_model.mat');
 
 % Reading in the HOG data (of only relevant frames)
-[raw_devel, ~, ~] = Read_HOG_files_dynamic(devel_recs, vid_ids_devel, [hog_data_dir, '/devel/']);
+[raw_devel, ~, ~] = Read_HOG_files(devel_recs, [hog_data_dir, '/devel/']);
 
 for i=1:numel(aus_to_test)   
 
     % load the appropriate model from the trained DISFA files
-    model_file = sprintf('../BP4D_baseline/trained/AU_%d_dynamic_bp4d_pca.mat', aus_to_test(i));
+    model_file = sprintf('../SEMAINE_baseline/trained/AU_%d_static.mat', aus_to_test(i));
     load(model_file);
     
     % perform prediction with the model file
