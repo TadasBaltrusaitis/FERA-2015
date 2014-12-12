@@ -8,7 +8,8 @@ shared_defs;
 
 % Set up the hyperparameters to be validated
 hyperparams.c = 10.^(-6:1:3);
-hyperparams.e = 10.^(-6:1:-1);
+% hyperparams.e = 10.^(-6:1:-1);
+hyperparams.e = 10.^(-3);
 
 hyperparams.validate_params = {'c', 'e'};
 
