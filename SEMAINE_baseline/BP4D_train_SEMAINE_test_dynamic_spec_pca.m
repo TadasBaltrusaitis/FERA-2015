@@ -59,17 +59,19 @@ labels_bin_pred = labels_all_pred;
 
 % Some simple correlations
 for i=1:numel(aus_to_test)
-   c = corr(labels_all_gt(:,i), labels_all_pred(:,i)); 
-   
-   tp = sum(labels_all_gt(:,i) == 1 & labels_bin_pred(:,i) == 1);
-   fp = sum(labels_all_gt(:,i) == 0 & labels_bin_pred(:,i) == 1);
-   fn = sum(labels_all_gt(:,i) == 1 & labels_bin_pred(:,i) == 0);
-   tn = sum(labels_all_gt(:,i) == 0 & labels_bin_pred(:,i) == 0);
-   
-   precision = tp/(tp+fp);
-   recall = tp/(tp+fn);
-   
-   f1 = 2 * precision * recall / (precision + recall);
-   
-   fprintf('AU%d: corr - %.3f, precision - %.3f, recall - %.3f, F1 - %.3f\n', aus_to_test(i), c, precision, recall, f1);
+    c = corr(labels_all_gt(:,i), labels_all_pred(:,i)); 
+
+    tp = sum(labels_all_gt(:,i) == 1 & labels_bin_pred(:,i) == 1);
+    fp = sum(labels_all_gt(:,i) == 0 & labels_bin_pred(:,i) == 1);
+    fn = sum(labels_all_gt(:,i) == 1 & labels_bin_pred(:,i) == 0);
+    tn = sum(labels_all_gt(:,i) == 0 & labels_bin_pred(:,i) == 0);
+
+    precision = tp/(tp+fp);
+    recall = tp/(tp+fn);
+
+    f1 = 2 * precision * recall / (precision + recall);
+    name = sprintf('trained/AU_%d_bp4d_dyn_spec.mat', aus_to_test(i));
+    save(name, 'f1', 'precision', 'recall');
+
+    fprintf('AU%d: corr - %.3f, precision - %.3f, recall - %.3f, F1 - %.3f\n', aus_to_test(i), c, precision, recall, f1);
 end

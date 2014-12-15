@@ -7,7 +7,6 @@ elseif(exist('C:\tadas\face_datasets\fera_2015\semaine/SEMAINE-Sessions/', 'file
 elseif(exist('D:\datasets\face_datasets\fera_2015\semaine\SEMAINE-Sessions/', 'file'))
     SEMAINE_dir = 'D:\datasets\face_datasets\fera_2015\semaine\SEMAINE-Sessions/';
 else
-else    
     fprintf('DISFA location not found (or not defined)\n'); 
 end
 
