@@ -9,6 +9,8 @@ elseif(exist('E:/datasets/DISFA/', 'dir'))
     DISFA_loc = 'E:/datasets/DISFA/';       
 elseif(exist('C:/tadas/DISFA', 'dir'))
     DISFA_loc = 'C:/tadas/DISFA/';
+elseif(exist('D:\datasets\face_datasets\DISFA/', 'dir'))
+    DISFA_loc = 'D:\datasets\face_datasets\DISFA/';    
 else
    fprintf('DISFA not found\n'); 
 end
@@ -72,7 +74,7 @@ parfor i=1:numel(disfa_loc_2_files)
         
     output_params = [output_params_root '/' name '.txt'];
         
-    command = cat(2, command, [' -rigid -f "' input_file '" -simalign "' output_file  '" -simscale 0.7 -simsize 112 -g']);  
+    command = cat(2, command, [' -rigid -f "' input_file '" -simalign "' output_file  '" -simscale 0.7 -simsize 112']);  
     command = cat(2, command, [' -hogalign "' output_hog '"']);
     command = cat(2, command, [' -oparams "' output_params '"']);
     

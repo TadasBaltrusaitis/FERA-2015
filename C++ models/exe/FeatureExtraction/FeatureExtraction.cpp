@@ -380,7 +380,9 @@ int main (int argc, char **argv)
 	get_output_feature_params(output_similarity_align_files, output_hog_align_files, params_output_files, output_neutrals, output_aus, sim_scale, sim_size, video_output, grayscale, rigid, arguments);
 
 	// Face analyser (used for neutral expression extraction)
-	Psyche::FaceAnalyser face_analyser(sim_scale, sim_size, sim_size);
+	vector<Vec3d> orientations = vector<Vec3d>();
+	orientations.push_back(Vec3d(0.0,0.0,0.0));
+	Psyche::FaceAnalyser face_analyser(orientations, sim_scale, sim_size, sim_size);
 
 	// Will warp to scaled mean shape
 	Mat_<double> similarity_normalised_shape = clm_model.pdm.mean_shape * sim_scale;
