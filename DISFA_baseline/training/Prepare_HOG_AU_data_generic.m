@@ -5,16 +5,20 @@ function [data_train, labels_train, data_valid, labels_valid, raw_valid, PC, mea
 
 input_train_label_files = cell(numel(train_users),1);
     
-if(exist('D:/Databases/DISFA', 'file'))
-    root = 'D:/Databases/DISFA/';
-elseif(exist('F:/datasets/DISFA', 'file'))
+if(exist('F:/datasets/DISFA/', 'file'))
     root = 'F:/datasets/DISFA/';
-elseif(exist('E:/datasets/DISFA', 'file'))
+elseif(exist('D:/Databases/DISFA/', 'file'))        
+    root = 'D:/Databases/DISFA/';
+elseif(exist('Z:/datasets/DISFA/', 'file'))        
+    root = 'Z:/Databases/DISFA/';
+elseif(exist('E:/datasets/DISFA/', 'file'))        
     root = 'E:/datasets/DISFA/';
 elseif(exist('C:/tadas/DISFA/', 'file'))        
-    root = 'C:/tadas/DISFA/';    
+    root = 'C:/tadas/DISFA/';
+elseif(exist('D:\datasets\face_datasets\DISFA/', 'file'))        
+    root = 'D:\datasets\face_datasets\DISFA/';
 else
-   fprintf('Can not find the dataset\n'); 
+    fprintf('DISFA location not found (or not defined)\n'); 
 end
     
 % This is for loading the labels
@@ -23,7 +27,7 @@ for i=1:numel(train_users)
 end
 
 % Reading in the HOG data
-[train_appearance_data, vid_ids_train] = Read_HOG_files(train_users, hog_data_dir);
+[train_appearance_data, tracked_inds_hog, vid_ids_train] = Read_HOG_files(train_users, hog_data_dir);
 
 % Getting the indices describing the splits (full version)
 [training_inds, valid_inds, split] = construct_indices(vid_ids_train, train_users);
@@ -37,7 +41,13 @@ labels_train = extract_au_labels(input_train_label_files, au_train);
 % can now extract the needed training labels (do not rebalance validation
 % data)
 labels_valid = labels_train(valid_inds);
-labels_train = labels_train(inds_train_rebalanced);
+
+% Get rid of non tracked frames
+training_inds = false(size(labels_train,1),1);
+training_inds(inds_train_rebalanced) = true;
+training_inds = training_inds & tracked_inds_hog;
+
+labels_train = labels_train(training_inds);
 
 % normalise the data
 pca_file = '../../pca_generation/generic_face_rigid.mat';
@@ -47,7 +57,7 @@ load(pca_file);
 raw_valid = train_appearance_data(valid_inds,:);
 
 valid_appearance_data = bsxfun(@times, bsxfun(@plus, train_appearance_data(valid_inds,:), -means_norm), 1./stds_norm);
-train_appearance_data = bsxfun(@times, bsxfun(@plus, train_appearance_data(inds_train_rebalanced,:), -means_norm), 1./stds_norm);
+train_appearance_data = bsxfun(@times, bsxfun(@plus, train_appearance_data(training_inds,:), -means_norm), 1./stds_norm);
 
 data_train = train_appearance_data * PC;
 data_valid = valid_appearance_data * PC;

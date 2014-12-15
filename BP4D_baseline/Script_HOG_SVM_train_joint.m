@@ -25,7 +25,7 @@ svm_test = @svm_test_linear;
 pca_loc = '../pca_generation/generic_face_rigid.mat';
 
 %%
-for a=1:numel(aus)
+for a=2:numel(aus)
     
     if(ismember(aus(a), semaine_au) || ismember(aus(a), disfa_au))
     
@@ -41,7 +41,7 @@ for a=1:numel(aus)
             od = cd('../SEMAINE_baseline/');
             find_SEMAINE;
             rest_aus = setdiff(semaine_au, au);    
-            [train_samples_sem, train_labels_sem, ~, ~, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, rest_aus, BP4D_dir, hog_data_dir, pca_loc);
+            [train_samples_sem, train_labels_sem, ~, ~, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);
             cd(od);
             
             % TODO should valid be included?
@@ -53,11 +53,14 @@ for a=1:numel(aus)
         if(ismember(aus(a), disfa_au))
             find_DISFA;
             od = cd('../DISFA_baseline/training/');
-            rest_aus = setdiff(disfa_au, au);    
+            all_disfa = [1,2,4,5,6,9,12,15,17,20,25,26];
+            rest_aus = setdiff(all_disfa, au);    
             [train_samples_disfa, train_labels_disfa, ~, ~, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic(users, au, rest_aus, hog_data_dir);            
             cd(od);
-            % Binarise the models
-            train_labels_disfa(train_labels_disfa > 2) = 1;
+            % Binarise the models            
+            train_labels_disfa(train_labels_disfa < 1) = 0;
+            train_labels_disfa(train_labels_disfa >= 1) = 1;
+            
             % TODO should valid be included?
             train_samples = cat(1, train_samples, train_samples_disfa);
             train_labels = cat(1, train_labels, train_labels_disfa);
