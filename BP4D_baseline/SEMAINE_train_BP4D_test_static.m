@@ -67,6 +67,8 @@ for i=1:numel(aus_to_test)
    recall = tp/(tp+fn);
    
    f1 = 2 * precision * recall / (precision + recall);
-   
+   name = sprintf('trained/AU_%d_semaine_stat.mat', aus_to_test(i));
+   save(name, 'f1', 'precision', 'recall');
+      
    fprintf('AU%d: corr - %.3f, precision - %.3f, recall - %.3f, F1 - %.3f\n', aus_to_test(i), c, precision, recall, f1);
 end
