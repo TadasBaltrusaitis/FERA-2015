@@ -25,7 +25,7 @@ svm_test = @svm_test_linear;
 pca_loc = '../pca_generation/generic_face_rigid.mat';
 
 %%
-for a=2:numel(aus)
+for a=1:numel(aus)
     
     if(ismember(aus(a), semaine_au) || ismember(aus(a), disfa_au))
     
