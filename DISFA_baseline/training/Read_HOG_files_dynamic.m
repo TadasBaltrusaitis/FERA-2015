@@ -1,4 +1,4 @@
-function [hog_data, vid_id] = Read_HOG_files_dynamic(users, hog_data_dir)
+function [hog_data, valid_data, vid_id] = Read_HOG_files_dynamic(users, hog_data_dir)
 
     hog_data = [];
     vid_id = {};
@@ -29,20 +29,20 @@ function [hog_data, vid_id] = Read_HOG_files_dynamic(users, hog_data_dir)
 
                 % preallocate some space
                 if(curr_ind == 1)
-                    curr_data = zeros(5000, num_rows * num_cols * num_chan);
-                    num_feats =  num_rows * num_cols * num_chan;
+                    curr_data = zeros(5000, 1 + num_rows * num_cols * num_chan);
+                    num_feats =  1 + num_rows * num_cols * num_chan;
                 end
 
                 if(curr_ind > size(curr_data,1))
-                    curr_data = cat(1, curr_data, zeros(6000, num_rows * num_cols * num_chan));
+                    curr_data = cat(1, curr_data, zeros(6000, 1 + num_rows * num_cols * num_chan));
                 end
-                feature_vec = fread(f, [1, num_rows * num_cols * num_chan], 'float32');
+                feature_vec = fread(f, [1, 1 + num_rows * num_cols * num_chan], 'float32');
                 curr_data(curr_ind, :) = feature_vec;
             else
             
                 % Reading in batches of 5000
                 
-                feature_vec = fread(f, [3 + num_rows * num_cols * num_chan, 5000], 'float32');
+                feature_vec = fread(f, [4 + num_rows * num_cols * num_chan, 5000], 'float32');
                 feature_vec = feature_vec(4:end,:)';
                 
                 num_rows_read = size(feature_vec,1);
@@ -99,7 +99,7 @@ function [hog_data, vid_id] = Read_HOG_files_dynamic(users, hog_data_dir)
            load(med_file); 
         end
         
-        curr_data = bsxfun(@plus, curr_data, -meds);
+        curr_data(:,2:end) = bsxfun(@plus, curr_data(:,2:end), -meds(:,2:end));
         
         vid_id_curr = cell(curr_ind,1);
         vid_id_curr(:) = users(i);
@@ -121,6 +121,7 @@ function [hog_data, vid_id] = Read_HOG_files_dynamic(users, hog_data_dir)
         
     end
     
-    hog_data = hog_data(1:feats_filled,:);
+    valid_data = hog_data(1:feats_filled,1) > 0;
+    hog_data = hog_data(1:feats_filled,2:end);
     
 end
