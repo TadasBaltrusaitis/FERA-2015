@@ -54,7 +54,7 @@ for a=1:numel(all_aus_int)
 %     name = sprintf('trained/AU_%d_static.dat', au);
 %     write_lin_svr(name, means, svs, b);
 
-    name = sprintf('trained/AU_%d_static.mat', au);
+    name = sprintf('trained/AU_%d_static_intensity.mat', au);
     
     correlation = corr(valid_labels, prediction);
     RMSE = sqrt(mean((valid_labels - prediction).^2));
