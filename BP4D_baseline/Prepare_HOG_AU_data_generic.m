@@ -1,5 +1,5 @@
 function [data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means_norm, stds_norm] = ...
-    Prepare_HOG_AU_data_generic(train_users, devel_users, au_train, rest_aus, bp4d_dir, hog_data_dir, pca_file)
+    Prepare_HOG_AU_data_generic(train_users, devel_users, au_train, bp4d_dir, hog_data_dir, pca_file)
 
 %%
 addpath(genpath('../data extraction/'));

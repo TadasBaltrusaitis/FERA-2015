@@ -31,11 +31,9 @@ for a=1:numel(aus)
     
         au = aus(a);
 
-        rest_aus = setdiff(all_aus, au);        
-
         find_BP4D;
         % load the training and testing data for the current fold
-        [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, rest_aus, BP4D_dir, hog_data_dir, pca_loc);
+        [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc);
 
         if(ismember(aus(a), semaine_au))
             od = cd('../SEMAINE_baseline/');

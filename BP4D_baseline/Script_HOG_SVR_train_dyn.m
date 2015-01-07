@@ -8,7 +8,7 @@ shared_defs;
 
 % Set up the hyperparameters to be validated
 hyperparams.c = 10.^(-6:2:3);
-hyperparams.p = 10.^(-6:2:-1);
+hyperparams.p = 10.^(-2);
 
 hyperparams.validate_params = {'c', 'p'};
 
@@ -25,11 +25,9 @@ for a=1:numel(all_aus_int)
     
     au = all_aus_int(a);
             
-    rest_aus = setdiff(all_aus, au);        
-
     % load the training and testing data for the current fold
-    [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic_dynamic_intensity(train_recs, devel_recs, au, rest_aus, BP4D_dir_int, hog_data_dir, pca_loc);
-
+    [train_samples, train_labels, vid_ids_train, valid_samples, valid_labels, vid_ids_valid, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic_dynamic_intensity(train_recs, devel_recs, au, BP4D_dir_int, hog_data_dir, pca_loc);
+    
     train_samples = sparse(train_samples);
     valid_samples = sparse(valid_samples);
 
@@ -40,6 +38,9 @@ for a=1:numel(all_aus_int)
 
     [prediction, a, actual_vals] = predict(valid_labels, valid_samples, model);
 
+    prediction(prediction < 0) = 0;
+    prediction(prediction > 5) = 5;
+    
     % Go from raw data to the prediction
     w = model.w(1:end-1)';
     b = model.w(end);
@@ -60,24 +61,22 @@ for a=1:numel(all_aus_int)
     RMSE = sqrt(mean((valid_labels - prediction).^2));
     
     % convert to binary as well (to compare)
-    valid_samples = prediction ~= 9;
+    [~, ~, valid_samples_bin, valid_labels_bin] = Prepare_HOG_AU_data_generic_dynamic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc);    
     
-    valid_labels = valid_labels > 1;
-    prediction = prediction > 1;
+    [prediction, a, actual_vals] = predict(valid_labels_bin, sparse(valid_samples_bin), model);
     
-    valid_labels = valid_labels(valid_samples);
-    prediction = prediction(valid_samples);
-    
-    tp = sum(valid_labels == 1 & prediction == 1);
-    fp = sum(valid_labels == 0 & prediction == 1);
-    fn = sum(valid_labels == 1 & prediction == 0);
-    tn = sum(valid_labels == 0 & prediction == 0);
+    prediction_bin = prediction > 1;
+        
+    tp = sum(valid_labels_bin == 1 & prediction_bin == 1);
+    fp = sum(valid_labels_bin == 0 & prediction_bin == 1);
+    fn = sum(valid_labels_bin == 1 & prediction_bin == 0);
+    tn = sum(valid_labels_bin == 0 & prediction_bin == 0);
 
     precision = tp/(tp+fp);
     recall = tp/(tp+fn);
 
-    f1 = 2 * precision * recall / (precision + recall);    
-    
+    f1 = 2 * precision * recall / (precision + recall);            
+    %%
     save(name, 'model', 'correlation', 'RMSE', 'f1', 'precision', 'recall');
         
 end

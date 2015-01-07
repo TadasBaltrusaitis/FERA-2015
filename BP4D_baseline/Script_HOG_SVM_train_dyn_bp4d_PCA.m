@@ -26,10 +26,8 @@ for a=1:numel(aus)
     
     au = aus(a);
             
-    rest_aus = setdiff(all_aus, au);        
-
     % load the training and testing data for the current fold
-    [train_samples, train_labels, valid_samples, valid_labels, ~, PC, means, scaling] = Prepare_HOG_AU_data_generic_dynamic(train_recs, devel_recs, au, rest_aus, BP4D_dir, hog_data_dir, pca_loc);
+    [train_samples, train_labels, valid_samples, valid_labels, ~, PC, means, scaling] = Prepare_HOG_AU_data_generic_dynamic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc);
 
     train_samples = sparse(train_samples);
     valid_samples = sparse(valid_samples);

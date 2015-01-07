@@ -1,5 +1,5 @@
-function [data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means_norm, stds_norm] = ...
-    Prepare_HOG_AU_data_generic_intensity(train_users, devel_users, au_train, rest_aus, bp4d_dir, hog_data_dir, pca_file)
+function [data_train, labels_train, vid_ids_train_string, data_devel, labels_devel, vid_ids_devel_string, raw_devel, PC, means_norm, stds_norm] = ...
+    Prepare_HOG_AU_data_generic_intensity(train_users, devel_users, au_train, bp4d_dir, hog_data_dir, pca_file)
 
 %%
 addpath(genpath('../data extraction/'));
@@ -37,10 +37,16 @@ vid_ids_train_string = vid_ids_train_string(reduced_inds,:);
 [devel_appearance_data, valid_ids_devel_hog, vid_ids_devel_string] = Read_HOG_files(devel_users, [hog_data_dir, '/devel/']);
 
 labels_devel = cat(1, labels_devel{:});
+valid_ids_devel = logical(cat(1, valid_ids_devel{:}));
 
 % normalise the data
 load(pca_file);
-     
+
+% Remove invalid labels from development set
+devel_appearance_data = devel_appearance_data(valid_ids_devel,:);
+labels_devel = labels_devel(valid_ids_devel,:);
+vid_ids_devel_string = vid_ids_devel_string(valid_ids_devel);
+
 % Grab all data for validation as want good params for all the data
 raw_devel = devel_appearance_data;
 
