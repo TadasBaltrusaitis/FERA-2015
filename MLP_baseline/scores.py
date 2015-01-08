@@ -1,16 +1,22 @@
 def FERA_class_score(prediction, ground_truth):
     import numpy as np
 
-    pos_gt = ground_truth == 1
-    neg_gt = ground_truth == 0
+    if(len(prediction.shape) == 1):
+        prediction.shape = (prediction.shape[0],1)
 
-    pos_pred = prediction == 1
-    neg_pred = prediction == 0
+    if(len(ground_truth.shape) == 1):
+        ground_truth.shape = (ground_truth.shape[0],1)
 
-    tp = np.sum(np.logical_and(pos_gt, pos_pred), axis = 0).astype(float)
-    fp = np.sum(np.logical_and(neg_gt, pos_pred), axis = 0).astype(float)
-    fn = np.sum(np.logical_and(pos_gt, neg_pred), axis = 0).astype(float)
-    tn = np.sum(np.logical_and(neg_gt, neg_pred), axis = 0).astype(float)
+    pos_gt = (ground_truth == 1).astype(int)
+    neg_gt = (ground_truth == 0).astype(int)
+
+    pos_pred = (prediction == 1).astype(int)
+    neg_pred = (prediction == 0).astype(int)
+
+    tp = np.sum(pos_gt * pos_pred, axis = 0).astype(float)
+    fp = np.sum(neg_gt * pos_pred, axis = 0).astype(float)
+    fn = np.sum(pos_gt * neg_pred, axis = 0).astype(float)
+    tn = np.sum(neg_gt * neg_pred, axis = 0).astype(float)
 
     precision = tp/(tp+fp)
     precision[tp+fp == 0] = 0

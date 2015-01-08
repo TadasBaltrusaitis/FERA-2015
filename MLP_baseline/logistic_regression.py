@@ -262,9 +262,10 @@ def test_log_reg(test_labels, test_samples, model):
     test_l = test_l[:,0]
 
     start_time = time.clock()
-    f1, precision, recall = scores.FERA_class_score(preds, test_l)
+
+    f1s, precisions, recalls = scores.FERA_class_score(preds, test_l)
     end_time = time.clock()
 
     print end_time - start_time
 
-    return f1, precision, recall, preds
+    return numpy.mean(f1s), numpy.mean(precisions), numpy.mean(recalls), preds
