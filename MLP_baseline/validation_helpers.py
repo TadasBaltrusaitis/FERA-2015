@@ -32,9 +32,9 @@ def validate_grid_search(train_fn, test_fn, minimise, samples_train, labels_trai
     import multiprocessing
     import numpy as np
     
-    num_params = 1;        
+    num_params = 1
     
-    if(hyperparams.has_key('validate_params')):
+    if 'validate_params' in hyperparams:
         param_names = hyperparams['validate_params']
         param_values = []
     
@@ -52,7 +52,7 @@ def validate_grid_search(train_fn, test_fn, minimise, samples_train, labels_trai
     
         for p in range(len(param_names)):
             change_every[p] = change_already / len(param_values[p])
-            change_already = change_already / len(param_values[p])
+            change_already /= len(param_values[p])
         
         all_params = []
     
@@ -69,11 +69,11 @@ def validate_grid_search(train_fn, test_fn, minimise, samples_train, labels_trai
                 all_params[i][param_names[p]] = param_values[p][index[p]]
     
                 # get the new value
-                if((i + 1) % change_every[p] == 0):
-                    index[p] = index[p] + 1
+                if (i + 1) % change_every[p] == 0:
+                    index[p] += 1
     
                 # cycle the value if it exceeds the bounds
-                if((index[p] % len(param_values[p])) == 0):
+                if (index[p] % len(param_values[p])) == 0:
                     index[p] = 0
                             
         # Initialise all results to 0
@@ -82,15 +82,19 @@ def validate_grid_search(train_fn, test_fn, minimise, samples_train, labels_trai
     
     else:
         # if no validation needed just set to hyperparams
-        all_params = hyperparams.copy()
-        all_params["result"] = 0 
-                
+        all_params = [hyperparams.copy()]
+        all_params[0]["result"] = 0
+
+    print all_params
+
     # Crossvalidate the c, p, and gamma values
     for p in range(num_params):
-        all_params[p]["result"] = single_pass(train_fn, test_fn, labels_train, samples_train, labels_valid, samples_valid, all_params[p], num_repeat)       
+        all_params[p]["result"] = single_pass(train_fn, test_fn, labels_train, samples_train, labels_valid,
+                                              samples_valid, all_params[p], num_repeat)
         print all_params[p]
+
     # Finding the best hyper-params
-    if(minimise):
+    if minimise:
         results = np.array([item["result"] for item in all_params])
         best = results.argmin()
     else:
@@ -100,13 +104,13 @@ def validate_grid_search(train_fn, test_fn, minimise, samples_train, labels_trai
     best_params = all_params[best]
     
     return best_params, all_params
-    
+
+
 def single_pass(train_fn, test_fn, labels_train, samples_train, labels_valid, samples_valid, hyperparams, num_repeat):
-    result = 0;
+    result = 0
+
     for r in range(num_repeat):
-        model = train_fn(labels_train, samples_train, hyperparams);   
-        result += test_fn(labels_valid, samples_valid, model)[0];
+        model = train_fn(labels_train, samples_train, hyperparams)
+        result += test_fn(labels_valid, samples_valid, model)[0]
     result = result / num_repeat
     return result
-
-           
