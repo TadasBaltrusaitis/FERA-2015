@@ -27,9 +27,7 @@ def validate_grid_search(train_fn, test_fn, minimise, samples_train, labels_trai
     #   for non deterministic algorithms
 
     # Find the hyperparameters to optimise (if any)
-    
-    from joblib import Parallel, delayed
-    import multiprocessing
+
     import numpy as np
     
     num_params = 1

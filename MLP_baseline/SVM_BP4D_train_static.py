@@ -4,9 +4,9 @@ import data_preparation
 
 (all_aus, train_recs, devel_recs, BP4D_dir, hog_data_dir) = shared_defs_BP4D.shared_defs();
 
-pca_loc = "../pca_generation/generic_face_rigid";
+pca_loc = "../pca_generation/generic_face_rigid"
 
-f = open("./trained/SEMAINE_train_static_lin_svm.txt", 'w');
+f = open("./trained/SEMAINE_train_static_lin_svm.txt", 'w')
 
 for au in all_aus:
                
@@ -23,7 +23,7 @@ for au in all_aus:
     test_fn = linear_SVM.test_SVM
 
     # Cross-validate here                
-    best_params, all_params = validation_helpers.validate_grid_search(train_fn, test_fn, False, train_samples, train_labels, valid_samples, valid_labels, hyperparams);
+    best_params, all_params = validation_helpers.validate_grid_search(train_fn, test_fn, False, train_samples, train_labels, valid_samples, valid_labels, hyperparams)
 
     model = train_fn(train_labels, train_samples, best_params);        
 

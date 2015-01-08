@@ -125,8 +125,6 @@ def train_log_reg(train_labels, train_samples, hyperparams):
     valid_set_x = theano.shared(numpy.asarray(valid_samples_x, dtype=theano.config.floatX), borrow=borrow)
     valid_set_y = theano.shared(numpy.asarray(valid_samples_y, dtype=theano.config.floatX), borrow=borrow)
 
-    print train_set_x, train_set_y
-
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
     n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] / batch_size
@@ -136,10 +134,11 @@ def train_log_reg(train_labels, train_samples, hyperparams):
     y = T.matrix('y')  # the labels are presented as 1D vector of
                            # [int] labels
 
-    num_out = train_set_x.shape[1].eval()
+    num_out = train_set_y.shape[1].eval()
+    num_in = train_samples_x.shape[1]
 
     # construct the logistic regression class
-    classifier = LogisticRegressionCrossEnt(input=x, n_in=train_set_x.shape[1].eval(), n_out=num_out)
+    classifier = LogisticRegressionCrossEnt(input=x, n_in=num_in, n_out=num_out)
 
     # the cost we minimize during training is the negative log likelihood of
     # the model in symbolic format
@@ -246,21 +245,26 @@ def train_log_reg(train_labels, train_samples, hyperparams):
     print(('Optimization complete with best validation score of %f ') % (best_validation_score))
     print 'The code run for %d epochs, with %f epochs/sec' % ( epoch, 1. * epoch / (end_time - start_time))
 
-    plot(validation_scores)
-    show()
+    #plot(validation_scores)
+    #show()
 
-    return (classifier.W, classifier.b)
+    return (classifier.W.eval(), classifier.b.eval())
     
 def test_log_reg(test_labels, test_samples, model):
 
     W = model[0]
     b = model[1]
 
-    preds = numpy.sigmoid(numpy.dot(test_samples, W) + b) > 0.5
+    preds = 1./(1+numpy.exp(- (numpy.dot(test_samples, W) + b)))
+    preds = preds > 0.5
 
     test_l = test_labels.astype('int32');
     test_l = test_l[:,0]
 
+    start_time = time.clock()
     f1, precision, recall = scores.FERA_class_score(preds, test_l)
-    
+    end_time = time.clock()
+
+    print end_time - start_time
+
     return f1, precision, recall, preds
