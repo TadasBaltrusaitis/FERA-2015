@@ -17,7 +17,7 @@ class LogisticRegressionCrossEnt(object):
     determine a class membership probability.
     """
 
-    def __init__(self, input, n_in, n_out):
+    def __init__(self, input, n_in, n_out, lambda_reg=0):
 
         # initialize with 0 the weights W as a matrix of shape (n_in, n_out)
         self.W = theano.shared(value=numpy.zeros((n_in, n_out),
@@ -27,6 +27,8 @@ class LogisticRegressionCrossEnt(object):
         self.b = theano.shared(value=numpy.zeros((n_out,),
                                                  dtype=theano.config.floatX),
                                name='b', borrow=True)
+
+        self.lambda_reg = lambda_reg
 
         # compute a matrix of class-membership probabilities in symbolic form
 
@@ -51,7 +53,7 @@ class LogisticRegressionCrossEnt(object):
 
         """
 
-        return T.mean(T.neg(y) * T.log(self.p_y_given_x) - (1+T.neg(y))*T.log(1-self.p_y_given_x))
+        return T.mean(T.neg(y) * T.log(self.p_y_given_x) - (1+T.neg(y))*T.log(1-self.p_y_given_x)) + self.lambda_reg * T.sum(self.W ** 2)
 
     def scores(self, y):
         """Return a float representing the scores of the model
@@ -87,7 +89,7 @@ class LogisticRegressionCrossEnt(object):
                   correct label
         """
 
-        return T.mean(T.neq(T.argmax(self.p_y_given_x, axis=1), T.argmax(y, axis = 1)))
+        return T.mean(T.neq(T.argmax(self.p_y_given_x, axis=1), T.argmax(y, axis=1)))
 
 
 def train_log_reg(train_labels, train_samples, hyperparams):
@@ -95,6 +97,7 @@ def train_log_reg(train_labels, train_samples, hyperparams):
     batch_size = hyperparams['batch_size']
     learning_rate = hyperparams['learning_rate']
     n_epochs = hyperparams['n_epochs']
+    lambda_reg = hyperparams['lambda_reg']
 
     borrow=True
 
@@ -138,7 +141,7 @@ def train_log_reg(train_labels, train_samples, hyperparams):
     num_in = train_samples_x.shape[1]
 
     # construct the logistic regression class
-    classifier = LogisticRegressionCrossEnt(input=x, n_in=num_in, n_out=num_out)
+    classifier = LogisticRegressionCrossEnt(input=x, n_in=num_in, n_out=num_out, lambda_reg=lambda_reg)
 
     # the cost we minimize during training is the negative log likelihood of
     # the model in symbolic format
@@ -153,7 +156,7 @@ def train_log_reg(train_labels, train_samples, hyperparams):
     updates = [(classifier.W, classifier.W - learning_rate * g_W),
                (classifier.b, classifier.b - learning_rate * g_b)]
 
-    print 'Cost defined, updates defined, gradients defined'
+    #print 'Cost defined, updates defined, gradients defined'
 
     # compiling a Theano function that computes the mistakes that are made by
     # the model on a minibatch
@@ -163,7 +166,7 @@ def train_log_reg(train_labels, train_samples, hyperparams):
                 x: valid_set_x[index * batch_size:(index + 1) * batch_size],
                 y: valid_set_y[index * batch_size:(index + 1) * batch_size]})
 
-    print 'score_validate_model defined'
+    #print 'score_validate_model defined'
     # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
     # defined in `updates`
@@ -177,7 +180,7 @@ def train_log_reg(train_labels, train_samples, hyperparams):
     ###############
     # TRAIN MODEL #
     ###############
-    print '... training the model'
+    #print '... training the model'
     # early-stopping parameters
     patience = 5000  # look as this many examples regardless
     patience_increase = 2  # wait this much longer when a new best is
@@ -185,10 +188,6 @@ def train_log_reg(train_labels, train_samples, hyperparams):
     improvement_threshold = 0.9  # a relative improvement of this much is
                                   # considered significant
     validation_frequency = min(n_train_batches, patience / 2)
-                                  # go through this many
-                                  # minibatche before checking the network
-                                  # on the validation set; in this case we
-                                  # check every epoch
 
     best_params = None
     best_validation_score = -numpy.inf
@@ -205,8 +204,8 @@ def train_log_reg(train_labels, train_samples, hyperparams):
         epoch = epoch + 1
         for minibatch_index in xrange(n_train_batches):
 
-            #minibatch_avg_cost, minibatch_f1s = train_model(minibatch_index)
             minibatch_avg_cost = train_model(minibatch_index)
+
             # iteration number
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
@@ -225,13 +224,13 @@ def train_log_reg(train_labels, train_samples, hyperparams):
                 if(numpy.isnan(curr_f1)):
                     curr_f1 = 0
 
-                print('epoch %i, minibatch %i/%i, validation F1 %f' % (epoch, minibatch_index + 1, n_train_batches, curr_f1))
+                # print('epoch %i, minibatch %i/%i, validation F1 %f' % (epoch, minibatch_index + 1, n_train_batches, curr_f1))
 
                 validation_scores = numpy.hstack([validation_scores, curr_f1])
 
                 # if we got the best validation score until now
                 if curr_f1 > best_validation_score:
-                    #improve patience if loss improvement is good enough
+                    # Improve patience if loss improvement is good enough
                     if curr_f1 > best_validation_score / improvement_threshold:
                         patience = max(patience, iter * patience_increase)
 
@@ -242,30 +241,23 @@ def train_log_reg(train_labels, train_samples, hyperparams):
                 break
 
     end_time = time.clock()
-    print(('Optimization complete with best validation score of %f ') % (best_validation_score))
+    print 'Optimization complete with best validation score of %f ' % best_validation_score
     print 'The code run for %d epochs, with %f epochs/sec' % ( epoch, 1. * epoch / (end_time - start_time))
 
-    #plot(validation_scores)
-    #show()
+    return classifier.W.eval(), classifier.b.eval()
 
-    return (classifier.W.eval(), classifier.b.eval())
-    
+
 def test_log_reg(test_labels, test_samples, model):
 
     W = model[0]
     b = model[1]
 
-    preds = 1./(1+numpy.exp(- (numpy.dot(test_samples, W) + b)))
-    preds = preds > 0.5
+    predictions = 1./(1+numpy.exp(- (numpy.dot(test_samples, W) + b)))
+    predictions = predictions > 0.5
 
     test_l = test_labels.astype('int32');
-    test_l = test_l[:,0]
+    test_l = test_l[:, 0]
 
-    start_time = time.clock()
+    f1s, precisions, recalls = scores.FERA_class_score(predictions, test_l)
 
-    f1s, precisions, recalls = scores.FERA_class_score(preds, test_l)
-    end_time = time.clock()
-
-    print end_time - start_time
-
-    return numpy.mean(f1s), numpy.mean(precisions), numpy.mean(recalls), preds
+    return numpy.mean(f1s), numpy.mean(precisions), numpy.mean(recalls), predictions
