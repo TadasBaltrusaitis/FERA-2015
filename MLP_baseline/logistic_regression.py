@@ -255,9 +255,8 @@ def test_log_reg(test_labels, test_samples, model):
     predictions = 1./(1+numpy.exp(- (numpy.dot(test_samples, W) + b)))
     predictions = predictions > 0.5
 
-    test_l = test_labels.astype('int32');
-    test_l = test_l[:, 0]
+    test_l = test_labels.astype('int32')
 
     f1s, precisions, recalls = scores.FERA_class_score(predictions, test_l)
 
-    return numpy.mean(f1s), numpy.mean(precisions), numpy.mean(recalls), predictions
+    return numpy.mean(f1s), numpy.mean(precisions), numpy.mean(recalls), predictions, f1s, precisions, recalls
