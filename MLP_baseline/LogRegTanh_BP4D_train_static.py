@@ -23,7 +23,7 @@ for au in all_aus:
     train_fn = logistic_regression_tanh.train_log_reg
     test_fn = logistic_regression_tanh.test_log_reg
 
-    hyperparams = {'batch_size':[100,200], 'learning_rate':[0.05, 0.1, 0.2], 'n_epochs':100, 'validate_params':["batch_size","learning_rate"]}
+    hyperparams = {'batch_size':[200,400], 'learning_rate':[0.005, 0.05, 0.1], 'n_epochs':200, 'validate_params':["batch_size","learning_rate"]}
 
     # Cross-validate here
     best_params, all_params = validation_helpers.validate_grid_search(train_fn, test_fn, False, train_samples, train_labels, valid_samples, valid_labels, hyperparams);
