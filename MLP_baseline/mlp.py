@@ -323,8 +323,13 @@ def test_mlp(test_labels, test_samples, model):
 
     print model
 
-    W = model[0]
-    b = model[1]
+    W1 = model[0].eval()
+    b1 = model[1].eval()
+
+    W2 = model[2].eval()
+    b2 = model[3].eval()
+
+    print W1, b1, W2, b2
 
     predictions = 1./(1+numpy.exp(- (numpy.dot(test_samples, W) + b)))
     predictions = predictions > 0.5
