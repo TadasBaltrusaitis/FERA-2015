@@ -1,13 +1,11 @@
-import cPickle
-import gzip
-import os
-import sys
 import time
 
 import numpy
 
 import theano
 import theano.tensor as T
+
+import scores
 
 from logistic_regression import LogisticRegressionCrossEnt
 
@@ -141,7 +139,7 @@ class MLP(object):
         # logistic regression layer
         self.negative_log_likelihood = self.logRegressionLayer.negative_log_likelihood
 
-        # same holds for the function computing the number of errors
+        # same holds for the function computing the score of the model
         self.scores = self.logRegressionLayer.scores
 
         # the parameters of the model are the parameters of the two layer it is
@@ -256,8 +254,7 @@ def train_mlp(train_labels, train_samples, hyperparams):
     patience = 10000  # look as this many examples regardless
     patience_increase = 2  # wait this much longer when a new best is
                                   # found
-    improvement_threshold = 0.9  # a relative improvement of this much is
-                                  # considered significant
+    improvement_threshold = 0.995  # a relative improvement of this much is considered significant
     validation_frequency = min(n_train_batches, patience / 2)
 
     best_params = None
@@ -276,8 +273,6 @@ def train_mlp(train_labels, train_samples, hyperparams):
 
             minibatch_avg_cost = train_model(minibatch_index)
 
-            print minibatch_avg_cost
-
             # iteration number
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
@@ -289,6 +284,7 @@ def train_mlp(train_labels, train_samples, hyperparams):
                 validation_scores_c = []
                 for i in xrange(n_valid_batches):
                     f1s, precisions, recalls = score_validate_model(i)
+                    #print f1s, precisions, recalls
                     validation_scores_c.append(f1s)
 
                 curr_f1 = numpy.mean(validation_scores_c)
@@ -321,17 +317,18 @@ def train_mlp(train_labels, train_samples, hyperparams):
 
 def test_mlp(test_labels, test_samples, model):
 
-    print model
-
     W1 = model[0].eval()
     b1 = model[1].eval()
 
     W2 = model[2].eval()
     b2 = model[3].eval()
 
-    print W1, b1, W2, b2
+    tanh_out = numpy.tanh(numpy.dot(test_samples, W1) + b1)
 
-    predictions = 1./(1+numpy.exp(- (numpy.dot(test_samples, W) + b)))
+    exp_in = numpy.dot(tanh_out, W2) + b2
+
+    predictions = 1./(1+numpy.exp(- exp_in))
+
     predictions = predictions > 0.5
 
     test_l = test_labels.astype('int32')

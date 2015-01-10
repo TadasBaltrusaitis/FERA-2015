@@ -72,8 +72,9 @@ class LogisticRegressionCrossEnt(object):
         tns = T.sum(negative_preds * neg_y, axis = 0)
         fns = T.sum(negative_preds * y, axis = 0)
 
-        precisions = tps / (tps + fps)
-        recalls = tps / (tps + fns)
+        # A very slight inaccuracy but avoids division by zero
+        precisions = (tps + 1.0) / (tps + fps + 1.0)
+        recalls = (tps + 1.0) / (tps + fns + 1.0)
 
         f1s = 2 * precisions * recalls / (precisions + recalls)
 
