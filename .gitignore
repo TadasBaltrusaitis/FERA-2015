@@ -69,3 +69,6 @@ DISFA_baseline/training/medians/
 DISFA_baseline/training/trained_old_pca/
 *.pyc
 *.asv
+MLP_baseline/.idea/misc.xml
+MLP_baseline/.idea/workspace.xml
+~$results.xlsx
