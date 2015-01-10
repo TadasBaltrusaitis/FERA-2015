@@ -55,6 +55,23 @@ class LogisticRegressionCrossEnt(object):
 
         return T.mean(T.neg(y) * T.log(self.p_y_given_x) - (1+T.neg(y))*T.log(1-self.p_y_given_x)) + self.lambda_reg * T.sum(self.W ** 2)
 
+    def euclidean_loss(self, y):
+        """Return the mean of the negative log-likelihood of the prediction
+        of this model under a given target distribution.
+
+        .. math::
+
+            \frac{1}{|\mathcal{D}|} \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) =
+            \frac{1}{|\mathcal{D}|} \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+                \ell (\theta=\{W,b\}, \mathcal{D})
+
+        :type y: theano.tensor.TensorType
+        :param y: corresponds to a matrix where 1 indicates which class the sample belongs to
+
+        """
+
+        return T.mean((y - self.p_y_given_x) ** 2) + self.lambda_reg * T.sum(self.W ** 2)
+
     def scores(self, y):
         """Return a float representing the scores of the model
         :type y: theano.tensor.TensorType
@@ -146,7 +163,8 @@ def train_log_reg(train_labels, train_samples, hyperparams):
 
     # the cost we minimize during training is the negative log likelihood of
     # the model in symbolic format
-    cost = classifier.negative_log_likelihood(y)
+    #cost = classifier.negative_log_likelihood(y)
+    cost = classifier.euclidean_loss(y)
 
     # compute the gradient of cost with respect to theta = (W,b)
     g_W = T.grad(cost=cost, wrt=classifier.W)

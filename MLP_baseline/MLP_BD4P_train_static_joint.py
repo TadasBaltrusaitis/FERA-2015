@@ -20,26 +20,26 @@ import validation_helpers
 train_fn = mlp.train_mlp
 test_fn = mlp.test_mlp
 
-#hyperparams = {
-#    'batch_size': [100, 200, 300],
-#    'learning_rate': [0.001, 0.005, 0.01, 0.05],
-#    'lambda_reg': [0, 0.001, 0.05, 0.1],
-#    'num_hidden': [20, 40, 50],
-#    'n_epochs': 100,
-#    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
-
 hyperparams = {
-    'batch_size': [100],
-    'learning_rate': [0.005],
-    'lambda_reg': [0.05],
-    'num_hidden': [40],
-    'n_epochs': 100,
-    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
+   'batch_size': [100, 200, 300],
+   'learning_rate': [0.001, 0.005, 0.01, 0.05],
+   'lambda_reg': [0, 0.001, 0.05, 0.1],
+   'num_hidden': [20, 40, 50, 100],
+   'n_epochs': 500,
+   'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
+
+# hyperparams = {
+#     'batch_size': [100],
+#     'learning_rate': [0.005],
+#     'lambda_reg': [0.05],
+#     'num_hidden': [40],
+#     'n_epochs': 100,
+#     'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
 # Cross-validate here
 best_params, all_params = validation_helpers.validate_grid_search(train_fn, test_fn,
                                                                   False, train_samples, train_labels, valid_samples,
-                                                                  valid_labels, hyperparams, num_repeat=3)
+                                                                  valid_labels, hyperparams, num_repeat=2)
 
 # Average results due to non-deterministic nature of the model
 f1s = numpy.zeros((1, train_labels.shape[1]))
