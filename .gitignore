@@ -69,3 +69,7 @@ DISFA_baseline/training/medians/
 DISFA_baseline/training/trained_old_pca/
 *.pyc
 *.asv
+MLP_baseline/.ipynb_checkpoints/Untitled0-checkpoint.ipynb
+MLP_baseline/.ipynb_checkpoints/testing-checkpoint.ipynb
+MLP_baseline/.idea/dictionaries/tb346.xml
+MLP_baseline/.idea/workspace.xml
