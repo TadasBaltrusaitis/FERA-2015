@@ -43,7 +43,7 @@ for au in all_aus:
 
     for i in range(num_repeat):
         model = train_fn(train_labels, train_samples, best_params)
-        f1_c, precision_c, recall_c, prediction = test_fn(valid_labels, valid_samples, model)
+        f1_c, precision_c, recall_c, prediction, _, _, _ = test_fn(valid_labels, valid_samples, model)
         f1 += f1_c
         precision += precision_c
         recall += recall_c
