@@ -26,10 +26,16 @@ function [ labels, valid_ids, vid_ids  ] = extract_SEMAINE_labels( SEMAINE_dir, 
         
         activations = ParseSEMAINEAnnotations([SEMAINE_dir, recs{i}, '\' file.name]);
         
+        if(size(activations,1) < vid_ids(i,2))
+            vid_ids(i,2) = size(activations,1);
+        end
+        
         labels{i} = activations(vid_ids(i,1)+1:vid_ids(i,2), 1 + inds_to_use);
         
         % all indices in SEMAINE are valid
         valid_ids{i} = ones(size(labels{i},1),1);
+        
+        save(['training_labels/' recs{i}],'labels', 'valid_ids', 'vid_ids');
         
     end
     
