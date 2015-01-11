@@ -8,7 +8,6 @@ from pylab import *
 
 import scores
 
-
 class LogisticRegressionCrossEnt(object):
     """Multi-class Logistic Regression Class
 
@@ -19,56 +18,106 @@ class LogisticRegressionCrossEnt(object):
     """
 
     def __init__(self, input, n_in, n_out, lambda_reg=0):
+
         # initialize with 0 the weights W as a matrix of shape (n_in, n_out)
         self.W = theano.shared(value=numpy.zeros((n_in, n_out),
                                                  dtype=theano.config.floatX),
-                               name='W', borrow=True)
-        # initialize the biases b as a vector of n_out 0s
+                                name='W', borrow=True)
+        # initialize the baises b as a vector of n_out 0s
         self.b = theano.shared(value=numpy.zeros((n_out,),
                                                  dtype=theano.config.floatX),
                                name='b', borrow=True)
 
+        self.lambda_reg = lambda_reg
+
+        # compute a matrix of class-membership probabilities in symbolic form
+
         # compute a matrix of class-membership probabilities in symbolic form
         self.p_y_given_x = (T.tanh(T.dot(input, self.W) + self.b) + 1) / 2
-
-        self.lambda_reg = lambda_reg
 
         # parameters of the model
         self.params = [self.W, self.b]
 
     def negative_log_likelihood(self, y):
-        return T.mean(T.neg(y) * T.log(self.p_y_given_x) - (1 + T.neg(y)) * T.log(1 - self.p_y_given_x)) + \
-               self.lambda_reg * T.sum(self.W ** 2)
+        """Return the mean of the negative log-likelihood of the prediction
+        of this model under a given target distribution.
+
+        .. math::
+
+            \frac{1}{|\mathcal{D}|} \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) =
+            \frac{1}{|\mathcal{D}|} \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+                \ell (\theta=\{W,b\}, \mathcal{D})
+
+        :type y: theano.tensor.TensorType
+        :param y: corresponds to a matrix where 1 indicates which class the sample belongs to
+
+        """
+
+        return T.mean(T.neg(y) * T.log(self.p_y_given_x) - (1+T.neg(y))*T.log(1-self.p_y_given_x)) + self.lambda_reg * T.sum(self.W ** 2)
+
+    def euclidean_loss(self, y):
+        """Return the mean of the negative log-likelihood of the prediction
+        of this model under a given target distribution.
+
+        .. math::
+
+            \frac{1}{|\mathcal{D}|} \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) =
+            \frac{1}{|\mathcal{D}|} \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+                \ell (\theta=\{W,b\}, \mathcal{D})
+
+        :type y: theano.tensor.TensorType
+        :param y: corresponds to a matrix where 1 indicates which class the sample belongs to
+
+        """
+
+        return T.mean((y - self.p_y_given_x) ** 2) + self.lambda_reg * T.sum(self.W ** 2)
 
     def scores(self, y):
+        """Return a float representing the scores of the model
+        :type y: theano.tensor.TensorType
+        :param y: corresponds to a vector that gives for each example the
+                  correct label
+        """
+
         positive_preds = self.p_y_given_x > 0.5
         negative_preds = self.p_y_given_x <= 0.5
 
         neg_y = y < 1
 
-        tps = T.sum(positive_preds * y, axis=0)
-        fps = T.sum(positive_preds * neg_y, axis=0)
-        tns = T.sum(negative_preds * neg_y, axis=0)
-        fns = T.sum(negative_preds * y, axis=0)
+        tps = T.sum(positive_preds * y, axis = 0)
+        fps = T.sum(positive_preds * neg_y, axis = 0)
+        tns = T.sum(negative_preds * neg_y, axis = 0)
+        fns = T.sum(negative_preds * y, axis = 0)
 
-        precisions = tps / (tps + fps)
-        recalls = tps / (tps + fns)
+        # A very slight inaccuracy but avoids division by zero
+        precisions = (tps + 1.0) / (tps + fps + 1.0)
+        recalls = (tps + 1.0) / (tps + fns + 1.0)
 
         f1s = 2 * precisions * recalls / (precisions + recalls)
 
         return f1s, precisions, recalls
 
     def error(self, y):
+        """Return a float representing the number of errors in the minibatch
+        over the total number of examples of the minibatch ; zero one
+        loss over the size of the minibatch
+
+        :type y: theano.tensor.TensorType
+        :param y: corresponds to a vector that gives for each example the
+                  correct label
+        """
+
         return T.mean(T.neq(T.argmax(self.p_y_given_x, axis=1), T.argmax(y, axis=1)))
 
 
 def train_log_reg(train_labels, train_samples, hyperparams):
+
     batch_size = hyperparams['batch_size']
     learning_rate = hyperparams['learning_rate']
     n_epochs = hyperparams['n_epochs']
     lambda_reg = hyperparams['lambda_reg']
 
-    borrow = True
+    borrow=True
 
     # Split data into training and validation here
     # TODO potential shuffle after split and not before
@@ -77,9 +126,9 @@ def train_log_reg(train_labels, train_samples, hyperparams):
 
     cutoff = int(train_labels.shape[0] * 0.9)
 
-    train_samples_x = train_samples[arr[0:cutoff], :]
+    train_samples_x = train_samples[arr[0:cutoff],:]
 
-    valid_samples_x = train_samples[arr[cutoff:], :]
+    valid_samples_x = train_samples[arr[cutoff:],:]
 
     if len(train_labels.shape) == 1:
         train_samples_y = train_labels[arr[0:cutoff]]
@@ -104,7 +153,7 @@ def train_log_reg(train_labels, train_samples, hyperparams):
     index = T.lscalar()  # index to a [mini]batch
     x = T.matrix('x')  # the data is presented as rasterized images
     y = T.matrix('y')  # the labels are presented as 1D vector of
-    # [int] labels
+                           # [int] labels
 
     num_out = train_set_y.shape[1].eval()
     num_in = train_samples_x.shape[1]
@@ -114,7 +163,8 @@ def train_log_reg(train_labels, train_samples, hyperparams):
 
     # the cost we minimize during training is the negative log likelihood of
     # the model in symbolic format
-    cost = classifier.negative_log_likelihood(y)
+    #cost = classifier.negative_log_likelihood(y)
+    cost = classifier.euclidean_loss(y)
 
     # compute the gradient of cost with respect to theta = (W,b)
     g_W = T.grad(cost=cost, wrt=classifier.W)
@@ -125,38 +175,44 @@ def train_log_reg(train_labels, train_samples, hyperparams):
     updates = [(classifier.W, classifier.W - learning_rate * g_W),
                (classifier.b, classifier.b - learning_rate * g_b)]
 
+    #print 'Cost defined, updates defined, gradients defined'
+
     # compiling a Theano function that computes the mistakes that are made by
     # the model on a minibatch
     score_validate_model = theano.function(inputs=[index],
-                                           outputs=classifier.scores(y),
-                                           givens={
-                                               x: valid_set_x[index * batch_size:(index + 1) * batch_size],
-                                               y: valid_set_y[index * batch_size:(index + 1) * batch_size]})
+            outputs=classifier.scores(y),
+            givens={
+                x: valid_set_x[index * batch_size:(index + 1) * batch_size],
+                y: valid_set_y[index * batch_size:(index + 1) * batch_size]})
 
+    #print 'score_validate_model defined'
     # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
     # defined in `updates`
     train_model = theano.function(inputs=[index],
-                                  outputs=cost,
-                                  updates=updates,
-                                  givens={
-                                      x: train_set_x[index * batch_size:(index + 1) * batch_size],
-                                      y: train_set_y[index * batch_size:(index + 1) * batch_size]})
+            outputs=cost,
+            updates=updates,
+            givens={
+                x: train_set_x[index * batch_size:(index + 1) * batch_size],
+                y: train_set_y[index * batch_size:(index + 1) * batch_size]})
 
     ###############
     # TRAIN MODEL #
     ###############
+    #print '... training the model'
     # early-stopping parameters
     patience = 5000  # look as this many examples regardless
-    patience_increase = 2  # wait this much longer when a new best is found
-    improvement_threshold = 0.9  # a relative improvement of this much is considered significant
+    patience_increase = 2  # wait this much longer when a new best is
+                                  # found
+    improvement_threshold = 0.9  # a relative improvement of this much is
+                                  # considered significant
     validation_frequency = min(n_train_batches, patience / 2)
-
-    # go through this many minibatches before checking the network on the validation set
 
     best_params = None
     best_validation_score = -numpy.inf
+    test_loss = 0.
     start_time = time.clock()
+
 
     validation_scores = numpy.array([])
 
@@ -167,7 +223,6 @@ def train_log_reg(train_labels, train_samples, hyperparams):
         epoch = epoch + 1
         for minibatch_index in xrange(n_train_batches):
 
-            # minibatch_avg_cost, minibatch_f1s = train_model(minibatch_index)
             minibatch_avg_cost = train_model(minibatch_index)
 
             # iteration number
@@ -185,14 +240,16 @@ def train_log_reg(train_labels, train_samples, hyperparams):
 
                 curr_f1 = numpy.mean(validation_scores_c)
 
-                if numpy.isnan(curr_f1):
+                if(numpy.isnan(curr_f1)):
                     curr_f1 = 0
+
+                # print('epoch %i, minibatch %i/%i, validation F1 %f' % (epoch, minibatch_index + 1, n_train_batches, curr_f1))
 
                 validation_scores = numpy.hstack([validation_scores, curr_f1])
 
                 # if we got the best validation score until now
                 if curr_f1 > best_validation_score:
-                    # improve patience if loss improvement is good enough
+                    # Improve patience if loss improvement is good enough
                     if curr_f1 > best_validation_score / improvement_threshold:
                         patience = max(patience, iter * patience_increase)
 

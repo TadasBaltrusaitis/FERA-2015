@@ -7,7 +7,7 @@ import theano.tensor as T
 
 import scores
 
-from logistic_regression import LogisticRegressionCrossEnt
+from logistic_regression_tanh import LogisticRegressionCrossEnt
 
 class HiddenLayer(object):
     def __init__(self, rng, input, n_in, n_out, W=None, b=None,
@@ -251,10 +251,10 @@ def train_mlp(train_labels, train_samples, hyperparams):
     ###############
     #print '... training the model'
     # early-stopping parameters
-    patience = 10000  # look as this many examples regardless
-    patience_increase = 2  # wait this much longer when a new best is
+    patience = 40000  # look as this many examples regardless
+    patience_increase = 3  # wait this much longer when a new best is
                                   # found
-    improvement_threshold = 0.995  # a relative improvement of this much is considered significant
+    improvement_threshold = 0.9995  # a relative improvement of this much is considered significant
     validation_frequency = min(n_train_batches, patience / 2)
 
     best_params = None
@@ -298,6 +298,7 @@ def train_mlp(train_labels, train_samples, hyperparams):
 
                 # if we got the best validation score until now
                 if curr_f1 > best_validation_score:
+                    #print 'Epoch - %d - F1 - %f' % (epoch, curr_f1)
                     # Improve patience if loss improvement is good enough
                     if curr_f1 > best_validation_score / improvement_threshold:
                         patience = max(patience, iter * patience_increase)
