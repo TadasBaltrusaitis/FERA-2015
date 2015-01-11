@@ -7,13 +7,11 @@ import mlp
 
 (all_aus, train_recs, devel_recs, BP4D_dir, hog_data_dir) = shared_defs_BP4D.shared_defs()
 
-pca_loc = "../pca_generation/generic_face_rigid"
-
 f = open("./trained/BP4D_train_mlp_joint_no_PCA.txt", 'w')
 
 # load the training and testing data for the current fold
 [train_samples, train_labels, valid_samples, valid_labels] = \
-    data_preparation.Prepare_HOG_AU_data_generic_BP4D_no_PCA(train_recs, devel_recs, all_aus, BP4D_dir, hog_data_dir, pca_loc)
+    data_preparation.Prepare_HOG_AU_data_generic_BP4D_no_PCA(train_recs, devel_recs, all_aus, BP4D_dir, hog_data_dir)
 
 import validation_helpers
 

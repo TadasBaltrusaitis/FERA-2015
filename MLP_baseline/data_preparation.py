@@ -398,7 +398,7 @@ def Prepare_HOG_AU_data_generic_BP4D(train_recs, devel_recs, au, BP4D_dir, hog_d
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
 
 # Preparing the BP4D data
-def Prepare_HOG_AU_data_generic_BP4D_no_PCA(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc):
+def Prepare_HOG_AU_data_generic_BP4D_no_PCA(train_recs, devel_recs, au, BP4D_dir, hog_data_dir):
 
     # First extracting the labels
     [labels_train, valid_ids_train, vid_ids_train] = extract_BP4D_labels(BP4D_dir, train_recs, au)
