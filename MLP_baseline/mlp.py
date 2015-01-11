@@ -273,6 +273,8 @@ def train_mlp(train_labels, train_samples, hyperparams):
 
             minibatch_avg_cost = train_model(minibatch_index)
 
+            #print 'Minibatch cost - %.4f' % minibatch_avg_cost
+
             # iteration number
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
@@ -282,17 +284,27 @@ def train_mlp(train_labels, train_samples, hyperparams):
                 # Evaluate the model on all the minibatches
 
                 validation_scores_c = []
+                precisions_c = []
+                recalls_c = []
                 for i in xrange(n_valid_batches):
                     f1s, precisions, recalls = score_validate_model(i)
-                    #print f1s, precisions, recalls
+                    #print f1s[0], precisions[0], recalls[0]
+                    precisions_c.append(precisions)
+                    recalls_c.append(recalls)
                     validation_scores_c.append(f1s)
 
                 curr_f1 = numpy.mean(validation_scores_c)
 
-                if(numpy.isnan(curr_f1)):
-                    curr_f1 = 0
+                if numpy.isnan(curr_f1):
+                    best_validation_score = 0
+                    epoch = n_epochs
+                    break
 
-                # print('epoch %i, minibatch %i/%i, validation F1 %f' % (epoch, minibatch_index + 1, n_train_batches, curr_f1))
+                W = classifier.params[0].eval()
+                if numpy.isnan(numpy.sum(W)):
+                    best_validation_score = 0
+                    epoch = n_epochs
+                    break
 
                 validation_scores = numpy.hstack([validation_scores, curr_f1])
 

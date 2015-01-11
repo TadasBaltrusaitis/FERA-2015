@@ -84,10 +84,10 @@ class LogisticRegressionCrossEnt(object):
 
         neg_y = y < 1
 
-        tps = T.sum(positive_preds * y, axis = 0)
-        fps = T.sum(positive_preds * neg_y, axis = 0)
-        tns = T.sum(negative_preds * neg_y, axis = 0)
-        fns = T.sum(negative_preds * y, axis = 0)
+        tps = T.sum(positive_preds * y, axis=0)
+        fps = T.sum(positive_preds * neg_y, axis=0)
+        tns = T.sum(negative_preds * neg_y, axis=0)
+        fns = T.sum(negative_preds * y, axis=0)
 
         # A very slight inaccuracy but avoids division by zero
         precisions = (tps + 1.0) / (tps + fps + 1.0)

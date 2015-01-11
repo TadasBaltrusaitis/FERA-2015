@@ -22,9 +22,9 @@ test_fn = mlp.test_mlp
 
 hyperparams = {
    'batch_size': [100],
-   'learning_rate': [0.1, 0.15, 0.2],
-   'lambda_reg': [0, 0.001, 0.002, 0.004],
-   'num_hidden': [50, 100, 150],
+   'learning_rate': [0.1],
+   'lambda_reg': [0, 0.001],
+   'num_hidden': [100, 150, 200, 250, 300, 350, 400],
    'n_epochs': 400,
    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
