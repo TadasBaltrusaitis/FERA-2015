@@ -3,7 +3,7 @@ import shared_defs_BP4D
 import data_preparation
 import numpy
 
-import mlp
+import mlp_multi_layer
 
 (all_aus, train_recs, devel_recs, BP4D_dir, hog_data_dir) = shared_defs_BP4D.shared_defs()
 
@@ -15,8 +15,8 @@ f = open("./trained/BP4D_train_mlp_2_joint_no_PCA.txt", 'w')
 
 import validation_helpers
 
-train_fn = mlp.train_mlp
-test_fn = mlp.test_mlp
+train_fn = mlp_multi_layer.train_mlp
+test_fn = mlp_multi_layer.test_mlp
 
 hyperparams = {
    'batch_size': [100],
