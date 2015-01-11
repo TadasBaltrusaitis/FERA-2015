@@ -35,8 +35,11 @@ function [ labels, valid_ids, vid_ids  ] = extract_SEMAINE_labels( SEMAINE_dir, 
         % all indices in SEMAINE are valid
         valid_ids{i} = ones(size(labels{i},1),1);
         
-        if(~exist(['training_labels/' recs{i}], 'dir'))            
-            save(['training_labels/' recs{i}],'labels', 'valid_ids', 'vid_ids');
+        if(~exist(['training_labels/' recs{i} '_AU' num2str(aus)], 'dir'))   
+            labels_rec = labels{i};
+            valid_ids_rec = valid_ids{i};
+            vid_ids_rec = vid_ids(i,:);
+            save(['training_labels/' recs{i} '_AU' num2str(aus)], 'labels_rec', 'valid_ids_rec', 'vid_ids_rec');
         end
     end
     
