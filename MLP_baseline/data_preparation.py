@@ -397,6 +397,61 @@ def Prepare_HOG_AU_data_generic_BP4D(train_recs, devel_recs, au, BP4D_dir, hog_d
 
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
 
+# Preparing the BP4D data
+def Prepare_HOG_AU_data_generic_BP4D_no_PCA(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc):
+
+    # First extracting the labels
+    [labels_train, valid_ids_train, vid_ids_train] = extract_BP4D_labels(BP4D_dir, train_recs, au)
+
+    # Reading in the HOG data (of only relevant frames)
+    [train_appearance_data, valid_ids_train_hog, vid_ids_train_string] = Read_HOG_files_BP4D(train_recs, hog_data_dir + '/train/')
+
+    # Subsample the data to make training quicker
+    labels_train = np.concatenate(labels_train)
+    valid_ids_train = np.concatenate(valid_ids_train).astype('bool')
+
+    if len(au) == 1:
+        labels_train = labels_train[:, 0]
+
+    reduced_inds = np.ones((labels_train.shape[0], ), dtype='bool')
+
+    # only remove the data if single au used
+    if len(au) == 1:
+        # Remove two thirds of negative examples (to balance the training data a bit)
+        inds_train = np.array(range(labels_train.shape[0]))
+        neg_samples = inds_train[labels_train == 0]
+
+        to_rem = neg_samples[np.round(np.linspace(0, neg_samples.shape[0]-1, neg_samples.shape[0]/1.5).astype('int32'))]
+        reduced_inds[to_rem] = False
+
+    # also remove invalid ids based on CLM failing or AU not being labelled
+    reduced_inds[valid_ids_train == False] = False
+    reduced_inds[valid_ids_train_hog == False] = False
+
+    if len(au) == 1:
+        labels_train = labels_train[reduced_inds]
+    else:
+        labels_train = labels_train[reduced_inds, :]
+
+    train_appearance_data = train_appearance_data[reduced_inds, :]
+
+    # Extract devel data
+
+    # First extracting the labels
+    [labels_devel, valid_ids_devel, vid_ids_devel] = extract_BP4D_labels(BP4D_dir, devel_recs, au)
+
+    # Reading in the HOG data (of only relevant frames)
+    [devel_appearance_data, valid_ids_devel_hog, vid_ids_devel_string] = \
+        Read_HOG_files_BP4D(devel_recs, hog_data_dir + '/devel/')
+
+    labels_devel = np.concatenate(labels_devel)
+
+    data_train = train_appearance_data
+    data_devel = devel_appearance_data
+
+    return data_train, labels_train, data_devel, labels_devel
+
+
 def Read_HOG_files_BP4D_dynamic(users, hog_data_dir):
     
     import glob
