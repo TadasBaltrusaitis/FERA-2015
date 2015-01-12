@@ -238,7 +238,7 @@ def train_mlp(train_labels, train_samples, hyperparams):
     ###############
     #print '... training the model'
     # early-stopping parameters
-    patience = 20000  # look as this many examples regardless
+    patience = 100000  # look at this many examples regardless
     patience_increase = 2  # wait this much longer when a new best is
                                   # found
     improvement_threshold = 0.9995  # a relative improvement of this much is considered significant
@@ -299,8 +299,8 @@ def train_mlp(train_labels, train_samples, hyperparams):
     print 'Optimization complete with best validation score of %f ' % best_validation_score
     print 'The code run for %d epochs, with %f epochs/sec' % ( epoch, 1. * epoch / (end_time - start_time))
 
-    plot(validation_scores)
-    show()
+    #plot(validation_scores)
+    #show()
 
     return classifier.params
 
