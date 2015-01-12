@@ -238,10 +238,10 @@ def train_mlp(train_labels, train_samples, hyperparams):
     ###############
     #print '... training the model'
     # early-stopping parameters
-    patience = 10000  # look as this many examples regardless
+    patience = 20000  # look as this many examples regardless
     patience_increase = 2  # wait this much longer when a new best is
                                   # found
-    improvement_threshold = 0.995  # a relative improvement of this much is considered significant
+    improvement_threshold = 0.9995  # a relative improvement of this much is considered significant
     validation_frequency = min(n_train_batches, patience / 2)
 
     best_params = None
