@@ -6,7 +6,7 @@ import data_preparation
 
 pca_loc = "../pca_generation/generic_face_rigid";
 
-f = open("./trained/SEMAINE_train_dynamic_lin_svm.txt", 'w');
+f = open("./trained/BP4D_train_dynamic_lin_svm.txt", 'w');
 
 for au in all_aus:
                
