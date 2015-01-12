@@ -21,17 +21,17 @@ train_fn = mlp.train_mlp
 test_fn = mlp.test_mlp
 
 hyperparams = {
-   'batch_size': [100],
-   'learning_rate': [0.1],
-   'lambda_reg': [0.01],
-   'num_hidden': [100, 150],
-   'n_epochs': 100,
+   'batch_size': [50, 100],
+   'learning_rate': [0.05, 0.075, 0.1],
+   'lambda_reg': [0.001, 0.01, 0.05],
+   'num_hidden': [100],
+   'n_epochs': 75,
    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
 # Cross-validate here
 best_params, all_params = validation_helpers.validate_grid_search(train_fn, test_fn,
                                                                   False, train_samples, train_labels, valid_samples,
-                                                                  valid_labels, hyperparams, num_repeat=3)
+                                                                  valid_labels, hyperparams, num_repeat=1)
 
 # Average results due to non-deterministic nature of the model
 f1s = numpy.zeros((1, train_labels.shape[1]))

@@ -1,36 +1,38 @@
-# The SVM baseline for BO4D
-import shared_defs_BP4D
+# The SVM baseline for SEMAINE
+import shared_defs_SEMAINE
 import data_preparation
 import numpy
 
-import logistic_regression
+import mlp
 
-(all_aus, train_recs, devel_recs, BP4D_dir, hog_data_dir) = shared_defs_BP4D.shared_defs()
+(all_aus, train_recs, devel_recs, SEMAINE_dir, hog_data_dir) = shared_defs_SEMAINE.shared_defs()
 
 pca_loc = "../pca_generation/generic_face_rigid"
 
-f = open("./trained/BP4D_train_static_log_reg_joint.txt", 'w')
+f = open("./trained/SEMAINE_train_mlp_joint_scale.txt", 'w')
 
 # load the training and testing data for the current fold
 [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = \
-    data_preparation.Prepare_HOG_AU_data_generic_BP4D(train_recs, devel_recs, all_aus, BP4D_dir, hog_data_dir, pca_loc)
+    data_preparation.Prepare_HOG_AU_data_generic_SEMAINE(train_recs, devel_recs, all_aus, SEMAINE_dir, hog_data_dir, pca_loc,
+                                                      scale=True)
 
 import validation_helpers
 
-train_fn = logistic_regression.train_log_reg
-test_fn = logistic_regression.test_log_reg
+train_fn = mlp.train_mlp
+test_fn = mlp.test_mlp
 
 hyperparams = {
-    'batch_size': [100, 200],
-    'learning_rate': [0.01, 0.025, 0.05],
-    'lambda_reg': [0, 0.001, 0.05],
-    'n_epochs': 100,
-    'validate_params': ["batch_size", "learning_rate", "lambda_reg"]}
+   'batch_size': [100],
+   'learning_rate': [0.05, 0.1, 0.15],
+   'lambda_reg': [0.001, 0.005, 0.01],
+   'num_hidden': [50, 100, 200, 300],
+   'n_epochs': 30,
+   'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
 # Cross-validate here
 best_params, all_params = validation_helpers.validate_grid_search(train_fn, test_fn,
                                                                   False, train_samples, train_labels, valid_samples,
-                                                                  valid_labels, hyperparams, num_repeat=1)
+                                                                  valid_labels, hyperparams, num_repeat=2)
 
 # Average results due to non-deterministic nature of the model
 f1s = numpy.zeros((1, train_labels.shape[1]))

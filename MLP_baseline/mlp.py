@@ -5,6 +5,8 @@ import numpy
 import theano
 import theano.tensor as T
 
+from pylab import *
+
 import scores
 
 from logistic_regression_tanh import LogisticRegressionCrossEnt
@@ -138,6 +140,7 @@ class MLP(object):
         # log likelihood of the output of the model, computed in the
         # logistic regression layer
         self.negative_log_likelihood = self.logRegressionLayer.negative_log_likelihood
+        self.euclidean_loss = self.logRegressionLayer.euclidean_loss
 
         # same holds for the function computing the score of the model
         self.scores = self.logRegressionLayer.scores
@@ -164,7 +167,6 @@ def train_mlp(train_labels, train_samples, hyperparams):
     cutoff = int(train_labels.shape[0] * 0.9)
 
     train_samples_x = train_samples[arr[0:cutoff],:]
-
     valid_samples_x = train_samples[arr[cutoff:],:]
 
     if len(train_labels.shape) == 1:
@@ -180,12 +182,8 @@ def train_mlp(train_labels, train_samples, hyperparams):
     train_set_x = theano.shared(numpy.asarray(train_samples_x, dtype=theano.config.floatX), borrow=borrow)
     train_set_y = theano.shared(numpy.asarray(train_samples_y, dtype=theano.config.floatX), borrow=borrow)
 
-    valid_set_x = theano.shared(numpy.asarray(valid_samples_x, dtype=theano.config.floatX), borrow=borrow)
-    valid_set_y = theano.shared(numpy.asarray(valid_samples_y, dtype=theano.config.floatX), borrow=borrow)
-
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
-    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] / batch_size
 
     index = T.lscalar()  # index to a [mini]batch
     x = T.matrix('x')  # the data is presented as rasterized images
@@ -225,17 +223,6 @@ def train_mlp(train_labels, train_samples, hyperparams):
     for param, gparam in zip(classifier.params, gparams):
         updates.append((param, param - learning_rate * gparam))
 
-    #print 'Cost defined, updates defined, gradients defined'
-
-    # compiling a Theano function that computes the mistakes that are made by
-    # the model on a minibatch
-    score_validate_model = theano.function(inputs=[index],
-            outputs=classifier.scores(y),
-            givens={
-                x: valid_set_x[index * batch_size:(index + 1) * batch_size],
-                y: valid_set_y[index * batch_size:(index + 1) * batch_size]})
-
-    #print 'score_validate_model defined'
     # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
     # defined in `updates`
@@ -251,10 +238,10 @@ def train_mlp(train_labels, train_samples, hyperparams):
     ###############
     #print '... training the model'
     # early-stopping parameters
-    patience = 40000  # look as this many examples regardless
-    patience_increase = 3  # wait this much longer when a new best is
+    patience = 10000  # look as this many examples regardless
+    patience_increase = 2  # wait this much longer when a new best is
                                   # found
-    improvement_threshold = 0.9995  # a relative improvement of this much is considered significant
+    improvement_threshold = 0.995  # a relative improvement of this much is considered significant
     validation_frequency = min(n_train_batches, patience / 2)
 
     best_params = None
@@ -282,23 +269,8 @@ def train_mlp(train_labels, train_samples, hyperparams):
                 # compute zero-one loss on validation set
 
                 # Evaluate the model on all the minibatches
-
-                validation_scores_c = []
-                precisions_c = []
-                recalls_c = []
-                for i in xrange(n_valid_batches):
-                    f1s, precisions, recalls = score_validate_model(i)
-                    #print f1s[0], precisions[0], recalls[0]
-                    precisions_c.append(precisions)
-                    recalls_c.append(recalls)
-                    validation_scores_c.append(f1s)
-
-                curr_f1 = numpy.mean(validation_scores_c)
-
-                if numpy.isnan(curr_f1):
-                    best_validation_score = 0
-                    epoch = n_epochs
-                    break
+                _, _, _, _, f1, prec, rec = test_mlp(valid_samples_y, valid_samples_x, classifier.params)
+                curr_f1 = numpy.mean(f1)
 
                 W = classifier.params[0].eval()
                 if numpy.isnan(numpy.sum(W)):
@@ -308,9 +280,11 @@ def train_mlp(train_labels, train_samples, hyperparams):
 
                 validation_scores = numpy.hstack([validation_scores, curr_f1])
 
+                print 'Epoch - %d - F1 - %f' % (epoch, curr_f1)
+
                 # if we got the best validation score until now
                 if curr_f1 > best_validation_score:
-                    #print 'Epoch - %d - F1 - %f' % (epoch, curr_f1)
+
                     # Improve patience if loss improvement is good enough
                     if curr_f1 > best_validation_score / improvement_threshold:
                         patience = max(patience, iter * patience_increase)
@@ -324,6 +298,180 @@ def train_mlp(train_labels, train_samples, hyperparams):
     end_time = time.clock()
     print 'Optimization complete with best validation score of %f ' % best_validation_score
     print 'The code run for %d epochs, with %f epochs/sec' % ( epoch, 1. * epoch / (end_time - start_time))
+
+    plot(validation_scores)
+    show()
+
+    return classifier.params
+
+def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hyperparams):
+
+    batch_size = hyperparams['batch_size']
+    learning_rate = hyperparams['learning_rate']
+    n_epochs = hyperparams['n_epochs']
+    lambda_reg = hyperparams['lambda_reg']
+    num_hidden = hyperparams['num_hidden']
+
+    decay = 0.01
+
+    borrow=True
+
+    # Split data into training and validation here
+    # TODO potential shuffle after split and not before
+    arr = numpy.arange(train_labels.shape[0])
+    numpy.random.shuffle(arr)
+
+    cutoff = int(train_labels.shape[0] * 0.9)
+
+    train_samples_x = train_samples[arr[0:cutoff],:]
+    valid_samples_x = train_samples[arr[cutoff:],:]
+
+    if len(train_labels.shape) == 1:
+        train_samples_y = train_labels[arr[0:cutoff]]
+        valid_samples_y = train_labels[arr[cutoff:]]
+
+        train_samples_y.shape = (train_samples_y.shape[0], 1)
+        valid_samples_y.shape = (valid_samples_y.shape[0], 1)
+    else:
+        train_samples_y = train_labels[arr[0:cutoff], :]
+        valid_samples_y = train_labels[arr[cutoff:], :]
+
+    train_set_x = theano.shared(numpy.asarray(train_samples_x, dtype=theano.config.floatX), borrow=borrow)
+    train_set_y = theano.shared(numpy.asarray(train_samples_y, dtype=theano.config.floatX), borrow=borrow)
+
+    # compute number of minibatches for training, validation and testing
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
+
+    index = T.lscalar()  # index to a [mini]batch
+    x = T.matrix('x')  # the data is presented as rasterized images
+    y = T.matrix('y')  # the labels are presented as 1D vector of
+                           # [int] labels
+
+    num_out = train_set_y.shape[1].eval()
+    num_in = train_samples_x.shape[1]
+
+    # construct the logistic regression class
+    # classifier = LogisticRegressionCrossEnt(input=x, n_in=num_in, n_out=num_out, lambda_reg=lambda_reg)
+
+    # for random weight intialisation
+    rng = numpy.random.RandomState(1234)
+
+    # construct the MLP class
+    classifier = MLP(rng=rng, input=x, n_in=num_in,
+                     n_hidden=num_hidden, n_out=num_out)
+    # the cost we minimize during training is the negative log likelihood of
+    # the model in symbolic format
+    cost = classifier.euclidean_loss(y) + lambda_reg * classifier.L2_sqr
+
+    # compute the gradient of cost with respect to theta (sotred in params)
+    # the resulting gradients will be stored in a list gparams
+    gparams = []
+    for param in classifier.params:
+        gparam = T.grad(cost, param)
+        gparams.append(gparam)
+
+    # specify how to update the parameters of the model as a list of
+    # (variable, update expression) pairs
+    updates = []
+    # given two list the zip A = [a1, a2, a3, a4] and B = [b1, b2, b3, b4] of
+    # same length, zip generates a list C of same size, where each element
+    # is a pair formed from the two lists :
+    #    C = [(a1, b1), (a2, b2), (a3, b3), (a4, b4)]
+    for param, gparam in zip(classifier.params, gparams):
+        updates.append((param, param - learning_rate * gparam))
+
+    # compiling a Theano function `train_model` that returns the cost, but in
+    # the same time updates the parameter of the model based on the rules
+    # defined in `updates`
+    train_model = theano.function(inputs=[index],
+            outputs=cost,
+            updates=updates,
+            givens={
+                x: train_set_x[index * batch_size:(index + 1) * batch_size],
+                y: train_set_y[index * batch_size:(index + 1) * batch_size]})
+
+    ###############
+    # TRAIN MODEL #
+    ###############
+    #print '... training the model'
+    # early-stopping parameters
+    patience = 10000  # look as this many examples regardless
+    patience_increase = 2  # wait this much longer when a new best is
+                                  # found
+    improvement_threshold = 0.995  # a relative improvement of this much is considered significant
+    validation_frequency = min(n_train_batches, patience / 2)
+
+    best_params = None
+    best_validation_score = -numpy.inf
+    test_loss = 0.
+    start_time = time.clock()
+
+    validation_scores = numpy.array([])
+    test_scores = numpy.array([])
+
+    done_looping = False
+    epoch = 0
+
+    while (epoch < n_epochs) and (not done_looping):
+        epoch += 1
+        for minibatch_index in xrange(n_train_batches):
+
+            minibatch_avg_cost = train_model(minibatch_index)
+
+            #print 'Minibatch cost - %.4f' % minibatch_avg_cost
+
+            # iteration number
+            iter = (epoch - 1) * n_train_batches + minibatch_index
+
+            if (iter + 1) % validation_frequency == 0:
+                # compute zero-one loss on validation set
+
+                # Evaluate the model on all the minibatches
+
+                _, _, _, _, f1, prec, rec = test_mlp(valid_samples_y, valid_samples_x, classifier.params)
+
+                _, _, _, _, f1_t, prec_t, rec_t = test_mlp(test_labels, test_samples, classifier.params)
+                #test_mlp(test_labels, test_samples, model):
+
+                curr_f1 = numpy.mean(f1)
+                curr_f1_test = numpy.mean(f1_t)
+
+                print 'Epoch - %d, F1 - %f, F1(test) %f' % (epoch, curr_f1, curr_f1_test)
+
+                if numpy.isnan(curr_f1):
+                    best_validation_score = 0
+                    epoch = n_epochs
+                    break
+
+                W = classifier.params[0].eval()
+                if numpy.isnan(numpy.sum(W)):
+                    best_validation_score = 0
+                    epoch = n_epochs
+                    break
+
+                validation_scores = numpy.hstack([validation_scores, curr_f1])
+                test_scores = numpy.hstack([test_scores, curr_f1_test])
+
+                # if we got the best validation score until now
+                if curr_f1 > best_validation_score:
+
+                    # Improve patience if loss improvement is good enough
+                    if curr_f1 > best_validation_score / improvement_threshold:
+                        patience = max(patience, iter * patience_increase)
+
+                    best_validation_score = curr_f1
+
+            if patience <= iter:
+                done_looping = True
+                break
+
+    end_time = time.clock()
+    print 'Optimization complete with best validation score of %f ' % best_validation_score
+    print 'The code run for %d epochs, with %f epochs/sec' % ( epoch, 1. * epoch / (end_time - start_time))
+
+    plot(validation_scores)
+    plot(test_scores)
+    show()
 
     return classifier.params
 

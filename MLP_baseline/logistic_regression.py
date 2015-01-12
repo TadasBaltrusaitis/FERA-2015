@@ -143,12 +143,8 @@ def train_log_reg(train_labels, train_samples, hyperparams):
     train_set_x = theano.shared(numpy.asarray(train_samples_x, dtype=theano.config.floatX), borrow=borrow)
     train_set_y = theano.shared(numpy.asarray(train_samples_y, dtype=theano.config.floatX), borrow=borrow)
 
-    valid_set_x = theano.shared(numpy.asarray(valid_samples_x, dtype=theano.config.floatX), borrow=borrow)
-    valid_set_y = theano.shared(numpy.asarray(valid_samples_y, dtype=theano.config.floatX), borrow=borrow)
-
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
-    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] / batch_size
 
     index = T.lscalar()  # index to a [mini]batch
     x = T.matrix('x')  # the data is presented as rasterized images
@@ -175,16 +171,6 @@ def train_log_reg(train_labels, train_samples, hyperparams):
     updates = [(classifier.W, classifier.W - learning_rate * g_W),
                (classifier.b, classifier.b - learning_rate * g_b)]
 
-    #print 'Cost defined, updates defined, gradients defined'
-
-    # compiling a Theano function that computes the mistakes that are made by
-    # the model on a minibatch
-    score_validate_model = theano.function(inputs=[index],
-            outputs=classifier.scores(y),
-            givens={
-                x: valid_set_x[index * batch_size:(index + 1) * batch_size],
-                y: valid_set_y[index * batch_size:(index + 1) * batch_size]})
-
     #print 'score_validate_model defined'
     # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
@@ -204,7 +190,7 @@ def train_log_reg(train_labels, train_samples, hyperparams):
     patience = 5000  # look as this many examples regardless
     patience_increase = 2  # wait this much longer when a new best is
                                   # found
-    improvement_threshold = 0.9  # a relative improvement of this much is
+    improvement_threshold = 0.95  # a relative improvement of this much is
                                   # considered significant
     validation_frequency = min(n_train_batches, patience / 2)
 
@@ -233,17 +219,11 @@ def train_log_reg(train_labels, train_samples, hyperparams):
 
                 # Evaluate the model on all the minibatches
 
-                validation_scores_c = []
-                for i in xrange(n_valid_batches):
-                    f1s, precisions, recalls = score_validate_model(i)
-                    validation_scores_c.append(f1s)
+                _, _, _, _, f1, prec, rec = test_log_reg(valid_samples_y, valid_samples_x, (classifier.W.eval(), classifier.b.eval()))
 
-                curr_f1 = numpy.mean(validation_scores_c)
+                curr_f1 = numpy.mean(f1)
 
-                if(numpy.isnan(curr_f1)):
-                    curr_f1 = 0
-
-                # print('epoch %i, minibatch %i/%i, validation F1 %f' % (epoch, minibatch_index + 1, n_train_batches, curr_f1))
+                print('epoch %i, minibatch %i/%i, validation F1 %f' % (epoch, minibatch_index + 1, n_train_batches, curr_f1))
 
                 validation_scores = numpy.hstack([validation_scores, curr_f1])
 

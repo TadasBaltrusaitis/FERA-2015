@@ -560,7 +560,7 @@ def Read_HOG_files_SEMAINE_dynamic(users, vid_ids, hog_data_dir):
     return hog_data, valid_inds, vid_id
 
 # Preparing the SEMAINE data
-def Prepare_HOG_AU_data_generic_SEMAINE(train_recs, devel_recs, au, SEMAINE_dir, hog_data_dir, pca_loc):
+def Prepare_HOG_AU_data_generic_SEMAINE(train_recs, devel_recs, au, SEMAINE_dir, hog_data_dir, pca_loc, scale=False):
 
     # First extracting the labels
     SEMAINE_label_dir = '../SEMAINE_baseline/training_labels/'
@@ -629,10 +629,20 @@ def Prepare_HOG_AU_data_generic_SEMAINE(train_recs, devel_recs, au, SEMAINE_dir,
     data_train = np.dot(train_appearance_data, PC)
     data_devel = np.dot(devel_appearance_data, PC)
 
+    if scale:
+
+        # Some extra scaling
+        scaling = np.std(data_train, axis=0)
+
+        data_train = data_train / scaling
+        data_devel = data_devel / scaling
+
+        PC = PC / scaling
+
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
 
 # Preparing the SEMAINE data
-def Prepare_HOG_AU_data_generic_SEMAINE_dynamic(train_recs, devel_recs, au, SEMAINE_dir, hog_data_dir, pca_loc):
+def Prepare_HOG_AU_data_generic_SEMAINE_dynamic(train_recs, devel_recs, au, SEMAINE_dir, hog_data_dir, pca_loc, scale=False):
 
     # First extracting the labels
     SEMAINE_label_dir = '../SEMAINE_baseline/training_labels/'
@@ -701,11 +711,20 @@ def Prepare_HOG_AU_data_generic_SEMAINE_dynamic(train_recs, devel_recs, au, SEMA
     data_train = np.dot(train_appearance_data, PC)
     data_devel = np.dot(devel_appearance_data, PC)
 
+    if scale:
+
+        # Some extra scaling
+        scaling = np.std(data_train, axis=0)
+
+        data_train = data_train / scaling
+        data_devel = data_devel / scaling
+
+        PC = PC / scaling
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
 
 
 # Preparing the DISFA data
-def Prepare_HOG_AU_data_generic_DISFA(train_recs, devel_recs, au, DISFA_dir, hog_data_dir, pca_loc):
+def Prepare_HOG_AU_data_generic_DISFA(train_recs, devel_recs, au, DISFA_dir, hog_data_dir, pca_loc, scale=False):
 
     # First extracting the labels
     au_train_dirs = [DISFA_dir + '/ActionUnit_Labels/' + user + '/' + user for user in train_recs]
@@ -764,10 +783,20 @@ def Prepare_HOG_AU_data_generic_DISFA(train_recs, devel_recs, au, DISFA_dir, hog
     data_train = np.dot(train_appearance_data, PC)
     data_devel = np.dot(devel_appearance_data, PC)
 
+    if scale:
+
+        # Some extra scaling
+        scaling = np.std(data_train, axis=0)
+
+        data_train = data_train / scaling
+        data_devel = data_devel / scaling
+
+        PC = PC / scaling
+
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
 
 # Preparing the BP4D data
-def Prepare_HOG_AU_data_generic_DISFA_dynamic(train_recs, devel_recs, au, DISFA_dir, hog_data_dir, pca_loc):
+def Prepare_HOG_AU_data_generic_DISFA_dynamic(train_recs, devel_recs, au, DISFA_dir, hog_data_dir, pca_loc, scale=False):
 
     # First extracting the labels
     au_train_dirs = [DISFA_dir + '/ActionUnit_Labels/' + user + '/' + user for user in train_recs]
@@ -825,6 +854,16 @@ def Prepare_HOG_AU_data_generic_DISFA_dynamic(train_recs, devel_recs, au, DISFA_
 
     data_train = np.dot(train_appearance_data, PC)
     data_devel = np.dot(devel_appearance_data, PC)
+
+    if scale:
+
+        # Some extra scaling
+        scaling = np.std(data_train, axis=0)
+
+        data_train = data_train / scaling
+        data_devel = data_devel / scaling
+
+        PC = PC / scaling
 
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
 
@@ -905,8 +944,6 @@ def Prepare_HOG_AU_data_generic_BP4D(train_recs, devel_recs, au, BP4D_dir, hog_d
         data_devel = data_devel / scaling
 
         PC = PC / scaling
-
-
 
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
 
@@ -1066,7 +1103,7 @@ def Read_HOG_files_BP4D_dynamic(users, hog_data_dir):
     return hog_data, valid_inds, vid_id
 
 # Preparing the BP4D data
-def Prepare_HOG_AU_data_generic_BP4D_dynamic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc):
+def Prepare_HOG_AU_data_generic_BP4D_dynamic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc, scale=False):
     
     import numpy as np
     import scipy.io
@@ -1131,5 +1168,15 @@ def Prepare_HOG_AU_data_generic_BP4D_dynamic(train_recs, devel_recs, au, BP4D_di
         
     data_train = np.dot(train_appearance_data, PC)
     data_devel = np.dot(devel_appearance_data, PC)
+
+    if scale:
+
+        # Some extra scaling
+        scaling = np.std(data_train, axis=0)
+
+        data_train = data_train / scaling
+        data_devel = data_devel / scaling
+
+        PC = PC / scaling
 
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
