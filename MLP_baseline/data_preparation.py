@@ -322,13 +322,50 @@ def Read_HOG_files_DISFA_dynamic(users, hog_data_dir):
 
     return hog_data, valid_inds, vid_id
 
+def Read_geom_files_SEMAINE(users, hog_data_dir, vid_ids):
 
+    from numpy import genfromtxt
+
+    geom_data = None
+
+    for i in range(len(users)):
+
+        in_file = hog_data_dir + '/' + users[i] + ".params.txt"
+        data_curr = genfromtxt(in_file, dtype=float, delimiter=' ')
+        data_curr = data_curr[vid_ids[i,0]:vid_ids[i,1], 14::2]
+
+        if geom_data is None:
+            geom_data = data_curr
+        else:
+            geom_data = np.concatenate((geom_data, data_curr), axis=0)
+
+    return geom_data
+
+def Read_geom_files_SEMAINE_dynamic(users, hog_data_dir, vid_ids):
+
+    from numpy import genfromtxt
+
+    geom_data = None
+
+    for i in range(len(users)):
+
+        in_file = hog_data_dir + '/' + users[i] + ".params.txt"
+        data_curr = genfromtxt(in_file, dtype=float, delimiter=' ')
+        data_curr = data_curr[vid_ids[i,0]:vid_ids[i,1], 14::2]
+        data_curr = data_curr - np.median(data_curr, axis=0)
+
+        if geom_data is None:
+            geom_data = data_curr
+        else:
+            geom_data = np.concatenate((geom_data, data_curr), axis=0)
+
+    return geom_data
 def Read_geom_files_BP4D(users, hog_data_dir):
 
     import glob
     from numpy import genfromtxt
 
-    geaom_data = None
+    geom_data = None
 
     for i in range(len(users)):
 
@@ -342,7 +379,9 @@ def Read_geom_files_BP4D(users, hog_data_dir):
             if geom_data is None:
                 geom_data = data_curr
             else:
-                np.concatenate((geom_data, data_curr), axis=0)
+                geom_data = np.concatenate((geom_data, data_curr), axis=0)
+
+    return geom_data
 
 
 def Read_HOG_files_BP4D(users, hog_data_dir):
@@ -560,16 +599,19 @@ def Read_HOG_files_SEMAINE_dynamic(users, vid_ids, hog_data_dir):
     return hog_data, valid_inds, vid_id
 
 # Preparing the SEMAINE data
-def Prepare_HOG_AU_data_generic_SEMAINE(train_recs, devel_recs, au, SEMAINE_dir, hog_data_dir, pca_loc, scale=False):
+def Prepare_HOG_AU_data_generic_SEMAINE(train_recs, devel_recs, au, SEMAINE_dir, hog_data_dir, pca_loc, scale=False, geometry=False):
 
     # First extracting the labels
     SEMAINE_label_dir = '../SEMAINE_baseline/training_labels/'
 
     [labels_train, valid_ids_train, vid_ids_train] = extract_SEMAINE_labels(SEMAINE_label_dir, train_recs, au)
 
+    train_geom_data = Read_geom_files_SEMAINE(train_recs, hog_data_dir + '/train/', vid_ids_train)
+
     # Reading in the HOG data (of only relevant frames)
     [train_appearance_data, valid_ids_train_hog, vid_ids_train_string] = \
         Read_HOG_files_SEMAINE(train_recs, vid_ids_train, hog_data_dir + '/train/')
+
 
     # Subsample the data to make training quicker
     labels_train = np.concatenate(labels_train)
@@ -601,6 +643,7 @@ def Prepare_HOG_AU_data_generic_SEMAINE(train_recs, devel_recs, au, SEMAINE_dir,
         labels_train = labels_train[reduced_inds, :]
 
     train_appearance_data = train_appearance_data[reduced_inds, :]
+    train_geom_data = train_geom_data[reduced_inds, :]
 
     # Extract devel data
 
@@ -610,6 +653,8 @@ def Prepare_HOG_AU_data_generic_SEMAINE(train_recs, devel_recs, au, SEMAINE_dir,
     # Reading in the HOG data (of only relevant frames)
     [devel_appearance_data, valid_ids_devel_hog, vid_ids_devel_string] = \
         Read_HOG_files_SEMAINE(devel_recs, vid_ids_devel, hog_data_dir + '/devel/')
+
+    devel_geom_data = Read_geom_files_SEMAINE(devel_recs, hog_data_dir +'devel', vid_ids_devel)
 
     labels_devel = np.concatenate(labels_devel)
 
@@ -629,6 +674,7 @@ def Prepare_HOG_AU_data_generic_SEMAINE(train_recs, devel_recs, au, SEMAINE_dir,
     data_train = np.dot(train_appearance_data, PC)
     data_devel = np.dot(devel_appearance_data, PC)
 
+    # TODO ATM scaling is without geom
     if scale:
 
         # Some extra scaling
@@ -639,15 +685,21 @@ def Prepare_HOG_AU_data_generic_SEMAINE(train_recs, devel_recs, au, SEMAINE_dir,
 
         PC = PC / scaling
 
+    if geometry:
+        data_train = np.concatenate((data_train, train_geom_data), axis=1)
+        data_devel = np.concatenate((data_devel, devel_geom_data), axis=1)
+
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
 
 # Preparing the SEMAINE data
-def Prepare_HOG_AU_data_generic_SEMAINE_dynamic(train_recs, devel_recs, au, SEMAINE_dir, hog_data_dir, pca_loc, scale=False):
+def Prepare_HOG_AU_data_generic_SEMAINE_dynamic(train_recs, devel_recs, au, SEMAINE_dir, hog_data_dir, pca_loc, scale=False, geometry=False):
 
     # First extracting the labels
     SEMAINE_label_dir = '../SEMAINE_baseline/training_labels/'
 
     [labels_train, valid_ids_train, vid_ids_train] = extract_SEMAINE_labels(SEMAINE_label_dir, train_recs, au)
+
+    train_geom_data = Read_geom_files_SEMAINE_dynamic(train_recs, hog_data_dir + '/train/', vid_ids_train)
 
     # Reading in the HOG data (of only relevant frames)
     [train_appearance_data, valid_ids_train_hog, vid_ids_train_string] = \
@@ -683,6 +735,7 @@ def Prepare_HOG_AU_data_generic_SEMAINE_dynamic(train_recs, devel_recs, au, SEMA
         labels_train = labels_train[reduced_inds, :]
 
     train_appearance_data = train_appearance_data[reduced_inds, :]
+    train_geom_data = train_geom_data[reduced_inds, :]
 
     # Extract devel data
 
@@ -692,6 +745,8 @@ def Prepare_HOG_AU_data_generic_SEMAINE_dynamic(train_recs, devel_recs, au, SEMA
     # Reading in the HOG data (of only relevant frames)
     [devel_appearance_data, valid_ids_devel_hog, vid_ids_devel_string] = \
         Read_HOG_files_SEMAINE_dynamic(devel_recs, vid_ids_devel, hog_data_dir + '/devel/')
+
+    devel_geom_data = Read_geom_files_SEMAINE_dynamic(devel_recs, hog_data_dir +'devel', vid_ids_devel)
 
     labels_devel = np.concatenate(labels_devel)
 
@@ -720,6 +775,11 @@ def Prepare_HOG_AU_data_generic_SEMAINE_dynamic(train_recs, devel_recs, au, SEMA
         data_devel = data_devel / scaling
 
         PC = PC / scaling
+
+    if geometry:
+        data_train = np.concatenate((data_train, train_geom_data), axis=1)
+        data_devel = np.concatenate((data_devel, devel_geom_data), axis=1)
+
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
 
 
