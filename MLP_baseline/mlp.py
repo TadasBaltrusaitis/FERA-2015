@@ -312,29 +312,23 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
     lambda_reg = hyperparams['lambda_reg']
     num_hidden = hyperparams['num_hidden']
 
-    decay = 0.01
+    early_stopping = None
+    if 'early_stopping' in hyperparams:
+        early_stopping = hyperparams['early_stopping']
+
+    adaptive_rate = True
+    if 'adaptive_rate' in hyperparams:
+        adaptive_rate = hyperparams['adaptive_rate']
+
+    decay = 0.5
 
     borrow=True
 
-    # Split data into training and validation here
-    # TODO potential shuffle after split and not before
-    arr = numpy.arange(train_labels.shape[0])
-    numpy.random.shuffle(arr)
-
-    cutoff = int(train_labels.shape[0] * 0.9)
-
-    train_samples_x = train_samples[arr[0:cutoff],:]
-    valid_samples_x = train_samples[arr[cutoff:],:]
+    train_samples_x = train_samples
+    train_samples_y = train_labels
 
     if len(train_labels.shape) == 1:
-        train_samples_y = train_labels[arr[0:cutoff]]
-        valid_samples_y = train_labels[arr[cutoff:]]
-
         train_samples_y.shape = (train_samples_y.shape[0], 1)
-        valid_samples_y.shape = (valid_samples_y.shape[0], 1)
-    else:
-        train_samples_y = train_labels[arr[0:cutoff], :]
-        valid_samples_y = train_labels[arr[cutoff:], :]
 
     train_set_x = theano.shared(numpy.asarray(train_samples_x, dtype=theano.config.floatX), borrow=borrow)
     train_set_y = theano.shared(numpy.asarray(train_samples_y, dtype=theano.config.floatX), borrow=borrow)
@@ -346,6 +340,7 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
     x = T.matrix('x')  # the data is presented as rasterized images
     y = T.matrix('y')  # the labels are presented as 1D vector of
                            # [int] labels
+    learning_rate_t = T.scalar('learning_rate')
 
     num_out = train_set_y.shape[1].eval()
     num_in = train_samples_x.shape[1]
@@ -378,12 +373,12 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
     # is a pair formed from the two lists :
     #    C = [(a1, b1), (a2, b2), (a3, b3), (a4, b4)]
     for param, gparam in zip(classifier.params, gparams):
-        updates.append((param, param - learning_rate * gparam))
+        updates.append((param, param - learning_rate_t * gparam))
 
     # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
     # defined in `updates`
-    train_model = theano.function(inputs=[index],
+    train_model = theano.function(inputs=[index, learning_rate_t],
             outputs=cost,
             updates=updates,
             givens={
@@ -395,94 +390,126 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
     ###############
     #print '... training the model'
     # early-stopping parameters
-    patience = 100000  # look as this many examples regardless
-    patience_increase = 2  # wait this much longer when a new best is
-                                  # found
-    improvement_threshold = 0.995  # a relative improvement of this much is considered significant
-    validation_frequency = min(n_train_batches, patience / 2)
-
-    best_params = None
-    best_validation_score = -numpy.inf
-    test_loss = 0.
     start_time = time.clock()
 
     validation_scores = numpy.array([])
-    test_scores = numpy.array([])
+    costs = numpy.array([])
+
+    moving_scores = numpy.array([])
+    moving_costs = numpy.array([])
 
     done_looping = False
     epoch = 0
 
+    best_validation_score = -numpy.inf
+    best_cost = numpy.inf
+
+    validation_improved_in = 0
+    cost_improved_in = 0
+
     while (epoch < n_epochs) and (not done_looping):
         epoch += 1
+        costs_epoch = numpy.array([])
         for minibatch_index in xrange(n_train_batches):
 
-            minibatch_avg_cost = train_model(minibatch_index)
+            minibatch_avg_cost = train_model(minibatch_index, learning_rate)
 
-            #print 'Minibatch cost - %.4f' % minibatch_avg_cost
+            costs_epoch = numpy.hstack([costs_epoch, minibatch_avg_cost])
 
             # iteration number
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
-            if (iter + 1) % validation_frequency == 0:
-                # compute zero-one loss on validation set
+        W1 = classifier.params[0].eval()
+        b1 = classifier.params[1].eval()
 
-                # Evaluate the model on all the minibatches
+        W2 = classifier.params[2].eval()
+        b2 = classifier.params[3].eval()
 
-                _, _, _, _, f1, prec, rec = test_mlp(valid_samples_y, valid_samples_x, classifier.params)
+        # Evaluate the model on current eopch
+        _, _, _, _, f1, prec, rec = test_mlp(test_labels, test_samples, (W1, b1, W2, b2))
 
-                _, _, _, _, f1_t, prec_t, rec_t = test_mlp(test_labels, test_samples, classifier.params)
-                #test_mlp(test_labels, test_samples, model):
+        curr_f1 = numpy.mean(f1)
 
-                curr_f1 = numpy.mean(f1)
-                curr_f1_test = numpy.mean(f1_t)
+        if numpy.isnan(curr_f1):
+            best_validation_score = 0
+            break
 
-                print 'Epoch - %d, F1 - %f, F1(test) %f' % (epoch, curr_f1, curr_f1_test)
+        W = classifier.params[0].eval()
+        if numpy.isnan(numpy.sum(W)):
+            best_validation_score = 0
+            break
 
-                if numpy.isnan(curr_f1):
-                    best_validation_score = 0
-                    epoch = n_epochs
-                    break
+        validation_scores = numpy.hstack([validation_scores, curr_f1])
 
-                W = classifier.params[0].eval()
-                if numpy.isnan(numpy.sum(W)):
-                    best_validation_score = 0
-                    epoch = n_epochs
-                    break
+        epoch_cost = np.mean(costs_epoch)
+        costs = numpy.hstack([costs, epoch_cost])
 
-                validation_scores = numpy.hstack([validation_scores, curr_f1])
-                test_scores = numpy.hstack([test_scores, curr_f1_test])
+        if(epoch <= 10):
+            # print 'Epoch - %d, cost - %f, F1 - %f' % (epoch, epoch_cost, curr_f1)
+            moving_costs = numpy.hstack([moving_costs, epoch_cost])
+            moving_scores = numpy.hstack([moving_scores, curr_f1])
 
-                # if we got the best validation score until now
-                if curr_f1 > best_validation_score:
+        else:
 
-                    # Improve patience if loss improvement is good enough
-                    if curr_f1 > best_validation_score / improvement_threshold:
-                        patience = max(patience, iter * patience_increase)
+            moving_costs = numpy.hstack([moving_costs, np.mean(costs[-10:])])
+            moving_scores = numpy.hstack([moving_scores, np.mean(validation_scores[-10:])])
 
-                    best_validation_score = curr_f1
+            if moving_costs[-1] < best_cost:
+                best_cost = moving_costs[-1]
+                cost_improved_in = 0
+            else:
+                cost_improved_in += 1
 
-            if patience <= iter:
-                done_looping = True
+            if moving_scores[-1] > best_validation_score:
+
+                W1_best = classifier.params[0].eval()
+                b1_best = classifier.params[1].eval()
+
+                W2_best = classifier.params[2].eval()
+                b2_best = classifier.params[3].eval()
+
+                best_validation_score = moving_scores[-1]
+                score_improved_in = 0
+                validation_improved_in = 0
+            else:
+                score_improved_in += 1
+                validation_improved_in += 1
+
+            if score_improved_in > 5:
+                print 'Rate reduced'
+                learning_rate /= 1.5
+                score_improved_in = 0
+
+            # If the score has not improved in some time terminate early
+            if validation_improved_in > 30:
+                print 'Early termination'
                 break
 
+            print 'Epoch - %d, cost - %f (%f, %d), F1 - %f (%f, %d)' % \
+               (epoch, epoch_cost, moving_costs[-1], cost_improved_in, curr_f1, moving_scores[-1], score_improved_in)
+
+        # if(epoch > 10)
+        #    costs
+
     end_time = time.clock()
-    print 'Optimization complete with best validation score of %f ' % best_validation_score
+    print 'Optimization complete with best validation score of %f ' % np.max(validation_scores)
     print 'The code run for %d epochs, with %f epochs/sec' % ( epoch, 1. * epoch / (end_time - start_time))
 
-    #plot(validation_scores)
-    #plot(test_scores)
+    plot(moving_costs)
+    plot(moving_scores)
+    #draw()
     show()
 
-    return classifier.params
+    return (W1_best, b1_best, W2_best, b2_best)
 
 
 def test_mlp(test_labels, test_samples, model):
 
-    W1 = model[0].eval()
-    b1 = model[1].eval()
+    W1 = model[0]
+    b1 = model[1]
 
-    W2 = model[2].eval()
-    b2 = model[3].eval()
+    W2 = model[2]
+    b2 = model[3]
 
     tanh_out = numpy.tanh(numpy.dot(test_samples, W1) + b1)
 

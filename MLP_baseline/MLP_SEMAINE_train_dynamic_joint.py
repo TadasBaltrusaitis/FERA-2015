@@ -18,19 +18,19 @@ f = open("./trained/SEMAINE_train_mlp_joint_dynamic.txt", 'w')
 
 import validation_helpers
 
-train_fn = mlp.train_mlp
+train_fn = mlp.train_mlp_probe
 test_fn = mlp.test_mlp
 
 hyperparams = {
    'batch_size': [100],
-   'learning_rate': [0.0125],
-   'lambda_reg': [0.0001, 0.001, 0.01],
+   'learning_rate': [0.1],
+   'lambda_reg': [0.00001, 0.0001, 0.001, 0.01],
    'num_hidden': [50, 100, 200, 250],
-   'n_epochs': 200,
+   'n_epochs': 800,
    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
 # Cross-validate here
-best_params, all_params = validation_helpers.validate_grid_search(train_fn, test_fn,
+best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
                                                                   False, train_samples, train_labels, valid_samples,
                                                                   valid_labels, hyperparams, num_repeat=2)
 
