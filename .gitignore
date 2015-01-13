@@ -72,3 +72,4 @@ DISFA_baseline/training/trained_old_pca/
 MLP_baseline/.ipynb_checkpoints/*
 MLP_baseline/.idea/*
 ~$results.xlsx
+C++ models/exe/AUPrediction/Release/
