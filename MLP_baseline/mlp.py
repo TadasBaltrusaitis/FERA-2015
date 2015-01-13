@@ -475,13 +475,13 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
                 score_improved_in += 1
                 validation_improved_in += 1
 
-            if score_improved_in > 5:
+            if score_improved_in > 10:
                 print 'Rate reduced'
                 learning_rate /= 1.5
                 score_improved_in = 0
 
             # If the score has not improved in some time terminate early
-            if validation_improved_in > 30:
+            if validation_improved_in > 60:
                 print 'Early termination'
                 break
 
@@ -495,10 +495,10 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
     print 'Optimization complete with best validation score of %f ' % np.max(validation_scores)
     print 'The code run for %d epochs, with %f epochs/sec' % ( epoch, 1. * epoch / (end_time - start_time))
 
-    plot(moving_costs)
-    plot(moving_scores)
+    #plot(moving_costs)
+    #plot(moving_scores)
     #draw()
-    show()
+    #show()
 
     return (W1_best, b1_best, W2_best, b2_best)
 
