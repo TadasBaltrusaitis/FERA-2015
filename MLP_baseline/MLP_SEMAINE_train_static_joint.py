@@ -21,11 +21,11 @@ train_fn = mlp.train_mlp
 test_fn = mlp.test_mlp
 
 hyperparams = {
-   'batch_size': [50, 100],
-   'learning_rate': [0.025],
-   'lambda_reg': [0.001, 0.01, 0.05],
-   'num_hidden': [100],
-   'n_epochs': 400,
+   'batch_size': [100],
+   'learning_rate': [0.0125],
+   'lambda_reg': [0.0001, 0.001, 0.01],
+   'num_hidden': [50, 100, 200, 250],
+   'n_epochs': 200,
    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
 # Cross-validate here
