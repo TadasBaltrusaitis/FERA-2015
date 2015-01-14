@@ -265,14 +265,14 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 		}
 	}
 
-	if(clm_model.detection_success)
-	{
-		// Perform AU prediction
-		AU_predictions = PredictCurrentAUs(orientation_to_use, true);
+	//if(clm_model.detection_success)
+	//{
+	// Perform AU prediction
+	AU_predictions = PredictCurrentAUs(orientation_to_use, true);
 
 		// Perform AV predictions
-		PredictCurrentAVs(clm_model);
-	}
+	//	PredictCurrentAVs(clm_model);
+	//}
 	this->current_time_seconds = timestamp_seconds;
 
 	view_used = orientation_to_use;

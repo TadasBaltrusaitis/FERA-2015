@@ -1,11 +1,7 @@
-svr_lin/AU_1_dyn.dat Inner brow raise
-svr_lin/AU_2_dyn.dat Outer brow raise
+svr_lin/AU_1_static.dat Inner brow raise
+svr_lin/AU_2_static.dat Outer brow raise
 svr_lin/AU_4_static.dat Brow lower
-svr_lin/AU_5_dyn.dat Eyes widen
-svr_lin/AU_6_dyn.dat Cheek raise
-svr_lin/AU_9_dyn.dat Nose Wrinkle
+svr_lin/AU_6_static.dat Cheek raise
 svr_lin/AU_12_static.dat Smile
-svr_lin/AU_15_dyn.dat Frown
-svr_lin/AU_17_dyn.dat Chin raise
-svr_lin/AU_25_static.dat Lips part
-svr_lin/AU_26_static.dat Jaw drop
+svr_lin/AU_14_static.dat Frown
+svr_lin/AU_17_static.dat Chin raise

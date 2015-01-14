@@ -1,6 +1,6 @@
 import time
 
-import numpy
+import numpy as np
 
 import theano
 import theano.tensor as T
@@ -52,9 +52,9 @@ class HiddenLayer(object):
         #        We have no info for other function, so we use the same as
         #        tanh.
         if W is None:
-            W_values = numpy.asarray(rng.uniform(
-                    low=-numpy.sqrt(6. / (n_in + n_out)),
-                    high=numpy.sqrt(6. / (n_in + n_out)),
+            W_values = np.asarray(rng.uniform(
+                    low=-np.sqrt(6. / (n_in + n_out)),
+                    high=np.sqrt(6. / (n_in + n_out)),
                     size=(n_in, n_out)), dtype=theano.config.floatX)
             if activation == theano.tensor.nnet.sigmoid:
                 W_values *= 4
@@ -62,7 +62,7 @@ class HiddenLayer(object):
             W = theano.shared(value=W_values, name='W', borrow=True)
 
         if b is None:
-            b_values = numpy.zeros((n_out,), dtype=theano.config.floatX)
+            b_values = np.zeros((n_out,), dtype=theano.config.floatX)
             b = theano.shared(value=b_values, name='b', borrow=True)
 
         self.W = W
@@ -132,12 +132,16 @@ class MLP(object):
         # L1 norm ; one regularization option is to enforce L1 norm to
         # be small
         self.L1 = abs(self.hiddenLayer.W).sum() \
+                + abs(self.hiddenLayer_2.W).sum() \
                 + abs(self.logRegressionLayer.W).sum()
 
         # square of L2 norm ; one regularization option is to enforce
         # square of L2 norm to be small
         self.L2_sqr = (self.hiddenLayer.W ** 2).sum() \
+                    + (self.hiddenLayer_2.W ** 2).sum() \
                     + (self.logRegressionLayer.W ** 2).sum()
+
+        self.euclidean_loss = self.logRegressionLayer.euclidean_loss
 
         # negative log likelihood of the MLP is given by the negative
         # log likelihood of the output of the model, computed in the
@@ -151,7 +155,7 @@ class MLP(object):
         # made out of
         self.params = self.hiddenLayer.params + self.hiddenLayer_2.params + self.logRegressionLayer.params
 
-def train_mlp(train_labels, train_samples, hyperparams):
+def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hyperparams):
 
     batch_size = hyperparams['batch_size']
     learning_rate = hyperparams['learning_rate']
@@ -162,41 +166,29 @@ def train_mlp(train_labels, train_samples, hyperparams):
 
     borrow=True
 
-    # Split data into training and validation here
-    # TODO potential shuffle after split and not before
-    arr = numpy.arange(train_labels.shape[0])
-    numpy.random.shuffle(arr)
+    arr = np.arange(train_labels.shape[0])
+    np.random.shuffle(arr)
 
-    cutoff = int(train_labels.shape[0] * 0.9)
-
-    train_samples_x = train_samples[arr[0:cutoff],:]
-
-    valid_samples_x = train_samples[arr[cutoff:],:]
+    train_samples_x = train_samples[arr,:]
+    train_samples_y = train_labels
 
     if len(train_labels.shape) == 1:
-        train_samples_y = train_labels[arr[0:cutoff]]
-        valid_samples_y = train_labels[arr[cutoff:]]
-
         train_samples_y.shape = (train_samples_y.shape[0], 1)
-        valid_samples_y.shape = (valid_samples_y.shape[0], 1)
-    else:
-        train_samples_y = train_labels[arr[0:cutoff], :]
-        valid_samples_y = train_labels[arr[cutoff:], :]
 
-    train_set_x = theano.shared(numpy.asarray(train_samples_x, dtype=theano.config.floatX), borrow=borrow)
-    train_set_y = theano.shared(numpy.asarray(train_samples_y, dtype=theano.config.floatX), borrow=borrow)
+    train_samples_y = train_samples_y[arr,:]
 
-    valid_set_x = theano.shared(numpy.asarray(valid_samples_x, dtype=theano.config.floatX), borrow=borrow)
-    valid_set_y = theano.shared(numpy.asarray(valid_samples_y, dtype=theano.config.floatX), borrow=borrow)
+    train_set_x = theano.shared(np.asarray(train_samples_x, dtype=theano.config.floatX), borrow=borrow)
+    train_set_y = theano.shared(np.asarray(train_samples_y, dtype=theano.config.floatX), borrow=borrow)
+
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
-    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] / batch_size
 
     index = T.lscalar()  # index to a [mini]batch
     x = T.matrix('x')  # the data is presented as rasterized images
     y = T.matrix('y')  # the labels are presented as 1D vector of
                            # [int] labels
+    learning_rate_t = T.scalar('learning_rate')              # [int] labels
 
     num_out = train_set_y.shape[1].eval()
     num_in = train_samples_x.shape[1]
@@ -205,14 +197,14 @@ def train_mlp(train_labels, train_samples, hyperparams):
     # classifier = LogisticRegressionCrossEnt(input=x, n_in=num_in, n_out=num_out, lambda_reg=lambda_reg)
 
     # for random weight intialisation
-    rng = numpy.random.RandomState(1234)
+    rng = np.random.RandomState(1234)
 
     # construct the MLP class
     classifier = MLP(rng=rng, input=x, n_in=num_in,
                      n_hidden=num_hidden, n_hidden_2=num_hidden_2, n_out=num_out)
-    # the cost we minimize during training is the negative log likelihood of
+   # the cost we minimize during training is the negative log likelihood of
     # the model in symbolic format
-    cost = classifier.negative_log_likelihood(y) + lambda_reg * classifier.L2_sqr
+    cost = classifier.euclidean_loss(y) + lambda_reg * classifier.L2_sqr
 
     # compute the gradient of cost with respect to theta (sotred in params)
     # the resulting gradients will be stored in a list gparams
@@ -229,23 +221,12 @@ def train_mlp(train_labels, train_samples, hyperparams):
     # is a pair formed from the two lists :
     #    C = [(a1, b1), (a2, b2), (a3, b3), (a4, b4)]
     for param, gparam in zip(classifier.params, gparams):
-        updates.append((param, param - learning_rate * gparam))
+        updates.append((param, param - learning_rate_t * gparam))
 
-    #print 'Cost defined, updates defined, gradients defined'
-
-    # compiling a Theano function that computes the mistakes that are made by
-    # the model on a minibatch
-    score_validate_model = theano.function(inputs=[index],
-            outputs=classifier.scores(y),
-            givens={
-                x: valid_set_x[index * batch_size:(index + 1) * batch_size],
-                y: valid_set_y[index * batch_size:(index + 1) * batch_size]})
-
-    #print 'score_validate_model defined'
     # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
     # defined in `updates`
-    train_model = theano.function(inputs=[index],
+    train_model = theano.function(inputs=[index, learning_rate_t],
             outputs=cost,
             updates=updates,
             givens={
@@ -257,97 +238,143 @@ def train_mlp(train_labels, train_samples, hyperparams):
     ###############
     #print '... training the model'
     # early-stopping parameters
-    patience = 40000  # look as this many examples regardless
-    patience_increase = 3  # wait this much longer when a new best is
-                                  # found
-    improvement_threshold = 0.9995  # a relative improvement of this much is considered significant
-    validation_frequency = min(n_train_batches, patience / 2)
-
-    best_params = None
-    best_validation_score = -numpy.inf
-    test_loss = 0.
     start_time = time.clock()
 
-    validation_scores = numpy.array([])
+    validation_scores = np.array([])
+    costs = np.array([])
+
+    moving_scores = np.array([])
+    moving_costs = np.array([])
 
     done_looping = False
     epoch = 0
 
+    best_validation_score = -np.inf
+    best_cost = np.inf
+
+    validation_improved_in = 0
+    cost_improved_in = 0
+
     while (epoch < n_epochs) and (not done_looping):
         epoch += 1
+        costs_epoch = np.array([])
         for minibatch_index in xrange(n_train_batches):
 
-            minibatch_avg_cost = train_model(minibatch_index)
+            minibatch_avg_cost = train_model(minibatch_index, learning_rate)
+
+            costs_epoch = np.hstack([costs_epoch, minibatch_avg_cost])
 
             # iteration number
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
-            if (iter + 1) % validation_frequency == 0:
-                # compute zero-one loss on validation set
+        W1 = classifier.params[0].eval()
+        b1 = classifier.params[1].eval()
 
-                # Evaluate the model on all the minibatches
+        W2 = classifier.params[2].eval()
+        b2 = classifier.params[3].eval()
 
-                validation_scores_c = []
-                for i in xrange(n_valid_batches):
-                    f1s, precisions, recalls = score_validate_model(i)
-                    #print f1s, precisions, recalls
-                    validation_scores_c.append(f1s)
+        W3 = classifier.params[4].eval()
+        b3 = classifier.params[5].eval()
 
-                curr_f1 = numpy.mean(validation_scores_c)
+        # Evaluate the model on current eopch
+        _, _, _, _, f1, prec, rec = test_mlp(test_labels, test_samples, (W1, b1, W2, b2, W3, b3))
 
-                if numpy.isnan(curr_f1):
-                    best_validation_score = 0
-                    epoch = n_epochs
-                    break
+        curr_f1 = np.mean(f1)
 
-                W = classifier.params[0].eval()
-                if numpy.isnan(numpy.sum(W)):
-                    best_validation_score = 0
-                    epoch = n_epochs
-                    break
+        if np.isnan(curr_f1):
+            best_validation_score = 0
+            break
 
-                print('epoch %i, minibatch %i/%i, validation F1 %f' % (epoch, minibatch_index + 1, n_train_batches, curr_f1))
+        W = classifier.params[0].eval()
+        if np.isnan(np.sum(W)):
+            best_validation_score = 0
+            break
 
-                validation_scores = numpy.hstack([validation_scores, curr_f1])
+        validation_scores = np.hstack([validation_scores, curr_f1])
 
-                # if we got the best validation score until now
-                if curr_f1 > best_validation_score:
-                    #print 'Epoch - %d - F1 - %f' % (epoch, curr_f1)
-                    # Improve patience if loss improvement is good enough
-                    if curr_f1 > best_validation_score / improvement_threshold:
-                        patience = max(patience, iter * patience_increase)
+        epoch_cost = np.mean(costs_epoch)
+        costs = np.hstack([costs, epoch_cost])
 
-                    best_validation_score = curr_f1
+        if(epoch <= 10):
+            # print 'Epoch - %d, cost - %f, F1 - %f' % (epoch, epoch_cost, curr_f1)
+            moving_costs = np.hstack([moving_costs, epoch_cost])
+            moving_scores = np.hstack([moving_scores, curr_f1])
 
-            if patience <= iter:
-                done_looping = True
+        else:
+
+            moving_costs = np.hstack([moving_costs, np.mean(costs[-10:])])
+            moving_scores = np.hstack([moving_scores, np.mean(validation_scores[-10:])])
+
+            if moving_costs[-1] < best_cost:
+                best_cost = moving_costs[-1]
+                cost_improved_in = 0
+            else:
+                cost_improved_in += 1
+
+            if moving_scores[-1] > best_validation_score:
+
+                W1_best = classifier.params[0].eval()
+                b1_best = classifier.params[1].eval()
+
+                W2_best = classifier.params[2].eval()
+                b2_best = classifier.params[3].eval()
+
+                W3_best = classifier.params[4].eval()
+                b3_best = classifier.params[5].eval()
+
+                best_validation_score = moving_scores[-1]
+                score_improved_in = 0
+                validation_improved_in = 0
+            else:
+                score_improved_in += 1
+                validation_improved_in += 1
+
+            if score_improved_in > 10:
+                print 'Rate reduced'
+                learning_rate /= 1.5
+                score_improved_in = 0
+
+            # If the score has not improved in some time terminate early
+            if validation_improved_in > 60:
+                print 'Early termination'
                 break
 
+            print 'Epoch - %d, cost - %f (%f, %d), F1 - %f (%f, %d)' % \
+               (epoch, epoch_cost, moving_costs[-1], cost_improved_in, curr_f1, moving_scores[-1], score_improved_in)
+
+        # if(epoch > 10)
+        #    costs
+
     end_time = time.clock()
-    print 'Optimization complete with best validation score of %f ' % best_validation_score
+    print 'Optimization complete with best validation score of %f ' % np.max(validation_scores)
     print 'The code run for %d epochs, with %f epochs/sec' % ( epoch, 1. * epoch / (end_time - start_time))
 
-    return classifier.params
+    #plot(moving_costs)
+    #plot(moving_scores)
+    #draw()
+    #show()
+
+    return (W1_best, b1_best, W2_best, b2_best, W3_best, b3_best)
 
 
 def test_mlp(test_labels, test_samples, model):
 
-    W1 = model[0].eval()
-    b1 = model[1].eval()
+    W1 = model[0]
+    b1 = model[1]
 
-    W2 = model[2].eval()
-    b2 = model[3].eval()
+    W2 = model[2]
+    b2 = model[3]
 
-    W3 = model[4].eval()
-    b3 = model[5].eval()
+    W3 = model[4]
+    b3 = model[5]
 
-    tanh_out = numpy.tanh(numpy.dot(test_samples, W1) + b1)
+    tanh_out = np.tanh(np.dot(test_samples, W1) + b1)
 
-    tanh_out_2 = numpy.tanh(numpy.dot(tanh_out, W2) + b2)
+    tanh_out_2 = np.tanh(np.dot(tanh_out, W2) + b2)
 
-    exp_in = numpy.dot(tanh_out_2, W3) + b3
+    exp_in = np.dot(tanh_out_2, W3) + b3
 
-    predictions = 1./(1+numpy.exp(- exp_in))
+    predictions = 1./(1+np.exp(- exp_in))
 
     predictions = predictions > 0.5
 
@@ -355,4 +382,4 @@ def test_mlp(test_labels, test_samples, model):
 
     f1s, precisions, recalls = scores.FERA_class_score(predictions, test_l)
 
-    return numpy.mean(f1s), numpy.mean(precisions), numpy.mean(recalls), predictions, f1s, precisions, recalls
+    return np.mean(f1s), np.mean(precisions), np.mean(recalls), predictions, f1s, precisions, recalls

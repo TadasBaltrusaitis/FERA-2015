@@ -9,8 +9,6 @@ import mlp_multi_layer
 
 pca_loc = "../pca_generation/generic_face_rigid"
 
-f = open("./trained/BP4D_train_mlp_2.txt", 'w')
-
 for au in all_aus:
 
     # load the training and testing data for the current fold
@@ -19,32 +17,35 @@ for au in all_aus:
 
     import validation_helpers
 
-    train_fn = mlp_multi_layer.train_mlp
+    train_fn = mlp_multi_layer.train_mlp_probe
     test_fn = mlp_multi_layer.test_mlp
 
     hyperparams = {
         'batch_size': [200],
-        'learning_rate': [0.005, 0.01, 0.05],
-        'lambda_reg': [0.001, 0.05, 0.1],
-        'num_hidden': [20, 50, 100, 200],
-        'num_hidden_2': [20, 50, 100, 200],
-        'n_epochs': 400,
+        'learning_rate': [0.2],
+        'lambda_reg': [0.00001, 0.0001, 0.001],
+        'num_hidden': [50, 100, 200],
+        'num_hidden_2': [50, 100, 200],
+        'n_epochs': 20,
         'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden', 'num_hidden_2']}
 
     # Cross-validate here
-    best_params, all_params = validation_helpers.validate_grid_search(train_fn, test_fn,
+    best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
                                                                       False, train_samples, train_labels, valid_samples,
-                                                                      valid_labels, hyperparams, num_repeat=2)
+                                                                      valid_labels, hyperparams, num_repeat=1)
 
     # Average results due to non-deterministic nature of the model
     f1 = 0
     precision = 0
     recall = 0
 
-    num_repeat = 3
+    num_repeat = 1
+
+    f = open("./trained/BP4D_train_mlp_2.txt", 'w')
+    f.write(str(best_params)+'\n')
 
     for i in range(num_repeat):
-        model = train_fn(train_labels, train_samples, best_params)
+        model = train_fn(train_labels, train_samples, valid_labels, valid_samples, best_params)
         f1_c, precision_c, recall_c, prediction, _, _, _ = test_fn(valid_labels, valid_samples, model)
         f1 += f1_c
         precision += precision_c

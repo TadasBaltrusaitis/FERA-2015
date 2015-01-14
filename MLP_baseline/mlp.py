@@ -324,11 +324,16 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
 
     borrow=True
 
-    train_samples_x = train_samples
+    arr = numpy.arange(train_labels.shape[0])
+    numpy.random.shuffle(arr)
+
+    train_samples_x = train_samples[arr,:]
     train_samples_y = train_labels
 
     if len(train_labels.shape) == 1:
         train_samples_y.shape = (train_samples_y.shape[0], 1)
+
+    train_samples_y = train_samples_y[arr,:]
 
     train_set_x = theano.shared(numpy.asarray(train_samples_x, dtype=theano.config.floatX), borrow=borrow)
     train_set_y = theano.shared(numpy.asarray(train_samples_y, dtype=theano.config.floatX), borrow=borrow)
@@ -356,7 +361,7 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
                      n_hidden=num_hidden, n_out=num_out)
     # the cost we minimize during training is the negative log likelihood of
     # the model in symbolic format
-    cost = classifier.euclidean_loss(y) + lambda_reg * classifier.L2_sqr
+    cost = classifier.negative_log_likelihood(y) + lambda_reg * classifier.L2_sqr
 
     # compute the gradient of cost with respect to theta (sotred in params)
     # the resulting gradients will be stored in a list gparams
@@ -475,13 +480,14 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
                 score_improved_in += 1
                 validation_improved_in += 1
 
-            if score_improved_in > 10:
+            if score_improved_in > 20:
                 print 'Rate reduced'
+                # Also move to previous stage
                 learning_rate /= 1.5
                 score_improved_in = 0
 
             # If the score has not improved in some time terminate early
-            if validation_improved_in > 60:
+            if validation_improved_in > 100:
                 print 'Early termination'
                 break
 
@@ -497,7 +503,6 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
 
     #plot(moving_costs)
     #plot(moving_scores)
-    #draw()
     #show()
 
     return (W1_best, b1_best, W2_best, b2_best)

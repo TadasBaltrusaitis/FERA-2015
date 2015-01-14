@@ -95,11 +95,8 @@ vector<string> get_arguments(int argc, char **argv)
 }
 
 // Extracting the following command line arguments -f, -fd, -op, -of, -ov (and possible ordered repetitions)
-void get_output_feature_params(vector<string> &output_similarity_aligned_files, vector<string> &output_hog_aligned_files, vector<string> &output_model_param_files, vector<string> &output_neutrals, vector<string> &output_aus, double &similarity_scale, int &similarity_size, bool &video, bool &grayscale, bool &rigid, vector<string> &arguments)
+void get_output_feature_params(string& au_location, vector<string> &output_aus, double &similarity_scale, int &similarity_size, bool &video, bool &grayscale, bool &rigid, vector<string> &arguments)
 {
-	output_similarity_aligned_files.clear();
-	output_hog_aligned_files.clear();
-	output_model_param_files.clear();
 
 	bool* valid = new bool[arguments.size()];
 	video = false;
@@ -135,34 +132,11 @@ void get_output_feature_params(vector<string> &output_similarity_aligned_files, 
 
 	for(size_t i = 0; i < arguments.size(); ++i)
 	{
-		if (arguments[i].compare("-simalign") == 0) 
+		if (arguments[i].compare("-auloc") == 0) 
 		{                    
-			output_similarity_aligned_files.push_back(output_root + arguments[i + 1]);
+			au_location = arguments[i + 1];
 			valid[i] = false;
-			valid[i+1] = false;			
-			i++;
-		}		
-		else if(arguments[i].compare("-hogalign") == 0) 
-		{
-			output_hog_aligned_files.push_back(output_root + arguments[i + 1]);
-			valid[i] = false;
-			valid[i+1] = false;			
-			i++;
-		}
-		else if(arguments[i].compare("-oparams") == 0) 
-		{
-			output_model_param_files.push_back(output_root + arguments[i + 1]);
-			valid[i] = false;
-			valid[i+1] = false;			
-			i++;
-		}
-		else if(arguments[i].compare("-oneutral") == 0) 
-		{
-			output_neutrals.push_back(output_root + arguments[i + 1]);
-			valid[i] = false;
-			valid[i+1] = false;			
-			i++;
-		}
+		}	
 		else if(arguments[i].compare("-oaus") == 0) 
 		{
 			output_aus.push_back(output_root + arguments[i + 1]);
@@ -281,49 +255,16 @@ void get_image_input_output_params_feats(vector<vector<string> > &input_image_fi
 
 }
 
-void output_HOG_frame(std::ofstream* hog_file, bool good_frame, const Mat_<double>& hog_descriptor, int num_rows, int num_cols)
-{
-
-	// Using FHOGs, hence 31 channels
-	int num_channels = 31;
-
-	hog_file->write((char*)(&num_cols), 4);
-	hog_file->write((char*)(&num_rows), 4);
-	hog_file->write((char*)(&num_channels), 4);
-
-	// Not the best way to store a bool, but will be much easier to read it
-	float good_frame_float;
-	if(good_frame)
-		good_frame_float = 1;
-	else
-		good_frame_float = -1;
-
-	hog_file->write((char*)(&good_frame_float), 4);
-
-	cv::MatConstIterator_<double> descriptor_it = hog_descriptor.begin();
-
-	for(int y = 0; y < num_cols; ++y)
-	{
-		for(int x = 0; x < num_rows; ++x)
-		{
-			for(unsigned int o = 0; o < 31; ++o)
-			{
-
-				float hog_data = (float)(*descriptor_it++);
-				hog_file->write ((char*)&hog_data, 4);
-			}
-		}
-	}
-}
-
 int main (int argc, char **argv)
 {
 
 	vector<string> arguments = get_arguments(argc, argv);
 
 	// Some initial parameters that can be overriden from command line	
-	vector<string> files, depth_directories, pose_output_files, tracked_videos_output, landmark_output_files;
-	
+	vector<string> files;
+
+	// Unused elements
+	vector<string> depth_directories, pose_output_files, tracked_videos_output, landmark_output_files;
 	// By default try webcam 0
 	int device = 0;
 
@@ -365,23 +306,22 @@ int main (int argc, char **argv)
 
 	vector<string> output_aus;
 
-	double sim_scale = 0.6;
-	int sim_size = 96;
+	double sim_scale = 0.7;
+	int sim_size = 112;
 	bool video_output;
 	bool grayscale = false;
-	bool rigid = false;	
+	bool rigid = true;	
 	int num_hog_rows;
 	int num_hog_cols;
 
-	// Never really used
-	vector<string> output_similarity_align_files, output_hog_align_files, params_output_files, output_neutrals;
+	string face_analyser_loc("./AU_regressors/AU_regressors.txt");
 
-	get_output_feature_params(output_similarity_align_files, output_hog_align_files, params_output_files, output_neutrals, output_aus, sim_scale, sim_size, video_output, grayscale, rigid, arguments);
+	get_output_feature_params(face_analyser_loc, output_aus, sim_scale, sim_size, video_output, grayscale, rigid, arguments);
 
 	// Face analyser (used for neutral expression extraction)
 	vector<Vec3d> orientations = vector<Vec3d>();
 	orientations.push_back(Vec3d(0.0,0.0,0.0));
-	Psyche::FaceAnalyser face_analyser(orientations, sim_scale, sim_size, sim_size);
+	Psyche::FaceAnalyser face_analyser(orientations, sim_scale, sim_size, sim_size, face_analyser_loc);
 
 	// Will warp to scaled mean shape
 	Mat_<double> similarity_normalised_shape = clm_model.pdm.mean_shape * sim_scale;
@@ -517,7 +457,7 @@ int main (int argc, char **argv)
 			Mat_<double> hog_descriptor;
 
 			// Use face analyser only if outputting neutrals and AUs
-			if(!output_aus.empty() || !output_neutrals.empty())
+			if(!output_aus.empty())
 			{
 				face_analyser.AddNextFrame(captured_image, clm_model, 0, false);
 

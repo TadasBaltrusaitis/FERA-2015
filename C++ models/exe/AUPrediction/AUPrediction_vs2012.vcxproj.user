@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LocalDebuggerCommandArguments>-f "../videos/default.wmv"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-fx 2000 -fy 2000 -rigid -asvid -fdir "E:\datasets\FERA_2015\BP4D\AUCoding/../BP4D/BP4D-training/F001/T1/ -oaus "./out_bp4d_static/F001_T1.au.txt" -simscale 0.7 -simsize 112</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerWorkingDirectory>$(TargetDir)</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerWorkingDirectory>$(TargetDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-f "../videos/default.wmv"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-fx 2000 -fy 2000 -rigid -asvid -fdir "E:\datasets\FERA_2015\BP4D\AUCoding/../BP4D/BP4D-training/F001/T1/" -oaus "./out_bp4d_static/F001_T1.au.txt" -simscale 0.7 -simsize 112</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>
