@@ -26,14 +26,14 @@ hyperparams = {
    'batch_size': [100],
    'learning_rate': [0.1],
    'lambda_reg': [0.00001, 0.0001],
-   'num_hidden': [50, 100],
+   'num_hidden': [50, 100, 250],
    'n_epochs': 1000,
    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
 # Cross-validate here
 best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
                                                                   False, train_samples, train_labels, valid_samples,
-                                                                  valid_labels, hyperparams, num_repeat=1)
+                                                                  valid_labels, hyperparams, num_repeat=2)
 
 # Average results due to non-deterministic nature of the model
 f1s = numpy.zeros((1, train_labels.shape[1]))
