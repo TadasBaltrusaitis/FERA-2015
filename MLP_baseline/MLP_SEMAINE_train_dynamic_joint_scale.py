@@ -45,7 +45,7 @@ print 'All params', all_params
 print 'Best params', best_params
 
 for i in range(num_repeat):
-    model = train_fn(train_labels, train_samples, best_params)
+    model = train_fn(train_labels, train_samples, valid_labels, valid_samples, best_params)
     _, _, _, _, f1_c, precision_c, recall_c = test_fn(valid_labels, valid_samples, model)
     f1s += f1_c
     precisions += precision_c
