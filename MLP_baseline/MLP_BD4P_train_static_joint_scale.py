@@ -18,34 +18,34 @@ f = open("./trained/BP4D_train_mlp_joint_scale.txt", 'w')
 
 import validation_helpers
 
-train_fn = mlp.train_mlp
+train_fn = mlp.train_mlp_probe
 test_fn = mlp.test_mlp
 
 hyperparams = {
    'batch_size': [100],
-   'learning_rate': [0.1, 0.15],
-   'lambda_reg': [0.001, 0.005, 0.01],
-   'num_hidden': [100, 200, 300, 400],
-   'n_epochs': 100,
+   'learning_rate': [0.2],
+   'lambda_reg': [0.0001],
+   'num_hidden': [300],
+   'n_epochs': 1000,
    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
 # Cross-validate here
-best_params, all_params = validation_helpers.validate_grid_search(train_fn, test_fn,
+best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
                                                                   False, train_samples, train_labels, valid_samples,
-                                                                  valid_labels, hyperparams, num_repeat=2)
+                                                                  valid_labels, hyperparams, num_repeat=1)
 
 # Average results due to non-deterministic nature of the model
 f1s = numpy.zeros((1, train_labels.shape[1]))
 precisions = numpy.zeros((1, train_labels.shape[1]))
 recalls = numpy.zeros((1, train_labels.shape[1]))
 
-num_repeat = 3
+num_repeat = 1
 
 print 'All params', all_params
 print 'Best params', best_params
 
 for i in range(num_repeat):
-    model = train_fn(train_labels, train_samples, best_params)
+    model = train_fn(train_labels, train_samples, valid_labels, valid_samples, best_params)
     _, _, _, _, f1_c, precision_c, recall_c = test_fn(valid_labels, valid_samples, model)
     f1s += f1_c
     precisions += precision_c
