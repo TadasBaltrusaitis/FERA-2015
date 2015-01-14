@@ -360,6 +360,8 @@ def Read_geom_files_SEMAINE_dynamic(users, hog_data_dir, vid_ids):
             geom_data = np.concatenate((geom_data, data_curr), axis=0)
 
     return geom_data
+
+
 def Read_geom_files_BP4D(users, hog_data_dir):
 
     import glob
@@ -367,12 +369,17 @@ def Read_geom_files_BP4D(users, hog_data_dir):
 
     geom_data = None
 
+    files = []
+
     for i in range(len(users)):
 
         geom_files = glob.glob(hog_data_dir + users[i] + '*.params.txt')
 
         for h in range(len(geom_files)):
             in_file = geom_files[h]
+
+            files += [in_file]
+
             data_curr = genfromtxt(in_file, dtype=float, delimiter=' ')
             data_curr = data_curr[:, 14::2]
 
@@ -381,8 +388,7 @@ def Read_geom_files_BP4D(users, hog_data_dir):
             else:
                 geom_data = np.concatenate((geom_data, data_curr), axis=0)
 
-    return geom_data
-
+    return geom_data, files
 
 def Read_HOG_files_BP4D(users, hog_data_dir):
     
@@ -932,12 +938,12 @@ def Prepare_HOG_AU_data_generic_BP4D(train_recs, devel_recs, au, BP4D_dir, hog_d
 
     # First extracting the labels
     [labels_train, valid_ids_train, vid_ids_train] = extract_BP4D_labels(BP4D_dir, train_recs, au)
-    
-    # Reading in the HOG data (of only relevant frames)
-    [train_appearance_data, valid_ids_train_hog, vid_ids_train_string] = Read_HOG_files_BP4D(train_recs, hog_data_dir + '/train/')
 
     if geometry:
-        [train_appearance_data_geom] = Read_geom_files_BP4D(train_recs, hog_data_dir + '/train/')
+        train_data_geom, files = Read_geom_files_BP4D(train_recs, hog_data_dir + '/train/')
+
+    # Reading in the HOG data (of only relevant frames)
+    [train_appearance_data, valid_ids_train_hog, vid_ids_train_string] = Read_HOG_files_BP4D(train_recs, hog_data_dir + '/train/')
 
     # Subsample the data to make training quicker
     labels_train = np.concatenate(labels_train)
@@ -968,6 +974,9 @@ def Prepare_HOG_AU_data_generic_BP4D(train_recs, devel_recs, au, BP4D_dir, hog_d
 
     train_appearance_data = train_appearance_data[reduced_inds, :]
 
+    if geometry:
+        train_data_geom = train_data_geom[reduced_inds, :]
+
     # Extract devel data
     
     # First extracting the labels
@@ -976,7 +985,10 @@ def Prepare_HOG_AU_data_generic_BP4D(train_recs, devel_recs, au, BP4D_dir, hog_d
     # Reading in the HOG data (of only relevant frames)    
     [devel_appearance_data, valid_ids_devel_hog, vid_ids_devel_string] = \
         Read_HOG_files_BP4D(devel_recs, hog_data_dir + '/devel/')
-    
+
+    if geometry:
+        devel_data_geom, files = Read_geom_files_BP4D(devel_recs, hog_data_dir + '/devel/')
+
     labels_devel = np.concatenate(labels_devel)
     
     # normalise the data
@@ -1004,6 +1016,10 @@ def Prepare_HOG_AU_data_generic_BP4D(train_recs, devel_recs, au, BP4D_dir, hog_d
         data_devel = data_devel / scaling
 
         PC = PC / scaling
+
+    if geometry:
+        data_train = np.concatenate((data_train, train_data_geom), axis=1)
+        data_devel = np.concatenate((data_devel, devel_data_geom), axis=1)
 
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
 
