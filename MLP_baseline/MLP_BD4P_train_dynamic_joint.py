@@ -9,10 +9,9 @@ import mlp
 
 pca_loc = "../pca_generation/generic_face_rigid"
 
-
 # load the training and testing data for the current fold
 [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = \
-    data_preparation.Prepare_HOG_AU_data_generic_BP4D(train_recs, devel_recs, all_aus, BP4D_dir, hog_data_dir, pca_loc)
+    data_preparation.Prepare_HOG_AU_data_generic_BP4D_dynamic(train_recs, devel_recs, all_aus, BP4D_dir, hog_data_dir, pca_loc)
 
 import validation_helpers
 
@@ -26,14 +25,6 @@ hyperparams = {
    'num_hidden': [50, 100, 200, 300],
    'n_epochs': 1000,
    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
-
-# hyperparams = {
-#     'batch_size': [100],
-#     'learning_rate': [0.005],
-#     'lambda_reg': [0.05],
-#     'num_hidden': [40],
-#     'n_epochs': 100,
-#     'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
 # Cross-validate here
 best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
@@ -61,9 +52,8 @@ f1s /= num_repeat
 precisions /= num_repeat
 recalls /= num_repeat
 
-f = open("./trained/BP4D_train_mlp_joint.txt", 'w')
+f = open("./trained/BP4D_train_mlp_dynamic_joint.txt", 'w')
 f.write(str(best_params)+'\n')
-
 for i in range(len(all_aus)):
     print 'AU%d done: precision %.4f, recall %.4f, f1 %.4f\n' % (all_aus[i], precisions[0, i], recalls[0, i], f1s[0, i])
     f.write("%d %.4f %.4f %.4f\n" % (all_aus[i], precisions[0, i], recalls[0, i], f1s[0, i]))
