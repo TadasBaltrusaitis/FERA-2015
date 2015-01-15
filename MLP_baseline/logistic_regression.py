@@ -17,7 +17,7 @@ class LogisticRegressionCrossEnt(object):
     determine a class membership probability.
     """
 
-    def __init__(self, input, n_in, n_out, lambda_reg=0):
+    def __init__(self, input, n_in, n_out):
 
         # initialize with 0 the weights W as a matrix of shape (n_in, n_out)
         self.W = theano.shared(value=numpy.zeros((n_in, n_out),
@@ -28,12 +28,9 @@ class LogisticRegressionCrossEnt(object):
                                                  dtype=theano.config.floatX),
                                name='b', borrow=True)
 
-        self.lambda_reg = lambda_reg
-
         # compute a matrix of class-membership probabilities in symbolic form
 
         self.p_y_given_x = T.nnet.sigmoid(T.dot(input, self.W) + self.b)
-        #self.p_y_given_x = (T.tanh(T.dot(input, self.W) + self.b) + 1)/2
 
         # parameters of the model
         self.params = [self.W, self.b]
@@ -53,7 +50,7 @@ class LogisticRegressionCrossEnt(object):
 
         """
 
-        return T.mean(T.neg(y) * T.log(self.p_y_given_x) - (1+T.neg(y))*T.log(1-self.p_y_given_x)) + self.lambda_reg * T.sum(self.W ** 2)
+        return T.mean(T.neg(y) * T.log(self.p_y_given_x) - (1+T.neg(y))*T.log(1-self.p_y_given_x))
 
     def euclidean_loss(self, y):
         """Return the mean of the negative log-likelihood of the prediction
@@ -70,44 +67,7 @@ class LogisticRegressionCrossEnt(object):
 
         """
 
-        return T.mean((y - self.p_y_given_x) ** 2) + self.lambda_reg * T.sum(self.W ** 2)
-
-    def scores(self, y):
-        """Return a float representing the scores of the model
-        :type y: theano.tensor.TensorType
-        :param y: corresponds to a vector that gives for each example the
-                  correct label
-        """
-
-        positive_preds = self.p_y_given_x > 0.5
-        negative_preds = self.p_y_given_x <= 0.5
-
-        neg_y = y < 1
-
-        tps = T.sum(positive_preds * y, axis=0)
-        fps = T.sum(positive_preds * neg_y, axis=0)
-        tns = T.sum(negative_preds * neg_y, axis=0)
-        fns = T.sum(negative_preds * y, axis=0)
-
-        # A very slight inaccuracy but avoids division by zero
-        precisions = (tps + 1.0) / (tps + fps + 1.0)
-        recalls = (tps + 1.0) / (tps + fns + 1.0)
-
-        f1s = 2 * precisions * recalls / (precisions + recalls)
-
-        return f1s, precisions, recalls
-
-    def error(self, y):
-        """Return a float representing the number of errors in the minibatch
-        over the total number of examples of the minibatch ; zero one
-        loss over the size of the minibatch
-
-        :type y: theano.tensor.TensorType
-        :param y: corresponds to a vector that gives for each example the
-                  correct label
-        """
-
-        return T.mean(T.neq(T.argmax(self.p_y_given_x, axis=1), T.argmax(y, axis=1)))
+        return T.mean((y - self.p_y_given_x) ** 2)
 
 
 def train_log_reg(train_labels, train_samples, hyperparams):

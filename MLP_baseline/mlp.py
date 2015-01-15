@@ -142,9 +142,6 @@ class MLP(object):
         self.negative_log_likelihood = self.logRegressionLayer.negative_log_likelihood
         self.euclidean_loss = self.logRegressionLayer.euclidean_loss
 
-        # same holds for the function computing the score of the model
-        self.scores = self.logRegressionLayer.scores
-
         # the parameters of the model are the parameters of the two layer it is
         # made out of
         self.params = self.hiddenLayer.params + self.logRegressionLayer.params
