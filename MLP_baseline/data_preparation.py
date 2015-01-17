@@ -1,6 +1,69 @@
 import numpy as np
 import scipy.io
 
+def extract_BP4D_labels_intensity(BP4D_dir, recs, aus):
+
+    import glob
+    import os.path
+
+    files_all = glob.glob('%s/AU%02d/*.csv' % (BP4D_dir, aus[0]))
+    num_files = len(files_all)
+
+    labels_all = []
+    valid_ids_all = []
+    # This should be ndarray
+    vid_ids = np.zeros((num_files, 2))
+    filenames_all = []
+
+    file_id = 0
+
+    for r in range(len(recs)):
+
+        files_root = '%s/AU%02d/' % (BP4D_dir, aus[0])
+        files_all = glob.glob(files_root + str(recs[r]) + '*.csv')
+
+        for f in range(len(files_all)):
+            for au in aus:
+
+                # Need to find relevant files for the relevant user and for the
+                # relevant AU
+                files_root = '%s/AU%02d/' % (BP4D_dir, au)
+                files_all = glob.glob(files_root  + str(recs[r]) + '*.csv')
+
+                file = files_all[f]
+
+                _, filename = os.path.split(file)
+
+                # import annotations for one session
+                intensities = np.genfromtxt(file, delimiter=',')
+
+                # get all frame numbers
+                frame_nums = intensities[:,0]
+
+                codes = intensities[:,1:2]
+
+                # Finding the invalid regions
+                valid = codes != 9
+
+                vid_ids[file_id,0] = frame_nums[0]
+                vid_ids[file_id,1] = frame_nums[-1]
+
+                if au == aus[0]:
+                    valid_ids = valid
+                    labels = codes
+                else:
+                    valid_ids = np.logical_and(valid_ids, valid)
+                    labels = np.concatenate((labels, codes), axis=1)
+
+            labels_all.append(labels)
+            valid_ids_all.append(valid_ids)
+            filenames_all += [filename[0:7]]
+
+            file_id = file_id + 1
+
+    vid_ids = vid_ids[0:file_id, :]
+
+    return labels_all, valid_ids_all, vid_ids, filenames_all
 
 def extract_DISFA_labels(input_folders, aus):
 
@@ -1022,6 +1085,106 @@ def Prepare_HOG_AU_data_generic_BP4D(train_recs, devel_recs, au, BP4D_dir, hog_d
         data_devel = np.concatenate((data_devel, devel_data_geom), axis=1)
 
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
+
+# Preparing the BP4D data
+def Prepare_HOG_AU_data_generic_BP4D_intensity(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc, geometry=False, scale=False):
+
+    # First extracting the labels
+    [labels_train, valid_ids_train, vid_ids_train, _] = extract_BP4D_labels_intensity(BP4D_dir, train_recs, au)
+
+    if geometry:
+        train_data_geom, files = Read_geom_files_BP4D(train_recs, hog_data_dir + '/train/')
+
+    # Reading in the HOG data (of only relevant frames)
+    [train_appearance_data, valid_ids_train_hog, vid_ids_train_string] = Read_HOG_files_BP4D(train_recs, hog_data_dir + '/train/')
+
+    # Subsample the data to make training quicker
+    labels_train = np.concatenate(labels_train)
+    valid_ids_train = np.concatenate(valid_ids_train).astype('bool')
+
+    valid_ids_train = valid_ids_train[:,0]
+
+    if len(au) == 1:
+        labels_train = labels_train[:, 0]
+
+    reduced_inds = np.ones((labels_train.shape[0], ), dtype='bool')
+
+    # also remove invalid ids based on CLM failing or AU not being labelled
+    reduced_inds[valid_ids_train == False] = False
+    reduced_inds[valid_ids_train_hog == False] = False
+
+    if len(au) == 1:
+        labels_train = labels_train[reduced_inds]
+    else:
+        labels_train = labels_train[reduced_inds, :]
+
+    train_appearance_data = train_appearance_data[reduced_inds, :]
+
+    if geometry:
+        train_data_geom = train_data_geom[reduced_inds, :]
+
+    # Extract devel data
+
+    # First extracting the labels
+    [labels_devel, valid_ids_devel, vid_ids_devel, _] = extract_BP4D_labels_intensity(BP4D_dir, devel_recs, au)
+
+    # Reading in the HOG data (of only relevant frames)
+    [devel_appearance_data, valid_ids_devel_hog, vid_ids_devel_string] = \
+        Read_HOG_files_BP4D(devel_recs, hog_data_dir + '/devel/')
+
+    if geometry:
+        devel_data_geom, files = Read_geom_files_BP4D(devel_recs, hog_data_dir + '/devel/')
+
+    labels_devel = np.concatenate(labels_devel)
+
+    reduced_inds = np.ones((labels_devel.shape[0], ), dtype='bool')
+
+    valid_ids_devel = np.concatenate(valid_ids_devel).astype('bool')
+    valid_ids_devel = valid_ids_devel[:,0]
+
+    # also remove invalid ids based on CLM failing or AU not being labelled
+    reduced_inds[valid_ids_devel == False] = False
+
+    if len(au) == 1:
+        labels_devel = labels_devel[reduced_inds]
+    else:
+        labels_devel = labels_devel[reduced_inds, :]
+
+    devel_appearance_data = devel_appearance_data[reduced_inds, :]
+
+
+    # normalise the data
+    dim_reds = scipy.io.loadmat(pca_loc)
+    PC = dim_reds['PC']
+    means = dim_reds['means_norm']
+    scaling = dim_reds['stds_norm']
+
+    # Grab all data for validation as want good params for all the data
+    raw_devel = devel_appearance_data
+    devel_appearance_data = (devel_appearance_data - means)
+    devel_appearance_data = devel_appearance_data/scaling
+
+    train_appearance_data = (train_appearance_data - means)/scaling
+
+    data_train = np.dot(train_appearance_data, PC)
+    data_devel = np.dot(devel_appearance_data, PC)
+
+    if scale:
+
+        # Some extra scaling
+        scaling = np.std(data_train, axis=0)
+
+        data_train = data_train / scaling
+        data_devel = data_devel / scaling
+
+        PC = PC / scaling
+
+    if geometry:
+        data_train = np.concatenate((data_train, train_data_geom), axis=1)
+        data_devel = np.concatenate((data_devel, devel_data_geom), axis=1)
+
+    return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
+
 
 # Preparing the BP4D data
 def Prepare_HOG_AU_data_generic_BP4D_no_PCA(train_recs, devel_recs, au, BP4D_dir, hog_data_dir):

@@ -88,6 +88,7 @@ xcopy /I /E /Y /D "$(SolutionDir)lib\local\FaceAnalyser\AV_regressors" "$(OutDir
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\SVM_static_lin.h" />
     <ClInclude Include="include\SVR_dynamic_lin_regressors_scale.h" />
     <ClInclude Include="include\SVR_dynamic_lin_regressors.h" />
     <ClInclude Include="include\SVR_static_lin_regressors.h" />
@@ -99,6 +100,7 @@ xcopy /I /E /Y /D "$(SolutionDir)lib\local\FaceAnalyser\AV_regressors" "$(OutDir
     </ClInclude>
     <ClCompile Include="src\FaceAnalyser.cpp" />
     <ClCompile Include="src\Face_utils.cpp" />
+    <ClCompile Include="src\SVM_static_lin.cpp" />
     <ClCompile Include="src\SVR_dynamic_lin_regressors.cpp" />
     <ClCompile Include="src\SVR_dynamic_lin_regressors_scale.cpp" />
     <ClCompile Include="src\SVR_static_lin_regressors.cpp" />

@@ -29,3 +29,28 @@ def FERA_class_score(prediction, ground_truth):
     f1[np.logical_or(precision == 0, recall == 0)] = 0
 
     return f1, precision, recall
+
+
+def FERA_reg_score(prediction, ground_truth):
+    import numpy as np
+
+    prediction[prediction > 5] = 5
+    prediction[prediction < 0] = 0
+
+    if(len(prediction.shape) == 1):
+        prediction.shape = (prediction.shape[0],1)
+
+    if(len(ground_truth.shape) == 1):
+        ground_truth.shape = (ground_truth.shape[0],1)
+
+
+    num_vars = prediction.shape[1]
+
+    corrs = []
+    mses = []
+    for i in range(num_vars):
+        corrs.append(np.corrcoef(prediction[:,i], ground_truth[:,i])[0,1])
+        mses.append(np.mean((prediction[:,i] - ground_truth[:,i])**2))
+
+
+    return corrs, mses

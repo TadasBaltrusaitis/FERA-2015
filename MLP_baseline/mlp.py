@@ -9,8 +9,6 @@ from pylab import *
 
 import scores
 
-from logistic_regression import LogisticRegressionCrossEnt
-
 class HiddenLayer(object):
     def __init__(self, rng, input, n_in, n_out, W=None, b=None,
                  activation=T.tanh):
@@ -88,7 +86,7 @@ class MLP(object):
     class).
     """
 
-    def __init__(self, rng, input, n_in, n_hidden, n_out):
+    def __init__(self, rng, input, n_in, n_hidden, n_out, final_layer='sigmoid'):
         """Initialize the parameters for the multilayer perceptron
 
         :type rng: numpy.random.RandomState
@@ -119,13 +117,33 @@ class MLP(object):
                                        n_in=n_in, n_out=n_hidden,
                                        activation=T.tanh)
 
-        # The logistic regression layer gets as input the hidden units
-        # of the hidden layer
-        self.logRegressionLayer = LogisticRegressionCrossEnt(
-            input=self.hiddenLayer.output,
-            n_in=n_hidden,
-            n_out=n_out)
+        if final_layer == 'sigmoid':
+            import logistic_regression
 
+            # The logistic regression layer gets as input the hidden units
+            # of the hidden layer
+            self.logRegressionLayer = logistic_regression.LogisticRegressionCrossEnt(
+                input=self.hiddenLayer.output,
+                n_in=n_hidden,
+                n_out=n_out)
+        elif final_layer == 'tanh':
+            import logistic_regression_tanh
+
+            # The logistic regression layer gets as input the hidden units
+            # of the hidden layer
+            self.logRegressionLayer = logistic_regression_tanh.LogisticRegressionCrossEnt(
+                input=self.hiddenLayer.output,
+                n_in=n_hidden,
+                n_out=n_out)
+        else:
+            import linear_regression
+
+            # The logistic regression layer gets as input the hidden units
+            # of the hidden layer
+            self.logRegressionLayer = linear_regression.LinearRegression(
+                input=self.hiddenLayer.output,
+                n_in=n_hidden,
+                n_out=n_out)
         # L1 norm ; one regularization option is to enforce L1 norm to
         # be small
         self.L1 = abs(self.hiddenLayer.W).sum() \
@@ -154,10 +172,21 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
     lambda_reg = hyperparams['lambda_reg']
     num_hidden = hyperparams['num_hidden']
 
+    pred_type = 'class'
+
+    if 'pred_type' in hyperparams:
+        pred_type = hyperparams['pred_type']
+
+
     error_func = 'cross_ent'
 
     if 'error_func' in hyperparams:
         error_func = hyperparams['error_func']
+
+    final_layer = 'sigmoid'
+
+    if 'final_layer' in hyperparams:
+        final_layer = hyperparams['final_layer']
 
     early_stopping = None
     if 'early_stopping' in hyperparams:
@@ -205,7 +234,7 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
 
     # construct the MLP class
     classifier = MLP(rng=rng, input=x, n_in=num_in,
-                     n_hidden=num_hidden, n_out=num_out)
+                     n_hidden=num_hidden, n_out=num_out, final_layer=final_layer)
 
     if error_func == 'euclidean':
         cost = classifier.euclidean_loss(y) + lambda_reg * classifier.L2_sqr
@@ -286,7 +315,10 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
         b2 = classifier.params[3].eval()
 
         # Evaluate the model on current eopch
-        _, _, _, _, f1, prec, rec = test_mlp(test_labels, test_samples, (W1, b1, W2, b2))
+        if pred_type == 'class':
+            _, _, _, _, f1, prec, rec = test_mlp_class(test_labels, test_samples, (W1, b1, W2, b2, final_layer))
+        else:
+            _, _, _, f1, prec = test_mlp_reg(test_labels, test_samples, (W1, b1, W2, b2, final_layer))
 
         curr_f1 = numpy.mean(f1)
 
@@ -364,10 +396,10 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
     #plot(moving_scores)
     #show()
 
-    return (W1_best, b1_best, W2_best, b2_best)
+    return (W1_best, b1_best, W2_best, b2_best, final_layer)
 
 
-def test_mlp(test_labels, test_samples, model):
+def test_mlp_class(test_labels, test_samples, model):
 
     W1 = model[0]
     b1 = model[1]
@@ -375,11 +407,18 @@ def test_mlp(test_labels, test_samples, model):
     W2 = model[2]
     b2 = model[3]
 
+    final_layer = model[4]
+
     tanh_out = numpy.tanh(numpy.dot(test_samples, W1) + b1)
 
     exp_in = numpy.dot(tanh_out, W2) + b2
 
-    predictions = 1./(1+numpy.exp(- exp_in))
+    if final_layer == 'sigmoid':
+        predictions = 1./(1+numpy.exp(- exp_in))
+    elif final_layer == 'tanh':
+        predictions = (numpy.tanh(exp_in) + 1)/2
+    else:
+        predictions = exp_in
 
     predictions = predictions > 0.5
 
@@ -388,3 +427,30 @@ def test_mlp(test_labels, test_samples, model):
     f1s, precisions, recalls = scores.FERA_class_score(predictions, test_l)
 
     return numpy.mean(f1s), numpy.mean(precisions), numpy.mean(recalls), predictions, f1s, precisions, recalls
+
+def test_mlp_reg(test_labels, test_samples, model):
+
+    W1 = model[0]
+    b1 = model[1]
+
+    W2 = model[2]
+    b2 = model[3]
+
+    final_layer = model[4]
+
+    tanh_out = numpy.tanh(numpy.dot(test_samples, W1) + b1)
+
+    exp_in = numpy.dot(tanh_out, W2) + b2
+
+    if final_layer == 'sigmoid':
+        predictions = 1./(1+numpy.exp(- exp_in))
+    elif final_layer == 'tanh':
+        predictions = (numpy.tanh(exp_in) + 1)/2
+    else:
+        predictions = exp_in
+
+    test_l = test_labels.astype('int32')
+
+    corrs, mses = scores.FERA_reg_score(predictions, test_l)
+
+    return numpy.mean(corrs), numpy.mean(mses),predictions, corrs, mses

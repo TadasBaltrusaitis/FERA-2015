@@ -18,15 +18,16 @@ pca_loc = "../pca_generation/generic_face_rigid"
 import validation_helpers
 
 train_fn = mlp.train_mlp_probe
-test_fn = mlp.test_mlp
+test_fn = mlp.test_mlp_class
 
 hyperparams = {
    'batch_size': [100],
-   'learning_rate': [0.025, 0.05, 0.1, 0.2],
+   'learning_rate': [0.2],
    'lambda_reg': [0.0001],
    'num_hidden': [100, 250, 400],
    'n_epochs': 1000,
    'error_func': 'cross_ent',
+   'final_layer': ['tanh', 'sigmoid'],
    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
 # Cross-validate here
@@ -55,7 +56,7 @@ f1s /= num_repeat
 precisions /= num_repeat
 recalls /= num_repeat
 
-f = open("./trained/SEMAINE_train_mlp_joint_dynamic.txt", 'w')
+f = open("./trained/SEMAINE_train_mlp_joint_dynamic_2.txt", 'w')
 f.write(str(best_params) + '\n')
 for i in range(len(all_aus)):
     print 'AU%d done: precision %.4f, recall %.4f, f1 %.4f\n' % (all_aus[i], precisions[0, i], recalls[0, i], f1s[0, i])

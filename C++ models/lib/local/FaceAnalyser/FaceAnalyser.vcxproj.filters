@@ -30,6 +30,9 @@
     <ClInclude Include="include\SVR_dynamic_lin_regressors_scale.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SVM_static_lin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\FaceAnalyser.cpp">
@@ -45,6 +48,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\SVR_dynamic_lin_regressors_scale.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SVM_static_lin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

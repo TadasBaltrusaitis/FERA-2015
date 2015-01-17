@@ -95,7 +95,7 @@ vector<string> get_arguments(int argc, char **argv)
 }
 
 // Extracting the following command line arguments -f, -fd, -op, -of, -ov (and possible ordered repetitions)
-void get_output_feature_params(string& au_location, vector<string> &output_aus, double &similarity_scale, int &similarity_size, bool &video, bool &grayscale, bool &rigid, vector<string> &arguments)
+void get_output_feature_params(string& au_location, vector<string> &output_aus, double &similarity_scale, int &similarity_size, double &scaling, bool &video, bool &grayscale, bool &rigid, vector<string> &arguments)
 {
 
 	bool* valid = new bool[arguments.size()];
@@ -157,6 +157,13 @@ void get_output_feature_params(string& au_location, vector<string> &output_aus, 
 		{
 			grayscale = true;
 			valid[i] = false;
+		}
+		else if(arguments[i].compare("-scaling") == 0) 
+		{
+			scaling = stod(arguments[i + 1]);
+			valid[i] = false;
+			valid[i+1] = false;			
+			i++;
 		}
 		else if (arguments[i].compare("-simscale") == 0) 
 		{                    
@@ -314,9 +321,11 @@ int main (int argc, char **argv)
 	int num_hog_rows;
 	int num_hog_cols;
 
+	double scaling = 1.0;
+
 	string face_analyser_loc("./AU_regressors/AU_regressors.txt");
 
-	get_output_feature_params(face_analyser_loc, output_aus, sim_scale, sim_size, video_output, grayscale, rigid, arguments);
+	get_output_feature_params(face_analyser_loc, output_aus, sim_scale, sim_size, scaling, video_output, grayscale, rigid, arguments);
 
 	// Face analyser (used for neutral expression extraction)
 	vector<Vec3d> orientations = vector<Vec3d>();
@@ -427,6 +436,11 @@ int main (int argc, char **argv)
 		INFO_STREAM( "Starting tracking");
 		while(!captured_image.empty())
 		{		
+
+			if(scaling != 1.0)
+			{
+				cv::resize(captured_image, captured_image, Size(), scaling, scaling);
+			}
 
 			// Reading the images
 			Mat_<uchar> grayscale_image;
@@ -601,6 +615,12 @@ int main (int argc, char **argv)
 					string curr_img_file = input_image_files[f_n][frame];
 					captured_image = imread(curr_img_file, -1);
 				}
+
+				if(scaling != 1.0)
+				{
+					cv::resize(captured_image, captured_image, Size(), scaling, scaling);
+				}
+
 				face_analyser.AddNextFrame(captured_image, clm_model, 0, false);
 				
 				auto au_preds = face_analyser.GetCurrentAUs();
