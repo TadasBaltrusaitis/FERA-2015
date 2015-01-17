@@ -67,7 +67,7 @@ class LogisticRegressionCrossEnt(object):
 
         """
 
-        return T.mean((y - self.p_y_given_x) ** 2)
+        return T.mean(T.sub(y, self.p_y_given_x) ** 2)
 
 
 def train_log_reg(train_labels, train_samples, hyperparams):

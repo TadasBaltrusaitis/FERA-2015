@@ -154,6 +154,11 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
     lambda_reg = hyperparams['lambda_reg']
     num_hidden = hyperparams['num_hidden']
 
+    error_func = 'cross_ent'
+
+    if 'error_func' in hyperparams:
+        error_func = hyperparams['error_func']
+
     early_stopping = None
     if 'early_stopping' in hyperparams:
         early_stopping = hyperparams['early_stopping']
@@ -201,9 +206,11 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
     # construct the MLP class
     classifier = MLP(rng=rng, input=x, n_in=num_in,
                      n_hidden=num_hidden, n_out=num_out)
-    # the cost we minimize during training is the negative log likelihood of
-    # the model in symbolic format
-    cost = classifier.negative_log_likelihood(y) + lambda_reg * classifier.L2_sqr
+
+    if error_func == 'euclidean':
+        cost = classifier.euclidean_loss(y) + lambda_reg * classifier.L2_sqr
+    else:
+        cost = classifier.negative_log_likelihood(y) + lambda_reg * classifier.L2_sqr
 
     # compute the gradient of cost with respect to theta (sotred in params)
     # the resulting gradients will be stored in a list gparams
@@ -285,6 +292,14 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
 
         validation_scores = numpy.hstack([validation_scores, curr_f1])
 
+        # keep the best result
+        if curr_f1 >= np.max(validation_scores):
+            W1_best = W1
+            b1_best = b1
+
+            W2_best = W2
+            b2_best = b2
+
         if numpy.isnan(numpy.sum(W1)):
             print 'sth wrong'
             best_validation_score = 0
@@ -315,14 +330,8 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
             else:
                 cost_improved_in += 1
 
+
             if moving_scores[-1] > best_validation_score:
-
-                W1_best = classifier.params[0].eval()
-                b1_best = classifier.params[1].eval()
-
-                W2_best = classifier.params[2].eval()
-                b2_best = classifier.params[3].eval()
-
                 best_validation_score = moving_scores[-1]
                 score_improved_in = 0
                 validation_improved_in = 0
@@ -330,14 +339,14 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
                 score_improved_in += 1
                 validation_improved_in += 1
 
-            if score_improved_in > 20:
+            if score_improved_in > 10:
                 print 'Rate reduced'
                 # Also move to previous stage
                 learning_rate /= 1.5
                 score_improved_in = 0
 
             # If the score has not improved in some time terminate early
-            if validation_improved_in > 100:
+            if validation_improved_in > 60:
                 print 'Early termination'
                 break
 
