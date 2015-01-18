@@ -9,7 +9,6 @@ import mlp
 
 pca_loc = "../pca_generation/generic_face_rigid"
 
-f = open("./trained/SEMAINE_train_mlp_dynamic_geom_joint.txt", 'w')
 
 # load the training and testing data for the current fold
 [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = \
@@ -20,11 +19,11 @@ print train_samples.shape[1]
 import validation_helpers
 
 train_fn = mlp.train_mlp_probe
-test_fn = mlp.test_mlp
+test_fn = mlp.test_mlp_class
 
 hyperparams = {
    'batch_size': [100],
-   'learning_rate': [0.1],
+   'learning_rate': [0.2],
    'lambda_reg': [0.00001, 0.0001],
    'num_hidden': [50, 100, 250],
    'n_epochs': 1000,
@@ -56,6 +55,8 @@ f1s /= num_repeat
 precisions /= num_repeat
 recalls /= num_repeat
 
+f = open("./trained/SEMAINE_train_mlp_dynamic_geom_joint.txt", 'w')
+f.write(str(best_params) + '\n')
 for i in range(len(all_aus)):
     print 'AU%d done: precision %.4f, recall %.4f, f1 %.4f\n' % (all_aus[i], precisions[0, i], recalls[0, i], f1s[0, i])
     f.write("%d %.4f %.4f %.4f\n" % (all_aus[i], precisions[0, i], recalls[0, i], f1s[0, i]))
