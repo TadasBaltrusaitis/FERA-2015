@@ -16,13 +16,15 @@ pca_loc = "../pca_generation/generic_face_rigid"
 import validation_helpers
 
 train_fn = mlp.train_mlp_probe
-test_fn = mlp.test_mlp
+test_fn = mlp.test_mlp_class
 
 hyperparams = {
    'batch_size': [100],
    'learning_rate': [0.2],
    'lambda_reg': [0.0001, 0.001, 0.005],
    'num_hidden': [50, 100, 200, 300],
+   'final_layer': 'sigmoid',
+   'error_func': 'cross_ent',
    'n_epochs': 1000,
    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
