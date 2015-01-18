@@ -270,9 +270,13 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	// Perform AU prediction
 	AU_predictions = PredictCurrentAUs(orientation_to_use, true);
 
-		// Perform AV predictions
-	//	PredictCurrentAVs(clm_model);
-	//}
+	auto AU_preds_class = PredictCurrentAUsClass(orientation_to_use);
+
+	for (auto it = AU_preds_class.begin(); it < AU_preds_class.end(); ++it)
+	{
+		AU_predictions.push_back(*it);
+	}
+
 	this->current_time_seconds = timestamp_seconds;
 
 	view_used = orientation_to_use;
@@ -654,6 +658,31 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(int view, bool dyn_
 	return predictions;
 }
 
+// Apply the current predictors to the currently stored descriptors (classification)
+vector<pair<string, double>> FaceAnalyser::PredictCurrentAUsClass(int view)
+{
+
+	vector<pair<string, double>> predictions;
+
+	if(!hog_desc_frame.empty())
+	{
+		vector<string> svm_lin_stat_aus;
+		vector<double> svm_lin_stat_preds;
+
+		AU_SVM_static_appearance_lin.Predict(svm_lin_stat_preds, svm_lin_stat_aus, hog_desc_frame);
+
+		for(size_t i = 0; i < svm_lin_stat_aus.size(); ++i)
+		{
+			predictions.push_back(pair<string, double>(svm_lin_stat_aus[i], svm_lin_stat_preds[i]));
+		}
+
+		
+	}
+
+	return predictions;
+}
+
+
 Mat_<uchar> FaceAnalyser::GetLatestAlignedFaceGrayscale()
 {
 	return aligned_face_grayscale.clone();
@@ -910,6 +939,10 @@ void FaceAnalyser::ReadRegressor(std::string fname, const vector<string>& au_nam
 	else if(regressor_type == SVR_appearance_dynamic_linear)
 	{
 		AU_SVR_dynamic_appearance_lin_regressors.Read(regressor_stream, au_names);		
+	}
+	else if(regressor_type == SVM_linear)
+	{
+		AU_SVM_static_appearance_lin.Read(regressor_stream, au_names);		
 	}
 
 }

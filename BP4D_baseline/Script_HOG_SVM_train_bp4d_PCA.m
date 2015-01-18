@@ -52,7 +52,7 @@ for a=1:numel(aus)
 
     name = sprintf('trained/AU_%d_static_bp4d_pca.dat', au);
 
-    write_lin_svr(name, means, svs, b);
+    write_lin_svm(name, means, svs, b, model.Label(1), model.Label(2));
 
     name = sprintf('trained/AU_%d_static_bp4d_pca.mat', au);
 

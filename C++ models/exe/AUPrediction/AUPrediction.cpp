@@ -323,7 +323,7 @@ int main (int argc, char **argv)
 
 	double scaling = 1.0;
 
-	string face_analyser_loc("./AU_regressors/AU_regressors.txt");
+	string face_analyser_loc("./AU_predictors/AU_regressors.txt");
 
 	get_output_feature_params(face_analyser_loc, output_aus, sim_scale, sim_size, scaling, video_output, grayscale, rigid, arguments);
 
@@ -490,11 +490,11 @@ int main (int argc, char **argv)
 				Psyche::Extract_FHOG_descriptor(hog_descriptor, sim_warped_img, num_hog_rows, num_hog_cols);			
 			}
 
-			cv::imshow("sim_warp", sim_warped_img);			
+			//cv::imshow("sim_warp", sim_warped_img);			
 			
-			Mat_<double> hog_descriptor_vis;
-			Psyche::Visualise_FHOG(hog_descriptor, num_hog_rows, num_hog_cols, hog_descriptor_vis);
-			cv::imshow("hog", hog_descriptor_vis);	
+			//Mat_<double> hog_descriptor_vis;
+			//Psyche::Visualise_FHOG(hog_descriptor, num_hog_rows, num_hog_cols, hog_descriptor_vis);
+			//cv::imshow("hog", hog_descriptor_vis);	
 
 			// Work out the pose of the head from the tracked model
 			Vec6d pose_estimate_CLM;
@@ -626,7 +626,6 @@ int main (int argc, char **argv)
 				auto au_preds = face_analyser.GetCurrentAUs();
 
 				// Print the results here
-				au_output_file << successes_video[frame] << " ";
 				for(auto au_it = au_preds.begin(); au_it != au_preds.end(); ++au_it)
 				{
 					au_output_file << au_it->second << " ";					

@@ -70,9 +70,16 @@ void SVM_static_lin::Predict(std::vector<double>& predictions, std::vector<std::
 	{
 		Mat_<double> preds = (fhog_descriptor - this->means) * this->support_vectors + this->biases;
 		
-		for(MatIterator_<double> pred_it = preds.begin(); pred_it != preds.end(); ++pred_it)
+		for(int i = 0; i < preds.cols; ++i)
 		{		
-			predictions.push_back(*pred_it);
+			if(preds.at<double>(i) > 0)
+			{
+				predictions.push_back(pos_classes[i] * 5);
+			}
+			else
+			{
+				predictions.push_back(neg_classes[i] * 5);
+			}
 		}
 
 		names = this->AU_names;

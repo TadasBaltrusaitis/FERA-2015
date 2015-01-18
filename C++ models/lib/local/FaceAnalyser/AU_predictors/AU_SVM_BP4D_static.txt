@@ -1,0 +1,11 @@
+svm_lin_bp4d/AU_1_static.dat Inner brow raise
+svm_lin_bp4d/AU_2_static.dat Outer brow raise
+svm_lin_bp4d/AU_4_static.dat Brow lower
+svm_lin_bp4d/AU_6_static.dat Cheek raise
+svm_lin_bp4d/AU_7_static.dat Eyes narrow
+svm_lin_bp4d/AU_10_static.dat Upper lip raised
+svm_lin_bp4d/AU_12_static.dat Smile
+svm_lin_bp4d/AU_14_static.dat Dimpler
+svm_lin_bp4d/AU_15_static.dat Frown
+svm_lin_bp4d/AU_17_static.dat Chin raise
+svm_lin_bp4d/AU_23_static.dat Lips tighten
