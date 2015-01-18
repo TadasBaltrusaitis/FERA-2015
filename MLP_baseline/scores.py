@@ -34,7 +34,7 @@ def FERA_class_score(prediction, ground_truth):
 def FERA_reg_score(prediction, ground_truth):
     import numpy as np
 
-    prediction[prediction > 5] = 5
+    prediction[prediction > 1] = 1
     prediction[prediction < 0] = 0
 
     if(len(prediction.shape) == 1):
@@ -50,7 +50,7 @@ def FERA_reg_score(prediction, ground_truth):
     mses = []
     for i in range(num_vars):
         corrs.append(np.corrcoef(prediction[:,i], ground_truth[:,i])[0,1])
-        mses.append(np.mean((prediction[:,i] - ground_truth[:,i])**2))
+        mses.append(np.mean((5*prediction[:,i] - 5*ground_truth[:,i])**2))
 
 
     return corrs, mses

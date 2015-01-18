@@ -16,19 +16,22 @@ pca_loc = "../pca_generation/generic_face_rigid"
 
 import validation_helpers
 
+train_labels = train_labels / 5.0
+valid_labels = valid_labels / 5.0
+
 train_fn = mlp.train_mlp_probe
 test_fn = mlp.test_mlp_reg
 
 hyperparams = {
    'batch_size': [100],
-   'learning_rate': [0.05, 0.1, 0.2],
-   'lambda_reg': [0.001, 0.005, 0.01],
-   'num_hidden': [50, 100, 200, 300],
-   'final_layer': 'linear',
+   'learning_rate': [0.4, 0.8],
+   'lambda_reg': [0.002, 0.004],
+   'num_hidden': [50, 100, 200],
+   'final_layer': ['sigmoid'],
    'error_func': 'euclidean',
    'pred_type': 'reg',
    'n_epochs': 50,
-   'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
+   'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden', 'final_layer']}
 
 # Cross-validate here
 best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
@@ -57,7 +60,7 @@ f = open("./trained/BP4D_train_mlp_joint_intensity.txt", 'w')
 f.write(str(best_params)+'\n')
 
 for i in range(len(all_aus)):
-    print 'AU%d done: correlation %.4f, MSE %.4f \n' % (all_aus[i], corrs[0, i], mses[0, i])
-    f.write("%d %.4f %.4f %.4f\n" % (all_aus[i], corrs[0, i], mses[0, i]))
+    print 'AU%d done: correlation %.4f, MSE %.4f \n' % (all_aus[i], corrs[0, i], mses[0, i] * 5)
+    f.write("%d %.4f %.4f\n" % (all_aus[i], corrs[0, i], mses[0, i] * 5))
 
 f.close()

@@ -449,8 +449,6 @@ def test_mlp_reg(test_labels, test_samples, model):
     else:
         predictions = exp_in
 
-    test_l = test_labels.astype('int32')
-
-    corrs, mses = scores.FERA_reg_score(predictions, test_l)
+    corrs, mses = scores.FERA_reg_score(predictions, test_labels)
 
     return numpy.mean(corrs), numpy.mean(mses),predictions, corrs, mses
