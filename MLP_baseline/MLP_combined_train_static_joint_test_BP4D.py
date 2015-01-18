@@ -48,7 +48,7 @@ for au in aus_exp:
 train_samples = numpy.concatenate((train_samples_bp4d, train_samples_semaine, train_samples_disfa), axis=0)
 train_labels = numpy.concatenate((train_labels_bp4d[:, inds_to_use_bp4d],
                                   train_labels_semaine[:, inds_to_use_semaine],
-                                  train_samples_disfa[:, inds_to_use_disfa]), axis=0)
+                                  train_labels_disfa[:, inds_to_use_disfa]), axis=0)
 
 valid_samples = numpy.concatenate((valid_samples_bp4d, valid_samples_semaine), axis=0)
 valid_labels = numpy.concatenate((valid_labels_bp4d[:, inds_to_use_bp4d],
@@ -58,22 +58,25 @@ valid_labels = numpy.concatenate((valid_labels_bp4d[:, inds_to_use_bp4d],
 print train_samples.shape, train_labels.shape, valid_samples.shape, valid_labels.shape
 
 hyperparams = {
-   'batch_size': [100],
-   'learning_rate': [0.1, 0.2],
-   'lambda_reg': [0.0000001, 0.000001, 0.00001],
-   'num_hidden': [50, 150, 250],
-   'n_epochs': 1000,
-   'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
+    'batch_size': [100],
+    'learning_rate': [0.2, 0.4],
+    'lambda_reg': [0.00001, 0.0001],
+    'num_hidden': [100, 200, 300],
+    'n_epochs': 1000,
+    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
 import validation_helpers
 
 train_fn = mlp.train_mlp_probe
-test_fn = mlp.test_mlp
+test_fn = mlp.test_mlp_class
+
+print numpy.mean(numpy.mean(train_samples, axis=0)), numpy.mean(numpy.mean(train_labels, axis=0))
+print numpy.mean(numpy.mean(valid_samples, axis=0)), numpy.mean(numpy.mean(valid_labels, axis=0))
 
 # Cross-validate here
 best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
                                                                   False, train_samples, train_labels, valid_samples,
-                                                                  valid_labels, hyperparams, num_repeat=1)
+                                                                  valid_labels, hyperparams, num_repeat=2)
 print 'All params', all_params
 print 'Best params', best_params
 
@@ -115,17 +118,26 @@ for au in aus_exp:
 
 train_samples = numpy.concatenate((train_samples_semaine, train_samples_disfa), axis=0)
 train_labels = numpy.concatenate((train_labels_semaine[:, inds_to_use_semaine],
-                                  train_samples_disfa[:, inds_to_use_disfa]), axis=0)
+                                  train_labels_disfa[:, inds_to_use_disfa]), axis=0)
 
 valid_samples = valid_samples_semaine
 valid_labels = valid_labels_semaine[:, inds_to_use_semaine]
+
+hyperparams = {
+    'batch_size': [100],
+    'learning_rate': [0.02],
+    'lambda_reg': [0.001, 0.005],
+    'num_hidden': [100, 200, 300],
+    'n_epochs': 1000,
+    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
+
 
 print train_samples.shape, train_labels.shape, valid_samples.shape, valid_labels.shape
 
 import validation_helpers
 
 train_fn = mlp.train_mlp_probe
-test_fn = mlp.test_mlp
+test_fn = mlp.test_mlp_class
 
 # Cross-validate here
 best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
@@ -160,17 +172,25 @@ for au in aus_exp:
 
 train_samples = numpy.concatenate((train_samples_bp4d, train_samples_disfa), axis=0)
 train_labels = numpy.concatenate((train_labels_bp4d[:, inds_to_use_bp4d],
-                                  train_samples_disfa[:, inds_to_use_disfa]), axis=0)
+                                  train_labels_disfa[:, inds_to_use_disfa]), axis=0)
 
 valid_samples = valid_samples_bp4d
 valid_labels = valid_labels_bp4d[:, inds_to_use_bp4d]
+
+hyperparams = {
+    'batch_size': [100],
+    'learning_rate': [0.02, 0.1],
+    'lambda_reg': [0.001, 0.005],
+    'num_hidden': [100, 200, 300],
+    'n_epochs': 1000,
+    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
 print train_samples.shape, train_labels.shape, valid_samples.shape, valid_labels.shape
 
 import validation_helpers
 
 train_fn = mlp.train_mlp_probe
-test_fn = mlp.test_mlp
+test_fn = mlp.test_mlp_class
 
 # Cross-validate here
 best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
