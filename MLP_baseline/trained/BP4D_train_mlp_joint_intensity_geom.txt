@@ -1,6 +1,6 @@
-{'lambda_reg': 0.004, 'num_hidden': 50, 'pred_type': 'reg', 'learning_rate': 0.8, 'batch_size': 100, 'n_epochs': 1000, 'error_func': 'euclidean', 'result': 0.67344909091743355, 'final_layer': 'sigmoid'}
-6 0.7517 4.3416
-10 0.7539 4.7622
-12 0.8656 3.0868
-14 0.5368 6.6327
-17 0.4417 4.7283
+{'lambda_reg': 0.004, 'num_hidden': 50, 'pred_type': 'reg', 'learning_rate': 2.0, 'batch_size': 100, 'n_epochs': 1000, 'error_func': 'euclidean', 'result': 0.67288353639565934, 'final_layer': 'sigmoid'}
+6 0.7598 0.8222
+10 0.7563 0.9445
+12 0.8631 0.6313
+14 0.5328 1.2661
+17 0.4495 0.9017
