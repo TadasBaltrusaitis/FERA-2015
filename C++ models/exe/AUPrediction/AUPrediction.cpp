@@ -350,7 +350,15 @@ int main (int argc, char **argv)
 	}			
 
 	// Retain a matrix of HOG descriptors for AU prediction? TODO
-
+			
+	// This is useful for a second pass run (if want AU predictions)
+	vector<vector<Vec6d>> params_global_video;
+	vector<vector<bool>> successes_video;
+	vector<vector<Mat_<double>>> params_local_video;
+	vector<vector<Mat_<double>>> detected_landmarks_video;
+	
+	// TODO this might be done with a matrix
+	vector<vector<Mat_<double>>> hog_descriptors;
 
 	while(!done) // this is not a for loop as we might also be reading from a webcam
 	{
@@ -360,6 +368,13 @@ int main (int argc, char **argv)
 		VideoCapture video_capture;
 		
 		Mat captured_image;
+
+		params_global_video.push_back(vector<Vec6d>());
+		successes_video.push_back(vector<bool>());
+		params_local_video.push_back(vector<Mat_<double>>());
+		detected_landmarks_video.push_back(vector<Mat_<double>>());
+	
+		hog_descriptors.push_back(vector<Mat_<double>>());
 
 		if(video)
 		{
@@ -420,14 +435,7 @@ int main (int argc, char **argv)
 	
 		int frame_count = 0;
 		
-		// This is useful for a second pass run (if want AU predictions)
-		vector<Vec6d> params_global_video;
-		vector<bool> successes_video;
-		vector<Mat_<double>> params_local_video;
-		vector<Mat_<double>> detected_landmarks_video;
 
-		// TODO this might be done with a matrix
-		vector<Mat_<double>> hog_descriptors;
 
 		// For measuring the timings
 		int64 t1,t0 = cv::getTickCount();
@@ -475,14 +483,14 @@ int main (int argc, char **argv)
 			{
 				face_analyser.AddNextFrame(captured_image, clm_model, 0, false);
 
-				params_global_video.push_back(clm_model.params_global);
-				params_local_video.push_back(clm_model.params_local.clone());
-				successes_video.push_back(detection_success);
-				detected_landmarks_video.push_back(clm_model.detected_landmarks.clone());
+				params_global_video[f_n].push_back(clm_model.params_global);
+				params_local_video[f_n].push_back(clm_model.params_local.clone());
+				successes_video[f_n].push_back(detection_success);
+				detected_landmarks_video[f_n].push_back(clm_model.detected_landmarks.clone());
 				
 				face_analyser.GetLatestAlignedFace(sim_warped_img);
 				face_analyser.GetLatestHOG(hog_descriptor, num_hog_rows, num_hog_cols);
-				hog_descriptors.push_back(hog_descriptor.clone());
+				hog_descriptors[f_n].push_back(hog_descriptor.clone());
 			}
 			else
 			{
@@ -588,52 +596,58 @@ int main (int argc, char **argv)
 
 		}
 		
-		// Do a second pass if AU outputs are needed (this need to be rethought TODO)
-		if(!output_aus.empty())
-		{
-			std::ofstream au_output_file;
-			au_output_file.open(output_aus[f_n], ios_base::out);
-
-			if(video)
-			{
-				video_capture = VideoCapture( current_file );
-			}
-
-			for(size_t frame = 0; frame < params_global_video.size(); ++frame)
-			{
-				clm_model.detected_landmarks = detected_landmarks_video[frame].clone();
-				clm_model.params_local = params_local_video[frame].clone();
-				clm_model.params_global = params_global_video[frame];
-				clm_model.detection_success = successes_video[frame];
-				
-				face_analyser.PredictAUs(hog_descriptors[frame], clm_model);
-
-				auto au_preds = face_analyser.GetCurrentAUs();
-
-				// Print the results here
-				for(auto au_it = au_preds.begin(); au_it != au_preds.end(); ++au_it)
-				{
-					au_output_file << au_it->second << " ";					
-				}
-				au_output_file << endl;
-
-			}			
-			au_output_file.close();
-		}
-
+		
 		frame_count = 0;
 		curr_img = -1;
 
 		// Reset the model, for the next video
 		clm_model.Reset();
 		
-		// break out of the loop if done with all the files (or using a webcam)
-		if(f_n == files.size() -1 || files.empty())
+		if(video)
 		{
-			done = true;
+			// break out of the loop if done with all the files (or using a webcam)
+			if(f_n == files.size() -1 || files.empty())
+			{
+				done = true;
+			}
+		}
+		else
+		{
+			// break out of the loop if done with all the files (or using a webcam)
+			if(f_n == input_image_files.size() -1 || input_image_files.empty())
+			{
+				done = true;
+			}
 		}
 	}
 
+	for(int i = 0; i < output_aus.size(); ++i) // this is not a for loop as we might also be reading from a webcam
+	{
+
+		std::ofstream au_output_file;
+		au_output_file.open(output_aus[i], ios_base::out);
+
+		for(size_t frame = 0; frame < params_global_video.size(); ++frame)
+		{
+			clm_model.detected_landmarks = detected_landmarks_video[i][frame].clone();
+			clm_model.params_local = params_local_video[i][frame].clone();
+			clm_model.params_global = params_global_video[i][frame];
+			clm_model.detection_success = successes_video[i][frame];
+				
+			face_analyser.PredictAUs(hog_descriptors[i][frame], clm_model);
+
+			auto au_preds = face_analyser.GetCurrentAUs();
+
+			// Print the results here
+			for(auto au_it = au_preds.begin(); au_it != au_preds.end(); ++au_it)
+			{
+				au_output_file << au_it->second << " ";					
+			}
+			au_output_file << endl;
+
+		}			
+		au_output_file.close();
+	}
 	return 0;
 }
 
