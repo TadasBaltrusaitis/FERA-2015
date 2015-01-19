@@ -605,24 +605,9 @@ int main (int argc, char **argv)
 				clm_model.params_local = params_local_video[frame].clone();
 				clm_model.params_global = params_global_video[frame];
 				clm_model.detection_success = successes_video[frame];
-
-				if(video)
-				{
-					video_capture >> captured_image;
-				}
-				else
-				{
-					string curr_img_file = input_image_files[f_n][frame];
-					captured_image = imread(curr_img_file, -1);
-				}
-
-				if(scaling != 1.0)
-				{
-					cv::resize(captured_image, captured_image, Size(), scaling, scaling);
-				}
-
-				face_analyser.AddNextFrame(captured_image, clm_model, 0, false);
 				
+				face_analyser.PredictAUs(hog_descriptors[frame], clm_model);
+
 				auto au_preds = face_analyser.GetCurrentAUs();
 
 				// Print the results here
@@ -632,10 +617,6 @@ int main (int argc, char **argv)
 				}
 				au_output_file << endl;
 
-				CLMTracker::Draw(captured_image, clm_model.detected_landmarks);
-
-				cv::imshow("Rerun", captured_image);
-				cv::waitKey(1);
 			}			
 			au_output_file.close();
 		}
