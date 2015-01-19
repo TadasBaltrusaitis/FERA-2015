@@ -283,6 +283,29 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 
 }
 
+void FaceAnalyser::PredictAUs(const cv::Mat_<double>& hog_features, const CLMTracker::CLM& clm_model)
+{
+	// Store the descriptor
+	hog_desc_frame = hog_features.clone();
+
+	Vec3d curr_orient(clm_model.params_global[1], clm_model.params_global[2], clm_model.params_global[3]);
+	int orientation_to_use = GetViewId(this->head_orientations, curr_orient);
+
+	//if(clm_model.detection_success)
+	//{
+	// Perform AU prediction
+	AU_predictions = PredictCurrentAUs(orientation_to_use, true);
+
+	auto AU_preds_class = PredictCurrentAUsClass(orientation_to_use);
+
+	for (auto it = AU_preds_class.begin(); it < AU_preds_class.end(); ++it)
+	{
+		AU_predictions.push_back(*it);
+	}
+	
+	view_used = orientation_to_use;
+}
+
 void FaceAnalyser::PredictCurrentAVs(const CLMTracker::CLM& clm_model)
 {
 	// Can update the AU prediction track (used for predicting emotions)
