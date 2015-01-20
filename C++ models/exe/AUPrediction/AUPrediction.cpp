@@ -705,7 +705,6 @@ int main (int argc, char **argv)
 			}
 			au_output_file << std::endl;			
 		}
-		au_output_file << endl;
 
 		au_output_file.close();
 	}

@@ -58,7 +58,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreLinkEvent>
-      <Command>xcopy /I /E /Y /D "$(SolutionDir)lib\local\FaceAnalyser\AU_regressors" "$(OutDir)AU_regressors"
+      <Command>xcopy /I /E /Y /D "$(SolutionDir)lib\local\FaceAnalyser\AU_predictors" "$(OutDir)AU_predictors"
 xcopy /I /E /Y /D "$(SolutionDir)lib\local\FaceAnalyser\AV_regressors" "$(OutDir)AV_regressors"</Command>
     </PreLinkEvent>
   </ItemDefinitionGroup>
@@ -78,7 +78,7 @@ xcopy /I /E /Y /D "$(SolutionDir)lib\local\FaceAnalyser\AV_regressors" "$(OutDir
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PreLinkEvent>
-      <Command>xcopy /I /E /Y /D "$(SolutionDir)lib\local\FaceAnalyser\AU_regressors" "$(OutDir)AU_regressors"
+      <Command>xcopy /I /E /Y /D "$(SolutionDir)lib\local\FaceAnalyser\AU_predictors" "$(OutDir)AU_predictors"
 xcopy /I /E /Y /D "$(SolutionDir)lib\local\FaceAnalyser\AV_regressors" "$(OutDir)AV_regressors"</Command>
     </PreLinkEvent>
   </ItemDefinitionGroup>
