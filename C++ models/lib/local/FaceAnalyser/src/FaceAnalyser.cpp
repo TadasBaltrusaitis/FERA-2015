@@ -19,7 +19,7 @@ using namespace Psyche;
 using namespace std;
 
 // Constructor from a model file (or a default one if not provided
-FaceAnalyser::FaceAnalyser(vector<Vec3d> orientation_bins, double scale, int width, int height, std::string au_location, std::string av_location)
+FaceAnalyser::FaceAnalyser(vector<Vec3d> orientation_bins, double scale, int width, int height, std::string au_location, std::string av_location, std::string tri_location)
 {
 	this->ReadAU(au_location);
 	this->ReadAV(av_location);
@@ -67,7 +67,7 @@ FaceAnalyser::FaceAnalyser(vector<Vec3d> orientation_bins, double scale, int wid
 	dyn_scaling.resize(head_orientations.size());
 
 	// The triangulation used for masking out the non-face parts of aligned image
-	std::ifstream triangulation_file("model/tris_68_full.txt");	
+	std::ifstream triangulation_file(tri_location);	
 	CLMTracker::ReadMat(triangulation_file, triangulation);
 
 }
