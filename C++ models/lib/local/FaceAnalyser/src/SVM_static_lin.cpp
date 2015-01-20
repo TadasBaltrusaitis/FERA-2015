@@ -74,11 +74,11 @@ void SVM_static_lin::Predict(std::vector<double>& predictions, std::vector<std::
 		{		
 			if(preds.at<double>(i) > 0)
 			{
-				predictions.push_back(pos_classes[i] * 5);
+				predictions.push_back(pos_classes[i]);
 			}
 			else
 			{
-				predictions.push_back(neg_classes[i] * 5);
+				predictions.push_back(neg_classes[i]);
 			}
 		}
 

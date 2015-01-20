@@ -1,50 +1,42 @@
-oldDir = chdir('../C++ models/Release');
+clear
 
-features_exe = '"FeatureExtraction.exe"';
+addpath(genpath('../data extraction/'));
+find_SEMAINE;
 
-if(exist('I:/datasets/FERA_2015/Semaine/SEMAINE-Sessions/', 'dir'))
-    semaine_loc = 'I:/datasets/FERA_2015/Semaine/SEMAINE-Sessions/';
-elseif(exist('E:\datasets\FERA_2015\semaine\SEMAINE-Sessions', 'dir'))
-    semaine_loc = 'E:\datasets\FERA_2015\semaine\SEMAINE-Sessions/'; 
-else
-   fprintf('SEMAINE not found\n'); 
+out_loc = './out_SEMAINE_dynamic/';
+
+if(~exist(out_loc, 'dir'))
+    mkdir(out_loc);
 end
 
-out_loc = [semaine_loc, '../processed_data/'];
+features_exe = '"../C++ models/Release/AUPrediction.exe"';
 
 % Go two levels deep
-semaine_dirs = dir(semaine_loc);
-semaine_dirs = semaine_dirs(3:end);
+aus_SEMAINE = [2];
 
-for f1=1:numel(semaine_dirs)
+[ labels, valid_ids, vid_ids  ] = extract_SEMAINE_labels(SEMAINE_dir, devel_recs, aus_SEMAINE);
 
-    if(isdir([semaine_loc, semaine_dirs(f1).name]))
+for f1=1:numel(devel_recs)
+
+
+    if(isdir([SEMAINE_dir, devel_recs{f1}]))
         
-        vid_files = dir([semaine_loc, semaine_dirs(f1).name, '/*.avi']);
+        vid_files = dir([SEMAINE_dir, devel_recs{f1}, '/*.avi']);
 
-        f1_dir = semaine_dirs(f1).name;
+        f1_dir = devel_recs{f1};
         
         for v=1:numel(vid_files)
-
-            command = features_exe;
-
-            curr_vid = [semaine_loc, f1_dir, '/', vid_files(v).name];
+    
+            command = [features_exe, ' -auloc "./AU_predictors/AU_SVM_SEMAINE_dyn.txt" -fx 2000 -fy 2000 -rigid -asvid -simscale 0.7 -simsize 112 '];
+    
+            curr_vid = [SEMAINE_dir, f1_dir, '/', vid_files(v).name];
 
             name = f1_dir;
-            output_file = [out_loc name '/'];
-
-            output_hog = [out_loc name '.hog'];
-            output_params = [out_loc name '.params.txt'];
             output_aus = [out_loc name '.au.txt'];
-            output_neut = [out_loc name '.neutral'];
 
-            command = cat(2, command, [' -rigid -f "' curr_vid '" -simalign "' output_file  '" -simscale 0.7 -simsize 112']);
-            command = cat(2, command, [' -hogalign "' output_hog '"']);
-            command = cat(2, command, [' -oparams "' output_params '"']);
+            command = cat(2, command, [' -f "' curr_vid '" -oaus "' output_aus '" -ef ' num2str(vid_ids(f1,2))]);            
             dos(command);
 
         end
     end
 end
-
-chdir(oldDir)

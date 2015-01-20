@@ -19,7 +19,7 @@ using namespace Psyche;
 using namespace std;
 
 // Constructor from a model file (or a default one if not provided
-FaceAnalyser::FaceAnalyser(vector<Vec3d> orientation_bins, double scale, int width, int height, std::string au_location, std::string av_location)
+FaceAnalyser::FaceAnalyser(vector<Vec3d> orientation_bins, double scale, int width, int height, std::string au_location, std::string av_location, std::string tri_location)
 {
 	this->ReadAU(au_location);
 	this->ReadAV(av_location);
@@ -67,7 +67,7 @@ FaceAnalyser::FaceAnalyser(vector<Vec3d> orientation_bins, double scale, int wid
 	dyn_scaling.resize(head_orientations.size());
 
 	// The triangulation used for masking out the non-face parts of aligned image
-	std::ifstream triangulation_file("model/tris_68_full.txt");	
+	std::ifstream triangulation_file(tri_location);	
 	CLMTracker::ReadMat(triangulation_file, triangulation);
 
 }
@@ -699,6 +699,15 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUsClass(int view)
 			predictions.push_back(pair<string, double>(svm_lin_stat_aus[i], svm_lin_stat_preds[i]));
 		}
 
+		vector<string> svm_lin_dyn_aus;
+		vector<double> svm_lin_dyn_preds;
+
+		AU_SVM_dynamic_appearance_lin.Predict(svm_lin_dyn_preds, svm_lin_dyn_aus, hog_desc_frame, this->hog_desc_median);
+
+		for(size_t i = 0; i < svm_lin_stat_aus.size(); ++i)
+		{
+			predictions.push_back(pair<string, double>(svm_lin_dyn_aus[i], svm_lin_dyn_preds[i]));
+		}
 		
 	}
 
@@ -963,9 +972,13 @@ void FaceAnalyser::ReadRegressor(std::string fname, const vector<string>& au_nam
 	{
 		AU_SVR_dynamic_appearance_lin_regressors.Read(regressor_stream, au_names);		
 	}
-	else if(regressor_type == SVM_linear)
+	else if(regressor_type == SVM_linear_stat)
 	{
 		AU_SVM_static_appearance_lin.Read(regressor_stream, au_names);		
+	}
+	else if(regressor_type == SVM_linear_dyn)
+	{
+		AU_SVM_dynamic_appearance_lin.Read(regressor_stream, au_names);		
 	}
 
 }

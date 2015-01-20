@@ -95,7 +95,7 @@ vector<string> get_arguments(int argc, char **argv)
 }
 
 // Extracting the following command line arguments -f, -fd, -op, -of, -ov (and possible ordered repetitions)
-void get_output_feature_params(string& au_location, vector<string> &output_aus, double &similarity_scale, int &similarity_size, double &scaling, bool &video, bool &grayscale, bool &rigid, vector<string> &arguments)
+void get_output_feature_params(string& au_location, vector<string> &output_aus, double &similarity_scale, int &similarity_size, double &scaling, bool &video, bool &grayscale, bool &rigid, vector<int>& end_frames, vector<string> &arguments)
 {
 
 	bool* valid = new bool[arguments.size()];
@@ -140,6 +140,13 @@ void get_output_feature_params(string& au_location, vector<string> &output_aus, 
 		else if(arguments[i].compare("-oaus") == 0) 
 		{
 			output_aus.push_back(output_root + arguments[i + 1]);
+			valid[i] = false;
+			valid[i+1] = false;			
+			i++;
+		}
+		else if(arguments[i].compare("-ef") == 0) 
+		{
+			end_frames.push_back(stoi(arguments[i + 1]));
 			valid[i] = false;
 			valid[i+1] = false;			
 			i++;
@@ -264,6 +271,9 @@ void get_image_input_output_params_feats(vector<vector<string> > &input_image_fi
 
 int main (int argc, char **argv)
 {
+	
+	boost::filesystem::path root(argv[0]);
+	root = root.parent_path();
 
 	vector<string> arguments = get_arguments(argc, argv);
 
@@ -308,6 +318,13 @@ int main (int argc, char **argv)
 	// Get camera parameters
 	CLMTracker::get_camera_params(device, fx, fy, cx, cy, arguments);    
 	
+	if(!boost::filesystem::exists(path(clm_parameters.model_location)))
+	{
+		clm_parameters.model_location = (root / path(clm_parameters.model_location)).string();
+	}
+
+	cout << clm_parameters.model_location << endl;
+
 	// The modules that are being used for tracking
 	CLMTracker::CLM clm_model(clm_parameters.model_location);	
 
@@ -324,13 +341,24 @@ int main (int argc, char **argv)
 	double scaling = 1.0;
 
 	string face_analyser_loc("./AU_predictors/AU_regressors.txt");
+	string face_analyser_loc_av("./AV_regressors/av_regressors.txt");
+	string tri_location("./model/tris_68_full.txt");
 
-	get_output_feature_params(face_analyser_loc, output_aus, sim_scale, sim_size, scaling, video_output, grayscale, rigid, arguments);
+	vector<int> end_frames;
+
+	get_output_feature_params(face_analyser_loc, output_aus, sim_scale, sim_size, scaling, video_output, grayscale, rigid, end_frames, arguments);
+
+	if(!boost::filesystem::exists(path(face_analyser_loc)))
+	{
+		face_analyser_loc = (root / path(face_analyser_loc)).string();
+		face_analyser_loc_av = (root / path(face_analyser_loc_av)).string();
+		tri_location = (root / path(tri_location)).string();
+	}
 
 	// Face analyser (used for neutral expression extraction)
 	vector<Vec3d> orientations = vector<Vec3d>();
 	orientations.push_back(Vec3d(0.0,0.0,0.0));
-	Psyche::FaceAnalyser face_analyser(orientations, sim_scale, sim_size, sim_size, face_analyser_loc);
+	Psyche::FaceAnalyser face_analyser(orientations, sim_scale, sim_size, sim_size, face_analyser_loc, face_analyser_loc_av, tri_location);
 
 	// Will warp to scaled mean shape
 	Mat_<double> similarity_normalised_shape = clm_model.pdm.mean_shape * sim_scale;
@@ -593,6 +621,14 @@ int main (int argc, char **argv)
 
 			// Update the frame count
 			frame_count++;
+
+			if(!end_frames.empty())
+			{
+				if(frame_count > end_frames[f_n])
+				{
+					break;
+				}
+			}
 
 		}
 		
