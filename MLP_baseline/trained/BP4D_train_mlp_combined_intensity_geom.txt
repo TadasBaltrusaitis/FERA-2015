@@ -1,0 +1,4 @@
+{'lambda_reg': 0.001, 'num_hidden': 100, 'pred_type': 'reg', 'learning_rate': 0.8, 'batch_size': 100, 'n_epochs': 1000, 'error_func': 'euclidean', 'result': 0.71199923577640134, 'final_layer': 'sigmoid'}
+6 0.7568 0.8020
+12 0.8685 0.6049
+17 0.4982 0.8825

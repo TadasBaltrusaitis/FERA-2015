@@ -378,7 +378,7 @@ def train_mlp_probe(train_labels, train_samples, test_labels, test_samples, hype
                 score_improved_in = 0
 
             # If the score has not improved in some time terminate early
-            if validation_improved_in > 60:
+            if validation_improved_in > 60 or learning_rate < 0.00001:
                 print 'Early termination'
                 break
 
