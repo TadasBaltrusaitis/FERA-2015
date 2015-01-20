@@ -16,7 +16,7 @@ aus_SEMAINE = [2];
 
 [ labels, valid_ids, vid_ids  ] = extract_SEMAINE_labels(SEMAINE_dir, devel_recs, aus_SEMAINE);
 
-for f1=1:numel(devel_recs)
+parfor f1=1:numel(devel_recs)
 
 
     if(isdir([SEMAINE_dir, devel_recs{f1}]))
@@ -27,7 +27,7 @@ for f1=1:numel(devel_recs)
         
         for v=1:numel(vid_files)
     
-            command = [features_exe, ' -auloc "./AU_predictors/AU_SVM_SEMAINE_dyn.txt" -fx 2000 -fy 2000 -rigid -asvid -simscale 0.7 -simsize 112 '];
+            command = [features_exe, ' -auloc "./AU_predictors/AU_SVM_SEMAINE_dyn.txt" -fx 800 -fy 800 -rigid -asvid -simscale 0.7 -simsize 112 '];
     
             curr_vid = [SEMAINE_dir, f1_dir, '/', vid_files(v).name];
 

@@ -247,7 +247,8 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	Mat_<double> aligned_face_cols_double;
 	aligned_face_cols.convertTo(aligned_face_cols_double, CV_64F);
 	
-	UpdateRunningMedian(this->face_image_hist[orientation_to_use], this->face_image_hist_sum[orientation_to_use], this->face_image_median, aligned_face_cols_double, update_median, 256, 0, 255);
+	// TODO get rid of this completely?
+	//UpdateRunningMedian(this->face_image_hist[orientation_to_use], this->face_image_hist_sum[orientation_to_use], this->face_image_median, aligned_face_cols_double, update_median, 256, 0, 255);
 
 	// Visualising the median HOG
 	if(visualise)
@@ -704,7 +705,7 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUsClass(int view)
 
 		AU_SVM_dynamic_appearance_lin.Predict(svm_lin_dyn_preds, svm_lin_dyn_aus, hog_desc_frame, this->hog_desc_median);
 
-		for(size_t i = 0; i < svm_lin_stat_aus.size(); ++i)
+		for(size_t i = 0; i < svm_lin_dyn_aus.size(); ++i)
 		{
 			predictions.push_back(pair<string, double>(svm_lin_dyn_aus[i], svm_lin_dyn_preds[i]));
 		}

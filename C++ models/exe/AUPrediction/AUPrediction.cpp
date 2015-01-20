@@ -660,11 +660,13 @@ int main (int argc, char **argv)
 	for(int i = 0; i < output_aus.size(); ++i) // this is not a for loop as we might also be reading from a webcam
 	{
 
-		std::ofstream au_output_file;
-		au_output_file.open(output_aus[i], ios_base::out);
+		// Collect all of the predictions
+		vector<vector<double>> all_predictions;
+		vector<string> pred_names;
 
 		for(size_t frame = 0; frame < params_global_video[i].size(); ++frame)
 		{
+			
 			clm_model.detected_landmarks = detected_landmarks_video[i][frame].clone();
 			clm_model.params_local = params_local_video[i][frame].clone();
 			clm_model.params_global = params_global_video[i][frame];
@@ -674,14 +676,37 @@ int main (int argc, char **argv)
 
 			auto au_preds = face_analyser.GetCurrentAUs();
 
-			// Print the results here
-			for(auto au_it = au_preds.begin(); au_it != au_preds.end(); ++au_it)
+			if(frame == 0)
 			{
-				au_output_file << au_it->second << " ";					
+				all_predictions.resize(au_preds.size());
+				for(int au = 0; au < au_preds.size(); ++au)
+				{
+					pred_names.push_back(au_preds[au].first);
+				}
 			}
-			au_output_file << endl;
 
-		}			
+			for(int au = 0; au < au_preds.size(); ++au)
+			{
+				
+				all_predictions[au].push_back(au_preds[au].second);
+			}
+		}		
+				
+		std::ofstream au_output_file;
+		au_output_file.open(output_aus[i], ios_base::out);
+
+		// Print the results here
+		for(int au = 0; au < pred_names.size(); ++au)
+		{			
+			au_output_file << pred_names[au] << " ";					
+			for(int frame = 0; frame < all_predictions[au].size(); ++frame)
+			{
+				au_output_file << " " << all_predictions[au][frame];
+			}
+			au_output_file << std::endl;			
+		}
+		au_output_file << endl;
+
 		au_output_file.close();
 	}
 	return 0;
