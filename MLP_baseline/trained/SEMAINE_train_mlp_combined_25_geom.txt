@@ -1,0 +1,2 @@
+{'lambda_reg': 0.001, 'num_hidden': 400, 'result': 0.35471741771273213, 'learning_rate': 0.02, 'batch_size': 100, 'n_epochs': 1000}
+25 0.3928 0.3540 0.3724

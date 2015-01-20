@@ -203,6 +203,46 @@ def extract_BP4D_labels(BP4D_dir, recs, aus):
 
     return labels, valid_ids, vid_ids
 
+def Read_geom_files_DISFA(users, hog_data_dir):
+
+    from numpy import genfromtxt
+
+    geom_data = None
+
+    for i in range(len(users)):
+
+        in_file = hog_data_dir + '../clm_params/LeftVideo' + users[i] + "_comp.txt"
+        data_curr = genfromtxt(in_file, dtype=float, delimiter=' ')
+        data_curr = data_curr[:, 14::2]
+
+        if geom_data is None:
+            geom_data = data_curr
+        else:
+            geom_data = np.concatenate((geom_data, data_curr), axis=0)
+
+    return geom_data
+
+def Read_geom_files_DISFA_dynamic(users, hog_data_dir):
+
+    from numpy import genfromtxt
+
+    geom_data = None
+
+    for i in range(len(users)):
+
+        in_file = hog_data_dir + '../clm_params/LeftVideo' + users[i] + "_comp.txt"
+        data_curr = genfromtxt(in_file, dtype=float, delimiter=' ')
+        data_curr = data_curr[:, 14::2]
+
+        data_curr = data_curr - np.median(data_curr, axis=0)
+
+        if geom_data is None:
+            geom_data = data_curr
+        else:
+            geom_data = np.concatenate((geom_data, data_curr), axis=0)
+
+    return geom_data
+
 def Read_HOG_files_DISFA(users, hog_data_dir):
 
     import struct
@@ -853,7 +893,7 @@ def Prepare_HOG_AU_data_generic_SEMAINE_dynamic(train_recs, devel_recs, au, SEMA
 
 
 # Preparing the DISFA data
-def Prepare_HOG_AU_data_generic_DISFA(train_recs, devel_recs, au, DISFA_dir, hog_data_dir, pca_loc, scale=False):
+def Prepare_HOG_AU_data_generic_DISFA(train_recs, devel_recs, au, DISFA_dir, hog_data_dir, pca_loc, scale=False, geometry=False):
 
     # First extracting the labels
     au_train_dirs = [DISFA_dir + '/ActionUnit_Labels/' + user + '/' + user for user in train_recs]
@@ -862,6 +902,8 @@ def Prepare_HOG_AU_data_generic_DISFA(train_recs, devel_recs, au, DISFA_dir, hog
     # Reading in the HOG data (of only relevant frames)
     [train_appearance_data, valid_ids_train_hog, vid_ids_train_string] =\
         Read_HOG_files_DISFA(train_recs, hog_data_dir)
+
+    train_geom_data = Read_geom_files_DISFA(train_recs, hog_data_dir)
 
     # need to subsample every 3rd frame as now way too big
 
@@ -882,6 +924,7 @@ def Prepare_HOG_AU_data_generic_DISFA(train_recs, devel_recs, au, DISFA_dir, hog
         labels_train = labels_train[reduced_inds, :]
 
     train_appearance_data = train_appearance_data[reduced_inds, :]
+    train_geom_data = train_geom_data[reduced_inds, :]
 
     # Extract devel data
 
@@ -893,8 +936,11 @@ def Prepare_HOG_AU_data_generic_DISFA(train_recs, devel_recs, au, DISFA_dir, hog
     [devel_appearance_data, valid_ids_devel_hog, vid_ids_devel_string] = \
          Read_HOG_files_DISFA(devel_recs, hog_data_dir)
 
+    devel_geom_data = Read_geom_files_DISFA(devel_recs, hog_data_dir)
+
     devel_appearance_data = devel_appearance_data[1::3, :]
     labels_devel = labels_devel[1::3, :]
+    devel_geom_data = devel_geom_data[1::3, :]
 
     # normalise the data
     dim_reds = scipy.io.loadmat(pca_loc)
@@ -921,6 +967,10 @@ def Prepare_HOG_AU_data_generic_DISFA(train_recs, devel_recs, au, DISFA_dir, hog
         data_devel = data_devel / scaling
 
         PC = PC / scaling
+
+    if geometry:
+        data_train = np.concatenate((data_train, train_geom_data), axis=1)
+        data_devel = np.concatenate((data_devel, devel_geom_data), axis=1)
 
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
 
