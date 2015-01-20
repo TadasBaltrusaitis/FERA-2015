@@ -17,7 +17,8 @@ pca_loc = "../pca_generation/generic_face_rigid"
     data_preparation.Prepare_HOG_AU_data_generic_BP4D(train_recs, devel_recs, all_aus_bp4d, BP4D_dir, hog_data_dir, pca_loc, geometry=True)
 
 (all_aus_semaine, train_recs, devel_recs, semaine_dir, hog_data_dir) = shared_defs_SEMAINE.shared_defs()
-
+train_recs = train_recs + devel_recs
+devel_recs = train_recs[0:1]
 # load the training and testing data for the current fold
 [train_samples_semaine, train_labels_semaine, valid_samples_semaine, valid_labels_semaine, _, PC, means, scaling] = \
     data_preparation.Prepare_HOG_AU_data_generic_SEMAINE(train_recs, devel_recs, all_aus_semaine,
@@ -52,40 +53,16 @@ train_labels = numpy.concatenate((train_labels_bp4d[:, inds_to_use_bp4d],
 
 hyperparams = {
     'batch_size': [100],
-    'learning_rate': [0.8],
-    'lambda_reg': [0.0001],
-    'num_hidden': [400],
-    'n_epochs': 1000,
+    'learning_rate': [0.2, 0.4, 0.8],
+    'lambda_reg': [0.00001, 0.0001, 0.001],
+    'num_hidden': [200, 300, 400],
+    'n_epochs': 50,
     'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
 import validation_helpers
 
 train_fn = mlp.train_mlp_probe
 test_fn = mlp.test_mlp_class
-
-valid_samples = valid_samples_semaine
-valid_labels = valid_labels_semaine[:, inds_to_use_semaine]
-
-# Cross-validate here
-best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
-                                                                  False, train_samples, train_labels, valid_samples,
-                                                                  valid_labels, hyperparams, num_repeat=2)
-print 'All params', all_params
-print 'Best params', best_params
-
-model = train_fn(train_labels, train_samples, valid_labels, valid_samples, best_params)
-
-# Test on SEMAINE
-_, _, _, _, f1s, precisions, recalls = test_fn(valid_labels_semaine[:, inds_to_use_semaine], valid_samples_semaine, model)
-
-f = open("./trained/SEMAINE_train_mlp_combined_geom.txt", 'w')
-f.write(str(best_params)+'\n')
-
-for i in range(len(aus_exp)):
-    print 'SEMAINE AU%d done: precision %.4f, recall %.4f, f1 %.4f\n' % (aus_exp[i], precisions[i], recalls[i], f1s[i])
-    f.write("%d %.4f %.4f %.4f\n" % (aus_exp[i], precisions[i], recalls[i], f1s[i]))
-
-f.close()
 
 valid_samples = valid_samples_bp4d
 valid_labels = valid_labels_bp4d[:, inds_to_use_bp4d]
@@ -113,60 +90,6 @@ for i in range(len(aus_exp)):
 
 f.close()
 
-# Now the models that only partially intersect, DISFA + SEMAINE - 25
-aus_exp = [25]
-
-inds_to_use_disfa = []
-inds_to_use_semaine = []
-
-for au in aus_exp:
-    inds_to_use_disfa = inds_to_use_disfa + [all_aus_disfa.index(au)]
-    inds_to_use_semaine = inds_to_use_semaine + [all_aus_semaine.index(au)]
-
-train_samples = numpy.concatenate((train_samples_semaine, train_samples_disfa), axis=0)
-train_labels = numpy.concatenate((train_labels_semaine[:, inds_to_use_semaine],
-                                  train_labels_disfa[:, inds_to_use_disfa]), axis=0)
-
-valid_samples = valid_samples_semaine
-valid_labels = valid_labels_semaine[:, inds_to_use_semaine]
-
-hyperparams = {
-    'batch_size': [100],
-    'learning_rate': [0.02],
-    'lambda_reg': [0.0001, 0.001],
-    'num_hidden': [400],
-    'n_epochs': 1000,
-    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
-
-
-print train_samples.shape, train_labels.shape, valid_samples.shape, valid_labels.shape
-
-import validation_helpers
-
-train_fn = mlp.train_mlp_probe
-test_fn = mlp.test_mlp_class
-
-# Cross-validate here
-best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
-                                                                  False, train_samples, train_labels, valid_samples,
-                                                                  valid_labels, hyperparams, num_repeat=1)
-print 'All params', all_params
-print 'Best params', best_params
-
-model = train_fn(train_labels, train_samples, valid_labels, valid_samples, best_params)
-
-# Test on SEMAINE
-_, _, _, _, f1s, precisions, recalls = test_fn(valid_labels_semaine[:, inds_to_use_semaine], valid_samples_semaine, model)
-
-f = open("./trained/SEMAINE_train_mlp_combined_25_geom.txt", 'w')
-f.write(str(best_params)+'\n')
-
-for i in range(len(aus_exp)):
-    print 'SEMAINE AU%d done: precision %.4f, recall %.4f, f1 %.4f\n' % (aus_exp[i], precisions[i], recalls[i], f1s[i])
-    f.write("%d %.4f %.4f %.4f\n" % (aus_exp[i], precisions[i], recalls[i], f1s[i]))
-
-f.close()
-
 # DISFA + BP4D - 1, 4, 6, 15
 aus_exp = [1, 4, 6, 15]
 
@@ -186,10 +109,10 @@ valid_labels = valid_labels_bp4d[:, inds_to_use_bp4d]
 
 hyperparams = {
     'batch_size': [100],
-    'learning_rate': [0.2],
-    'lambda_reg': [0.001],
-    'num_hidden': [200, 400],
-    'n_epochs': 1000,
+    'learning_rate': [0.2, 0.4, 0.8],
+    'lambda_reg': [0.00001, 0.0001, 0.001],
+    'num_hidden': [200, 300, 400],
+    'n_epochs': 50,
     'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
 train_fn = mlp.train_mlp_probe
@@ -215,7 +138,5 @@ for i in range(len(aus_exp)):
     f.write("%d %.4f %.4f %.4f\n" % (aus_exp[i], precisions[i], recalls[i], f1s[i]))
 
 f.close()
-
-# SEMAINE + BP4D - 2, 12, 17 (basically without DISFA)
 
 

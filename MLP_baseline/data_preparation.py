@@ -493,6 +493,44 @@ def Read_geom_files_BP4D(users, hog_data_dir):
 
     return geom_data, files
 
+def Read_geom_files_BP4D_dynamic(users, hog_data_dir):
+
+    import glob
+    from numpy import genfromtxt
+
+    geom_data = None
+
+    files = []
+
+    for i in range(len(users)):
+
+        geom_files = glob.glob(hog_data_dir + users[i] + '*.params.txt')
+
+        geom_data_c = None
+
+        for h in range(len(geom_files)):
+            in_file = geom_files[h]
+
+            files += [in_file]
+
+            data_curr = genfromtxt(in_file, dtype=float, delimiter=' ')
+            data_curr = data_curr[:, 14::2]
+
+            if geom_data_c is None:
+                geom_data_c = data_curr
+            else:
+                geom_data_c = np.concatenate((geom_data_c, data_curr), axis=0)
+
+        geom_data_c = geom_data_c - np.median(geom_data_c, axis=0)
+
+        if geom_data is None:
+            geom_data = geom_data_c
+        else:
+            geom_data = np.concatenate((geom_data, geom_data_c), axis=0)
+
+    return geom_data, files
+
+
 def Read_HOG_files_BP4D(users, hog_data_dir):
     
     import glob
@@ -975,7 +1013,7 @@ def Prepare_HOG_AU_data_generic_DISFA(train_recs, devel_recs, au, DISFA_dir, hog
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
 
 # Preparing the BP4D data
-def Prepare_HOG_AU_data_generic_DISFA_dynamic(train_recs, devel_recs, au, DISFA_dir, hog_data_dir, pca_loc, scale=False):
+def Prepare_HOG_AU_data_generic_DISFA_dynamic(train_recs, devel_recs, au, DISFA_dir, hog_data_dir, pca_loc, scale=False, geometry=False):
 
     # First extracting the labels
     au_train_dirs = [DISFA_dir + '/ActionUnit_Labels/' + user + '/' + user for user in train_recs]
@@ -984,6 +1022,8 @@ def Prepare_HOG_AU_data_generic_DISFA_dynamic(train_recs, devel_recs, au, DISFA_
     # Reading in the HOG data (of only relevant frames)
     [train_appearance_data, valid_ids_train_hog, vid_ids_train_string] =\
         Read_HOG_files_DISFA_dynamic(train_recs, hog_data_dir)
+
+    train_geom_data = Read_geom_files_DISFA(train_recs, hog_data_dir)
 
     # need to subsample every 3rd frame as now way too big
 
@@ -1004,6 +1044,7 @@ def Prepare_HOG_AU_data_generic_DISFA_dynamic(train_recs, devel_recs, au, DISFA_
         labels_train = labels_train[reduced_inds, :]
 
     train_appearance_data = train_appearance_data[reduced_inds, :]
+    train_geom_data = train_geom_data[reduced_inds, :]
 
     # Extract devel data
 
@@ -1015,8 +1056,11 @@ def Prepare_HOG_AU_data_generic_DISFA_dynamic(train_recs, devel_recs, au, DISFA_
     [devel_appearance_data, valid_ids_devel_hog, vid_ids_devel_string] = \
          Read_HOG_files_DISFA_dynamic(devel_recs, hog_data_dir)
 
+    devel_geom_data = Read_geom_files_DISFA(devel_recs, hog_data_dir)
+
     devel_appearance_data = devel_appearance_data[1::3, :]
     labels_devel = labels_devel[1::3, :]
+    devel_geom_data = devel_geom_data[1::3, :]
 
     # normalise the data
     dim_reds = scipy.io.loadmat(pca_loc)
@@ -1043,6 +1087,10 @@ def Prepare_HOG_AU_data_generic_DISFA_dynamic(train_recs, devel_recs, au, DISFA_
         data_devel = data_devel / scaling
 
         PC = PC / scaling
+
+    if geometry:
+        data_train = np.concatenate((data_train, train_geom_data), axis=1)
+        data_devel = np.concatenate((data_devel, devel_geom_data), axis=1)
 
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
 
@@ -1201,7 +1249,7 @@ def Prepare_HOG_AU_data_generic_BP4D_intensity(train_recs, devel_recs, au, BP4D_
         labels_devel = labels_devel[reduced_inds, :]
 
     devel_appearance_data = devel_appearance_data[reduced_inds, :]
-
+    devel_data_geom = devel_data_geom[reduced_inds, :]
 
     # normalise the data
     dim_reds = scipy.io.loadmat(pca_loc)
@@ -1392,7 +1440,7 @@ def Read_HOG_files_BP4D_dynamic(users, hog_data_dir):
     return hog_data, valid_inds, vid_id
 
 # Preparing the BP4D data
-def Prepare_HOG_AU_data_generic_BP4D_dynamic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc, scale=False):
+def Prepare_HOG_AU_data_generic_BP4D_dynamic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc, scale=False, geometry=True):
     
     import numpy as np
     import scipy.io
@@ -1402,6 +1450,9 @@ def Prepare_HOG_AU_data_generic_BP4D_dynamic(train_recs, devel_recs, au, BP4D_di
     
     # Reading in the HOG data (of only relevant frames)
     [train_appearance_data, valid_ids_train_hog, vid_ids_train_string] = Read_HOG_files_BP4D_dynamic(train_recs, hog_data_dir + '/train/')
+
+    if geometry:
+        train_data_geom, files = Read_geom_files_BP4D(train_recs, hog_data_dir + '/train/')
 
     # Subsample the data to make training quicker
     labels_train = np.concatenate(labels_train)
@@ -1431,6 +1482,10 @@ def Prepare_HOG_AU_data_generic_BP4D_dynamic(train_recs, devel_recs, au, BP4D_di
         labels_train = labels_train[reduced_inds, :]
 
     train_appearance_data = train_appearance_data[reduced_inds, :]
+
+    if geometry:
+        train_data_geom = train_data_geom[reduced_inds, :]
+
     # Extract devel data
     
     # First extracting the labels
@@ -1441,7 +1496,11 @@ def Prepare_HOG_AU_data_generic_BP4D_dynamic(train_recs, devel_recs, au, BP4D_di
         Read_HOG_files_BP4D_dynamic(devel_recs, hog_data_dir + '/devel/')
     
     labels_devel = np.concatenate(labels_devel)
-    
+
+    if geometry:
+        devel_data_geom, files = Read_geom_files_BP4D(devel_recs, hog_data_dir + '/devel/')
+
+
     # normalise the data
     dim_reds = scipy.io.loadmat(pca_loc)
     PC = dim_reds['PC']
@@ -1467,5 +1526,9 @@ def Prepare_HOG_AU_data_generic_BP4D_dynamic(train_recs, devel_recs, au, BP4D_di
         data_devel = data_devel / scaling
 
         PC = PC / scaling
+
+    if geometry:
+        data_train = np.concatenate((data_train, train_data_geom), axis=1)
+        data_devel = np.concatenate((data_devel, devel_data_geom), axis=1)
 
     return data_train, labels_train, data_devel, labels_devel, raw_devel, PC, means, scaling
