@@ -5,15 +5,13 @@ find_BP4D;
 
 bp4d_loc = [BP4D_dir '../BP4D/BP4D-training/'];
 
-out_loc = '../../runners/out_bp4d_static/';
+out_loc = './out_bp4d_static/';
 
 if(~exist(out_loc, 'dir'))
     mkdir(out_loc);
 end
 
-oldDir = chdir('../C++ models/Release');
-
-features_exe = '"AUPrediction.exe"';
+features_exe = '"../C++ models/Release/AUPrediction.exe"';
 
 % Go two levels deep
 bp4d_dirs = dir(bp4d_loc);
@@ -48,5 +46,3 @@ parfor f1=1:numel(bp4d_dirs)
         dos(command);
     end
 end
-
-chdir(oldDir)
