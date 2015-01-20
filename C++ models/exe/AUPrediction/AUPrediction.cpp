@@ -627,7 +627,7 @@ int main (int argc, char **argv)
 		std::ofstream au_output_file;
 		au_output_file.open(output_aus[i], ios_base::out);
 
-		for(size_t frame = 0; frame < params_global_video.size(); ++frame)
+		for(size_t frame = 0; frame < params_global_video[i].size(); ++frame)
 		{
 			clm_model.detected_landmarks = detected_landmarks_video[i][frame].clone();
 			clm_model.params_local = params_local_video[i][frame].clone();
