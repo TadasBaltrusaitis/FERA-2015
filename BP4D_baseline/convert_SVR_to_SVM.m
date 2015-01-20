@@ -19,8 +19,8 @@ for i=1:numel(to_conv)
         pos_lbl = model.Label(1);
         neg_lbl = model.Label(2);
     else
-        pos_lbl = 1;
-        neg_lbl = 0;
+        pos_lbl = 0;
+        neg_lbl = 1;
     end
 
     while(true)
