@@ -699,6 +699,15 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUsClass(int view)
 			predictions.push_back(pair<string, double>(svm_lin_stat_aus[i], svm_lin_stat_preds[i]));
 		}
 
+		vector<string> svm_lin_dyn_aus;
+		vector<double> svm_lin_dyn_preds;
+
+		AU_SVM_dynamic_appearance_lin.Predict(svm_lin_dyn_preds, svm_lin_dyn_aus, hog_desc_frame, this->hog_desc_median);
+
+		for(size_t i = 0; i < svm_lin_stat_aus.size(); ++i)
+		{
+			predictions.push_back(pair<string, double>(svm_lin_dyn_aus[i], svm_lin_dyn_preds[i]));
+		}
 		
 	}
 
@@ -963,9 +972,13 @@ void FaceAnalyser::ReadRegressor(std::string fname, const vector<string>& au_nam
 	{
 		AU_SVR_dynamic_appearance_lin_regressors.Read(regressor_stream, au_names);		
 	}
-	else if(regressor_type == SVM_linear)
+	else if(regressor_type == SVM_linear_stat)
 	{
 		AU_SVM_static_appearance_lin.Read(regressor_stream, au_names);		
+	}
+	else if(regressor_type == SVM_linear_dyn)
+	{
+		AU_SVM_dynamic_appearance_lin.Read(regressor_stream, au_names);		
 	}
 
 }

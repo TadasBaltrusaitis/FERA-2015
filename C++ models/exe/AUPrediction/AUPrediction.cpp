@@ -95,7 +95,7 @@ vector<string> get_arguments(int argc, char **argv)
 }
 
 // Extracting the following command line arguments -f, -fd, -op, -of, -ov (and possible ordered repetitions)
-void get_output_feature_params(string& au_location, vector<string> &output_aus, double &similarity_scale, int &similarity_size, double &scaling, bool &video, bool &grayscale, bool &rigid, vector<string> &arguments)
+void get_output_feature_params(string& au_location, vector<string> &output_aus, double &similarity_scale, int &similarity_size, double &scaling, bool &video, bool &grayscale, bool &rigid, vector<int>& end_frames, vector<string> &arguments)
 {
 
 	bool* valid = new bool[arguments.size()];
@@ -140,6 +140,13 @@ void get_output_feature_params(string& au_location, vector<string> &output_aus, 
 		else if(arguments[i].compare("-oaus") == 0) 
 		{
 			output_aus.push_back(output_root + arguments[i + 1]);
+			valid[i] = false;
+			valid[i+1] = false;			
+			i++;
+		}
+		else if(arguments[i].compare("-ef") == 0) 
+		{
+			end_frames.push_back(stoi(arguments[i + 1]));
 			valid[i] = false;
 			valid[i+1] = false;			
 			i++;
@@ -337,7 +344,9 @@ int main (int argc, char **argv)
 	string face_analyser_loc_av("./AV_regressors/av_regressors.txt");
 	string tri_location("./model/tris_68_full.txt");
 
-	get_output_feature_params(face_analyser_loc, output_aus, sim_scale, sim_size, scaling, video_output, grayscale, rigid, arguments);
+	vector<int> end_frames;
+
+	get_output_feature_params(face_analyser_loc, output_aus, sim_scale, sim_size, scaling, video_output, grayscale, rigid, end_frames, arguments);
 
 	if(!boost::filesystem::exists(path(face_analyser_loc)))
 	{
@@ -612,6 +621,14 @@ int main (int argc, char **argv)
 
 			// Update the frame count
 			frame_count++;
+
+			if(!end_frames.empty())
+			{
+				if(frame_count > end_frames[f_n])
+				{
+					break;
+				}
+			}
 
 		}
 		

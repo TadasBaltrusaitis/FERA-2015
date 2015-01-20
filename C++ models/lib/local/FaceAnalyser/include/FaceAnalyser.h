@@ -5,6 +5,7 @@
 #include "SVR_static_lin_regressors.h"
 #include "SVR_dynamic_lin_regressors_scale.h"
 #include "SVM_static_lin.h"
+#include "SVM_dynamic_lin.h"
 
 #include <string>
 #include <vector>
@@ -21,7 +22,7 @@ class FaceAnalyser{
 public:
 
 
-	enum RegressorType{ SVR_appearance_static_linear = 0, SVR_appearance_dynamic_linear = 1, SVR_dynamic_geom_linear = 2, SVR_combined_linear = 3, SVM_linear = 4, SVM_linear_dyn = 5};
+	enum RegressorType{ SVR_appearance_static_linear = 0, SVR_appearance_dynamic_linear = 1, SVR_dynamic_geom_linear = 2, SVR_combined_linear = 3, SVM_linear_stat = 4, SVM_linear_dyn = 5};
 
 	// Constructor from a model file (or a default one if not provided
 	// TODO scale width and height should be part of the model?
@@ -152,6 +153,7 @@ private:
 	SVR_dynamic_lin_regressors_scale valence_predictor_lin_geom;
 
 	SVM_static_lin AU_SVM_static_appearance_lin;
+	SVM_dynamic_lin AU_SVM_dynamic_appearance_lin;
 
 	// The AUs (and AV) predicted by the model are not always 0 calibrated to a person. That is they don't always predict 0 for a neutral expression
 	// Keeping track of the predictions we can correct for this, by assuming that at least "ratio" of frames are neutral and subtract that value of prediction, only perform the correction after min_frames

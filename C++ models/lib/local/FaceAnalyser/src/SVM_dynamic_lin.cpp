@@ -1,10 +1,10 @@
-#include "SVM_static_lin.h"
+#include "SVM_dynamic_lin.h"
 
 #include "CLM_utils.h"
 
 using namespace Psyche;
 
-void SVM_static_lin::Read(std::ifstream& stream, const std::vector<std::string>& au_names)
+void SVM_dynamic_lin::Read(std::ifstream& stream, const std::vector<std::string>& au_names)
 {
 
 	if(this->means.empty())
@@ -64,7 +64,7 @@ void SVM_static_lin::Read(std::ifstream& stream, const std::vector<std::string>&
 }
 
 // Prediction using the HOG descriptor
-void SVM_static_lin::Predict(std::vector<double>& predictions, std::vector<std::string>& names, const cv::Mat_<double>& fhog_descriptor)
+void SVM_dynamic_lin::Predict(std::vector<double>& predictions, std::vector<std::string>& names, const cv::Mat_<double>& fhog_descriptor, const cv::Mat_<double>& running_median)
 {
 	if(AU_names.size() > 0)
 	{

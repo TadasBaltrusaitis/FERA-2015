@@ -74,3 +74,4 @@ MLP_baseline/.idea/*
 ~$results.xlsx
 C++ models/exe/AUPrediction/Release/
 C++ models/exe/AUPrediction/Debug/
+runners/training_labels/
