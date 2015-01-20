@@ -698,7 +698,7 @@ int main (int argc, char **argv)
 		// Print the results here
 		for(int au = 0; au < pred_names.size(); ++au)
 		{			
-			au_output_file << pred_names[au] << " ";					
+			au_output_file << pred_names[au];					
 			for(int frame = 0; frame < all_predictions[au].size(); ++frame)
 			{
 				au_output_file << " " << all_predictions[au][frame];
