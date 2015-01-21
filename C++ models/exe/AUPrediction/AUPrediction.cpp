@@ -95,7 +95,7 @@ vector<string> get_arguments(int argc, char **argv)
 }
 
 // Extracting the following command line arguments -f, -fd, -op, -of, -ov (and possible ordered repetitions)
-void get_output_feature_params(string& au_location, vector<string> &output_aus, double &similarity_scale, int &similarity_size, double &scaling, bool &video, bool &grayscale, bool &rigid, vector<int>& end_frames, vector<string> &arguments)
+void get_output_feature_params(string& au_location, vector<string> &output_aus, double &similarity_scale, int &similarity_size, double &scaling, bool &video, bool &grayscale, bool &rigid, vector<int>& beg_frames, vector<int>& end_frames, vector<string> &arguments)
 {
 
 	bool* valid = new bool[arguments.size()];
@@ -147,6 +147,13 @@ void get_output_feature_params(string& au_location, vector<string> &output_aus, 
 		else if(arguments[i].compare("-ef") == 0) 
 		{
 			end_frames.push_back(stoi(arguments[i + 1]));
+			valid[i] = false;
+			valid[i+1] = false;			
+			i++;
+		}
+		else if(arguments[i].compare("-bf") == 0) 
+		{
+			beg_frames.push_back(stoi(arguments[i + 1]));
 			valid[i] = false;
 			valid[i+1] = false;			
 			i++;
@@ -211,6 +218,44 @@ void get_image_input_output_params_feats(vector<vector<string> > &input_image_fi
 	{
 		valid[i] = true;
 		if (arguments[i].compare("-fdir") == 0) 
+		{                    
+
+			// parse the -fdir directory by reading in all of the .png and .jpg files in it
+			path image_directory (arguments[i+1]); 
+
+			try
+			{
+				 // does the file exist and is it a directory
+				if (exists(image_directory) && is_directory(image_directory))   
+				{
+					
+					vector<path> file_in_directory;                                
+					copy(directory_iterator(image_directory), directory_iterator(), back_inserter(file_in_directory));
+
+					vector<string> curr_dir_files;
+
+					for (vector<path>::const_iterator file_iterator (file_in_directory.begin()); file_iterator != file_in_directory.end(); ++file_iterator)
+					{
+						// Possible image extension .jpg and .png
+						if(file_iterator->extension().string().compare(".jpg") == 0 || file_iterator->extension().string().compare(".png") == 0)
+						{																
+							curr_dir_files.push_back(file_iterator->string());															
+						}
+					}
+
+					input_image_files.push_back(curr_dir_files);
+				}
+			}
+			catch (const filesystem_error& ex)
+			{
+				cout << ex.what() << '\n';
+			}
+
+			valid[i] = false;
+			valid[i+1] = false;		
+			i++;
+		}
+		if (arguments[i].compare("-ftxt") == 0) 
 		{                    
 
 			// parse the -fdir directory by reading in all of the .png and .jpg files in it
@@ -344,9 +389,10 @@ int main (int argc, char **argv)
 	string face_analyser_loc_av("./AV_regressors/av_regressors.txt");
 	string tri_location("./model/tris_68_full.txt");
 
+	vector<int> beg_frames;
 	vector<int> end_frames;
 
-	get_output_feature_params(face_analyser_loc, output_aus, sim_scale, sim_size, scaling, video_output, grayscale, rigid, end_frames, arguments);
+	get_output_feature_params(face_analyser_loc, output_aus, sim_scale, sim_size, scaling, video_output, grayscale, rigid, beg_frames, end_frames, arguments);
 
 	if(!boost::filesystem::exists(path(face_analyser_loc)))
 	{
@@ -452,8 +498,8 @@ int main (int argc, char **argv)
 				FATAL_STREAM( "No .jpg or .png images in a specified drectory" );
 			}
 
-		}	
-		
+		}			
+
 		// If optical centers are not defined just use center of image
 		if(cx_undefined)
 		{
@@ -463,8 +509,6 @@ int main (int argc, char **argv)
 	
 		int frame_count = 0;
 		
-
-
 		// For measuring the timings
 		int64 t1,t0 = cv::getTickCount();
 		double fps = 10;		
@@ -472,127 +516,128 @@ int main (int argc, char **argv)
 		INFO_STREAM( "Starting tracking");
 		while(!captured_image.empty())
 		{		
+			if(!beg_frames.empty() && frame_count >= beg_frames[f_n])
+			{				
+				if(scaling != 1.0)
+				{
+					cv::resize(captured_image, captured_image, Size(), scaling, scaling);
+				}
 
-			if(scaling != 1.0)
-			{
-				cv::resize(captured_image, captured_image, Size(), scaling, scaling);
-			}
+				// Reading the images
+				Mat_<uchar> grayscale_image;
 
-			// Reading the images
-			Mat_<uchar> grayscale_image;
-
-			if(captured_image.channels() == 3)
-			{
-				cvtColor(captured_image, grayscale_image, CV_BGR2GRAY);				
-			}
-			else
-			{
-				grayscale_image = captured_image.clone();				
-			}
+				if(captured_image.channels() == 3)
+				{
+					cvtColor(captured_image, grayscale_image, CV_BGR2GRAY);				
+				}
+				else
+				{
+					grayscale_image = captured_image.clone();				
+				}
 		
-			// The actual facial landmark detection / tracking
-			bool detection_success;
+				// The actual facial landmark detection / tracking
+				bool detection_success;
 			
-			if(video || images_as_video)
-			{
-				detection_success = CLMTracker::DetectLandmarksInVideo(grayscale_image, clm_model, clm_parameters);
-			}
-			else
-			{
-				detection_success = CLMTracker::DetectLandmarksInImage(grayscale_image, clm_model, clm_parameters);
-			}
+				if(video || images_as_video)
+				{
+					detection_success = CLMTracker::DetectLandmarksInVideo(grayscale_image, clm_model, clm_parameters);
+				}
+				else
+				{
+					detection_success = CLMTracker::DetectLandmarksInImage(grayscale_image, clm_model, clm_parameters);
+				}
 			
-			// Do face alignment
-			Mat sim_warped_img;			
-			Mat_<double> hog_descriptor;
+				// Do face alignment
+				Mat sim_warped_img;			
+				Mat_<double> hog_descriptor;
 
-			// Use face analyser only if outputting neutrals and AUs
-			if(!output_aus.empty())
-			{
-				face_analyser.AddNextFrame(captured_image, clm_model, 0, false);
+				// Use face analyser only if outputting neutrals and AUs
+				if(!output_aus.empty())
+				{
+					face_analyser.AddNextFrame(captured_image, clm_model, 0, false);
 
-				params_global_video[f_n].push_back(clm_model.params_global);
-				params_local_video[f_n].push_back(clm_model.params_local.clone());
-				successes_video[f_n].push_back(detection_success);
-				detected_landmarks_video[f_n].push_back(clm_model.detected_landmarks.clone());
+					params_global_video[f_n].push_back(clm_model.params_global);
+					params_local_video[f_n].push_back(clm_model.params_local.clone());
+					successes_video[f_n].push_back(detection_success);
+					detected_landmarks_video[f_n].push_back(clm_model.detected_landmarks.clone());
 				
-				face_analyser.GetLatestAlignedFace(sim_warped_img);
-				face_analyser.GetLatestHOG(hog_descriptor, num_hog_rows, num_hog_cols);
-				hog_descriptors[f_n].push_back(hog_descriptor.clone());
-			}
-			else
-			{
-				Psyche::AlignFaceMask(sim_warped_img, captured_image, clm_model, face_analyser.GetTriangulation(), rigid, sim_scale, sim_size, sim_size);
-				Psyche::Extract_FHOG_descriptor(hog_descriptor, sim_warped_img, num_hog_rows, num_hog_cols);			
-			}
+					face_analyser.GetLatestAlignedFace(sim_warped_img);
+					face_analyser.GetLatestHOG(hog_descriptor, num_hog_rows, num_hog_cols);
+					hog_descriptors[f_n].push_back(hog_descriptor.clone());
+				}
+				else
+				{
+					Psyche::AlignFaceMask(sim_warped_img, captured_image, clm_model, face_analyser.GetTriangulation(), rigid, sim_scale, sim_size, sim_size);
+					Psyche::Extract_FHOG_descriptor(hog_descriptor, sim_warped_img, num_hog_rows, num_hog_cols);			
+				}
 
-			//cv::imshow("sim_warp", sim_warped_img);			
+				//cv::imshow("sim_warp", sim_warped_img);			
 			
-			//Mat_<double> hog_descriptor_vis;
-			//Psyche::Visualise_FHOG(hog_descriptor, num_hog_rows, num_hog_cols, hog_descriptor_vis);
-			//cv::imshow("hog", hog_descriptor_vis);	
+				//Mat_<double> hog_descriptor_vis;
+				//Psyche::Visualise_FHOG(hog_descriptor, num_hog_rows, num_hog_cols, hog_descriptor_vis);
+				//cv::imshow("hog", hog_descriptor_vis);	
 
-			// Work out the pose of the head from the tracked model
-			Vec6d pose_estimate_CLM;
-			if(use_camera_plane_pose)
-			{
-				pose_estimate_CLM = CLMTracker::GetCorrectedPoseCameraPlane(clm_model, fx, fy, cx, cy, clm_parameters);
-			}
-			else
-			{
-				pose_estimate_CLM = CLMTracker::GetCorrectedPoseCamera(clm_model, fx, fy, cx, cy, clm_parameters);
-			}
+				// Work out the pose of the head from the tracked model
+				Vec6d pose_estimate_CLM;
+				if(use_camera_plane_pose)
+				{
+					pose_estimate_CLM = CLMTracker::GetCorrectedPoseCameraPlane(clm_model, fx, fy, cx, cy, clm_parameters);
+				}
+				else
+				{
+					pose_estimate_CLM = CLMTracker::GetCorrectedPoseCamera(clm_model, fx, fy, cx, cy, clm_parameters);
+				}
 
-			// Visualising the results
-			// Drawing the facial landmarks on the face and the bounding box around it if tracking is successful and initialised
-			double detection_certainty = clm_model.detection_certainty;
+				// Visualising the results
+				// Drawing the facial landmarks on the face and the bounding box around it if tracking is successful and initialised
+				double detection_certainty = clm_model.detection_certainty;
 
-			double visualisation_boundary = 0.2;
+				double visualisation_boundary = 0.2;
 			
-			// Only draw if the reliability is reasonable, the value is slightly ad-hoc
-			if(detection_certainty < visualisation_boundary)
-			{
-				CLMTracker::Draw(captured_image, clm_model);
-				//CLMTracker::Draw(captured_image, clm_model);
+				// Only draw if the reliability is reasonable, the value is slightly ad-hoc
+				if(detection_certainty < visualisation_boundary)
+				{
+					CLMTracker::Draw(captured_image, clm_model);
+					//CLMTracker::Draw(captured_image, clm_model);
 
-				if(detection_certainty > 1)
-					detection_certainty = 1;
-				if(detection_certainty < -1)
-					detection_certainty = -1;
+					if(detection_certainty > 1)
+						detection_certainty = 1;
+					if(detection_certainty < -1)
+						detection_certainty = -1;
 
-				detection_certainty = (detection_certainty + 1)/(visualisation_boundary +1);
+					detection_certainty = (detection_certainty + 1)/(visualisation_boundary +1);
 
-				// A rough heuristic for box around the face width
-				int thickness = (int)std::ceil(2.0* ((double)captured_image.cols) / 640.0);
+					// A rough heuristic for box around the face width
+					int thickness = (int)std::ceil(2.0* ((double)captured_image.cols) / 640.0);
 				
-				Vec6d pose_estimate_to_draw = CLMTracker::GetCorrectedPoseCameraPlane(clm_model, fx, fy, cx, cy, clm_parameters);
+					Vec6d pose_estimate_to_draw = CLMTracker::GetCorrectedPoseCameraPlane(clm_model, fx, fy, cx, cy, clm_parameters);
 
-				// Draw it in reddish if uncertain, blueish if certain
-				CLMTracker::DrawBox(captured_image, pose_estimate_to_draw, Scalar((1-detection_certainty)*255.0,0, detection_certainty*255), thickness, fx, fy, cx, cy);
+					// Draw it in reddish if uncertain, blueish if certain
+					CLMTracker::DrawBox(captured_image, pose_estimate_to_draw, Scalar((1-detection_certainty)*255.0,0, detection_certainty*255), thickness, fx, fy, cx, cy);
 
+				}
+			
+				// Work out the framerate
+				if(frame_count % 10 == 0)
+				{      
+					t1 = cv::getTickCount();
+					fps = 10.0 / (double(t1-t0)/cv::getTickFrequency()); 
+					t0 = t1;
+				}
+			
+				// Write out the framerate on the image before displaying it
+				char fpsC[255];
+				sprintf(fpsC, "%d", (int)fps);
+				string fpsSt("FPS:");
+				fpsSt += fpsC;
+				cv::putText(captured_image, fpsSt, cv::Point(10,20), CV_FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(255,0,0));		
+			
+				if(!clm_parameters.quiet_mode)
+				{
+					namedWindow("tracking_result",1);		
+					imshow("tracking_result", captured_image);
+				}
 			}
-			
-			// Work out the framerate
-			if(frame_count % 10 == 0)
-			{      
-				t1 = cv::getTickCount();
-				fps = 10.0 / (double(t1-t0)/cv::getTickFrequency()); 
-				t0 = t1;
-			}
-			
-			// Write out the framerate on the image before displaying it
-			char fpsC[255];
-			sprintf(fpsC, "%d", (int)fps);
-			string fpsSt("FPS:");
-			fpsSt += fpsC;
-			cv::putText(captured_image, fpsSt, cv::Point(10,20), CV_FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(255,0,0));		
-			
-			if(!clm_parameters.quiet_mode)
-			{
-				namedWindow("tracking_result",1);		
-				imshow("tracking_result", captured_image);
-			}
-			
 			if(video)
 			{
 				video_capture >> captured_image;
@@ -666,7 +711,7 @@ int main (int argc, char **argv)
 
 		for(size_t frame = 0; frame < params_global_video[i].size(); ++frame)
 		{
-			
+		
 			clm_model.detected_landmarks = detected_landmarks_video[i][frame].clone();
 			clm_model.params_local = params_local_video[i][frame].clone();
 			clm_model.params_global = params_global_video[i][frame];

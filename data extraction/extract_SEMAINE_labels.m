@@ -28,6 +28,9 @@ function [ labels, valid_ids, vid_ids  ] = extract_SEMAINE_labels( SEMAINE_dir, 
         
         if(size(activations,1) < vid_ids(i,2))
             vid_ids(i,2) = size(activations,1);
+            if(vid_ids(i,2) > 2999)
+                vid_ids(i,1) = vid_ids(i,2) - 2999;
+            end
         end
         
         labels{i} = activations(vid_ids(i,1)+1:vid_ids(i,2), 1 + inds_to_use);

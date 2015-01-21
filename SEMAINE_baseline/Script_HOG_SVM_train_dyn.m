@@ -54,7 +54,7 @@ for a=1:numel(aus)
 
     name = sprintf('trained/AU_%d_dynamic.dat', au);
 
-    write_lin_svr(name, means, svs, b);
+    write_lin_dyn_svm(name, means, svs, b);
 
     name = sprintf('trained/AU_%d_dynamic.mat', au);
 

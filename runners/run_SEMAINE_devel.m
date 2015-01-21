@@ -34,7 +34,7 @@ parfor f1=1:numel(devel_recs)
             name = f1_dir;
             output_aus = [out_loc name '.au.txt'];
 
-            command = cat(2, command, [' -f "' curr_vid '" -oaus "' output_aus '" -ef ' num2str(vid_ids(f1,2))]);            
+            command = cat(2, command, [' -f "' curr_vid '" -oaus "' output_aus '" -ef ' num2str(vid_ids(f1,2)) ' -bf ' num2str(vid_ids(f1,1))]);            
             dos(command);
 
         end

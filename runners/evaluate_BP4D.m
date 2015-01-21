@@ -8,13 +8,12 @@ root = 'out_bp4d_static/';
 
 [ labels_gt, valid_ids, vid_ids, filenames] = extract_BP4D_labels(BP4D_dir, devel_recs, aus_BP4D);
 labels_gt = cat(1, labels_gt{:});
+
 labels_pred = [];
 for i=1:numel(filenames)
-    lbl = dlmread([root, filenames{i}, '.au.txt'], ' ');
-    labels_pred = cat(1, labels_pred, lbl(:,1:end-1));
+    lbl = dlmread([root, filenames{i}, '.au.txt'], ' ', 0, 1)';
+    labels_pred = cat(1, labels_pred, lbl);
 end
-
-labels_pred(labels_pred==5) = 1;
 
 tp = sum(labels_gt == 1 & labels_pred == 1);
 fp = sum(labels_gt == 0 & labels_pred == 1);

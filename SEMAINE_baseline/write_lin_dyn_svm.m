@@ -1,4 +1,4 @@
-function [ success ] = write_lin_svm( location, means, w, b, pos_lbl, neg_lbl)
+function [ success ] = write_lin_dyn_svm( location, means, w, b, pos_lbl, neg_lbl)
 %WRITE_LIN_SVR Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -6,8 +6,8 @@ function [ success ] = write_lin_svm( location, means, w, b, pos_lbl, neg_lbl)
 
     if(fileID ~= -1)
         
-        % Write the regressor type 4 - linear SVM
-        fwrite(fileID, 4, 'uint');
+        % Write the regressor type 5 - linear dynamic SVM
+        fwrite(fileID, 5, 'uint');
         
         writeMatrixBin(fileID, means, 6);
         writeMatrixBin(fileID, w, 6);

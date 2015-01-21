@@ -1,6 +1,6 @@
 clear
-to_conv = dir('trained/*_dynamic.mat');
-to_conv_to = dir('trained/*_dynamic.dat');
+to_conv = dir('trained/*_static.mat');
+to_conv_to = dir('trained/*_static.dat');
 
 for i=1:numel(to_conv)
    
@@ -36,7 +36,7 @@ for i=1:numel(to_conv)
     fwrite(f, neg_lbl, 'float64');
     
     fseek(f, 0, 'bof');
-    fwrite(f, 5, 'uint');
+    fwrite(f, 4, 'uint');
         
     fclose(f);
     fclose(f_from);

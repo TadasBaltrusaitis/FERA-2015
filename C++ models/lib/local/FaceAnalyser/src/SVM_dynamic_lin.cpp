@@ -68,7 +68,7 @@ void SVM_dynamic_lin::Predict(std::vector<double>& predictions, std::vector<std:
 {
 	if(AU_names.size() > 0)
 	{
-		Mat_<double> preds = (fhog_descriptor - this->means) * this->support_vectors + this->biases;
+		Mat_<double> preds = (fhog_descriptor - this->means - running_median) * this->support_vectors + this->biases;
 		
 		for(int i = 0; i < preds.cols; ++i)
 		{		

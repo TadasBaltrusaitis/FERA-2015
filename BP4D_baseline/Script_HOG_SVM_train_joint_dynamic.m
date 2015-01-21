@@ -88,7 +88,7 @@ for a=1:numel(aus)
 
         name = sprintf('trained/AU_%d_dynamic_joint.dat', au);
 
-        write_lin_svm(name, means, svs, b, model.Label(1), model.Label(2));
+        write_lin_dyn_svm(name, means, svs, b, model.Label(1), model.Label(2));
 
         name = sprintf('trained/AU_%d_dynamic_joint.mat', au);
 

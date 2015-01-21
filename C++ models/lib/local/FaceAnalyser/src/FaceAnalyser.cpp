@@ -30,11 +30,11 @@ FaceAnalyser::FaceAnalyser(vector<Vec3d> orientation_bins, double scale, int wid
 
 	// Initialise the histograms that will represent bins from 0 - 1 (as HoG values are only stored as those)
 	// Set the number of bins for the histograms
-	num_bins_hog = 300;
+	num_bins_hog = 600;
 	max_val_hog = 1;
 	min_val_hog = 0;
 
-	// The geometry histogram ranges from -3 to 3 (as it should be zero mean and unit standard dev normalised data)
+	// The geometry histogram ranges from -3 to 3 TODO change this as we don't use scaling anymore
 	num_bins_geom = 400;
 	max_val_geom = 3;
 	min_val_geom = -3;
@@ -227,17 +227,19 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	// Only update the running median if predictions are not high
 	// That is don't update it when the face is expressive (just retrieve it)
 	bool update_median = true;
-	if(!this->AU_predictions.empty())
-	{
-		for(size_t i = 0; i < this->AU_predictions.size(); ++i)
-		{
-			if(this->AU_predictions[i].second > 1)
-			{
-				update_median = false;				
-				break;
-			}
-		}
-	}
+
+	// TODO here
+	//if(!this->AU_predictions.empty())
+	//{
+	//	for(size_t i = 0; i < this->AU_predictions.size(); ++i)
+	//	{
+	//		if(this->AU_predictions[i].second > 1)
+	//		{
+	//			update_median = false;				
+	//			break;
+	//		}
+	//	}
+	//}
 	update_median = update_median & clm_model.detection_success;
 
 	UpdateRunningMedian(this->hog_desc_hist[orientation_to_use], this->hog_hist_sum[orientation_to_use], this->hog_desc_median, hog_descriptor, update_median, this->num_bins_hog, this->min_val_hog, this->max_val_hog);
