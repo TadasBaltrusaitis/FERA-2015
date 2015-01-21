@@ -12,21 +12,20 @@ if(~exist(out_loc, 'dir'))
 end
 
 % Go two levels deep
-bp4d_dirs = dir(bp4d_loc);
-bp4d_dirs = bp4d_dirs(3:end);
+bp4d_dirs = devel_recs;
         
 for f1=1:numel(bp4d_dirs)
 
-    if(isdir([bp4d_loc, bp4d_dirs(f1).name]))
+    if(isdir([bp4d_loc, bp4d_dirs{f1}]))
         
-        bp4d_2_dirs = dir([bp4d_loc, bp4d_dirs(f1).name]);
+        bp4d_2_dirs = dir([bp4d_loc, bp4d_dirs{f1}]);
         bp4d_2_dirs = bp4d_2_dirs(3:end);
         
-        f1_dir = bp4d_dirs(f1).name;
+        f1_dir = bp4d_dirs{f1};
 
         for f2=1:numel(bp4d_2_dirs)
             f2_dir = bp4d_2_dirs(f2).name;
-            if(isdir([bp4d_loc, bp4d_dirs(f1).name]))
+            if(isdir([bp4d_loc, bp4d_dirs{f1}]))
                 
                 curr_vid_dir = [bp4d_loc, f1_dir, '/', f2_dir, '/'];
 

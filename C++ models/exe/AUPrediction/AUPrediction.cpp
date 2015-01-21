@@ -385,7 +385,7 @@ int main (int argc, char **argv)
 
 	double scaling = 1.0;
 
-	string face_analyser_loc("./AU_predictors/AU_regressors.txt");
+	string face_analyser_loc("./AU_predictors/AU_SVM_BP4D_static.txt");
 	string face_analyser_loc_av("./AV_regressors/av_regressors.txt");
 	string tri_location("./model/tris_68_full.txt");
 
