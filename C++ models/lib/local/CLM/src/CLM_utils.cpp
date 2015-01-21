@@ -282,6 +282,39 @@ void get_image_input_output_params(vector<string> &input_image_files, vector<str
 			valid[i+1] = false;		
 			i++;
 		}
+		else if (arguments[i].compare("-ftxt") == 0) 
+		{                    
+			// parse the -fdir directory by reading in all of the .png and .jpg files in it
+
+			std::ifstream txt_reader(arguments[i+1], 'r');
+			std::string curr_line;
+
+			std::getline(txt_reader, curr_line);
+
+			string root("");
+			if(!boost::filesystem::exists(curr_line))
+			{
+				string root = path(arguments[0]).parent_path().string();
+				string attempt_2 = (path(root) / path(curr_line)).string();
+				if(boost::filesystem::exists(attempt_2))
+				{
+					input_image_files.push_back((path(root) / path(curr_line)).string());		
+				}
+				else
+				{
+					cout << "Can't find specified file in the text file either:" << curr_line << "or:" << attempt_2;
+				}
+			}
+
+			while(std::getline(txt_reader, curr_line))
+			{					
+
+				input_image_files.push_back((path(root) / path(curr_line)).string());								
+			}
+			valid[i] = false;
+			valid[i+1] = false;		
+			i++;
+		}
 		else if (arguments[i].compare("-ofdir") == 0) 
 		{
 			out_pts_dir = arguments[i + 1];

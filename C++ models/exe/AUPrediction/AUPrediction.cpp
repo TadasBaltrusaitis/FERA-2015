@@ -87,7 +87,7 @@ vector<string> get_arguments(int argc, char **argv)
 
 	vector<string> arguments;
 
-	for(int i = 1; i < argc; ++i)
+	for(int i = 0; i < argc; ++i)
 	{
 		arguments.push_back(string(argv[i]));
 	}
@@ -255,39 +255,39 @@ void get_image_input_output_params_feats(vector<vector<string> > &input_image_fi
 			valid[i+1] = false;		
 			i++;
 		}
-		if (arguments[i].compare("-ftxt") == 0) 
+		else if (arguments[i].compare("-ftxt") == 0) 
 		{                    
-
 			// parse the -fdir directory by reading in all of the .png and .jpg files in it
-			path image_directory (arguments[i+1]); 
+			std::ifstream txt_reader(arguments[i+1]);
 
-			try
+			std::string curr_line;
+
+			std::getline(txt_reader, curr_line);
+			vector<string> curr_dir_files;
+			string root("");
+			if(!boost::filesystem::exists(curr_line))
 			{
-				 // does the file exist and is it a directory
-				if (exists(image_directory) && is_directory(image_directory))   
+				string root = path(arguments[0]).parent_path().string();
+				string attempt_2 = (path(root) / path(curr_line)).string();
+				if(boost::filesystem::exists(attempt_2))
 				{
-					
-					vector<path> file_in_directory;                                
-					copy(directory_iterator(image_directory), directory_iterator(), back_inserter(file_in_directory));
-
-					vector<string> curr_dir_files;
-
-					for (vector<path>::const_iterator file_iterator (file_in_directory.begin()); file_iterator != file_in_directory.end(); ++file_iterator)
-					{
-						// Possible image extension .jpg and .png
-						if(file_iterator->extension().string().compare(".jpg") == 0 || file_iterator->extension().string().compare(".png") == 0)
-						{																
-							curr_dir_files.push_back(file_iterator->string());															
-						}
-					}
-
-					input_image_files.push_back(curr_dir_files);
+					curr_dir_files.push_back((path(root) / path(curr_line)).string());		
+				}
+				else
+				{
+					cout << "Can't find specified file in the text file either:" << curr_line << "or:" << attempt_2 << std::endl;
 				}
 			}
-			catch (const filesystem_error& ex)
-			{
-				cout << ex.what() << '\n';
+
+			while(std::getline(txt_reader, curr_line))
+			{					
+
+				curr_dir_files.push_back((path(root) / path(curr_line)).string());								
 			}
+
+			txt_reader.close();
+
+			input_image_files.push_back(curr_dir_files);
 
 			valid[i] = false;
 			valid[i+1] = false;		
@@ -516,7 +516,7 @@ int main (int argc, char **argv)
 		INFO_STREAM( "Starting tracking");
 		while(!captured_image.empty())
 		{		
-			if(!beg_frames.empty() && frame_count >= beg_frames[f_n])
+			if(beg_frames.empty() || frame_count >= beg_frames[f_n])
 			{				
 				if(scaling != 1.0)
 				{
