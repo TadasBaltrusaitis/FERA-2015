@@ -269,15 +269,13 @@ void get_image_input_output_params_feats(vector<vector<string> > &input_image_fi
 			{
 				string root = path(arguments[0]).parent_path().string();
 				string attempt_2 = (path(root) / path(curr_line)).string();
-				if(boost::filesystem::exists(attempt_2))
+				if(!boost::filesystem::exists(attempt_2))
 				{
-					curr_dir_files.push_back((path(root) / path(curr_line)).string());		
-				}
-				else
-				{
-					cout << "Can't find specified file in the text file either:" << curr_line << "or:" << attempt_2 << std::endl;
+					cout << "Can't find specified file in the text file either:" << curr_line << "or:" << attempt_2 << std::endl;				
 				}
 			}
+			
+			curr_dir_files.push_back((path(root) / path(curr_line)).string());		
 
 			while(std::getline(txt_reader, curr_line))
 			{					
