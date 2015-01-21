@@ -271,7 +271,7 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	//if(clm_model.detection_success)
 	//{
 	// Perform AU prediction
-	AU_predictions = PredictCurrentAUs(orientation_to_use, true);
+	AU_predictions = PredictCurrentAUs(orientation_to_use, false);
 
 	auto AU_preds_class = PredictCurrentAUsClass(orientation_to_use);
 
@@ -642,7 +642,8 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(int view, bool dyn_
 		
 		for(size_t i = 0; i < correction.size(); ++i)
 		{
-			predictions[i].second = predictions[i].second - correction[i];
+			// TODO important only for semaine?
+			//predictions[i].second = predictions[i].second - correction[i];
 
 			if(predictions[i].second < 0)
 				predictions[i].second = 0;

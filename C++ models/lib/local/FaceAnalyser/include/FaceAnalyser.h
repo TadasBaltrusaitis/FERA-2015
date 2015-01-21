@@ -129,7 +129,7 @@ private:
 	Rect_<double> face_bounding_box;
 	
 	// The AU predictions internally
-	std::vector<std::pair<std::string, double>> PredictCurrentAUs(int view, bool dyn_correct = true);
+	std::vector<std::pair<std::string, double>> PredictCurrentAUs(int view, bool dyn_correct = false);
 	std::vector<std::pair<std::string, double>> PredictCurrentAUsClass(int view);
 
 	void PredictCurrentAVs(const CLMTracker::CLM& clm);
