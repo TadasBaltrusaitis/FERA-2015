@@ -1,16 +1,22 @@
 if(exist('C:\tadas\face_datasets\fera_2015\bp4d\AUCoding/', 'file'))
     BP4D_dir = 'C:\tadas\face_datasets\fera_2015\bp4d\AUCoding/';   
+    BP4D_dir_int = 'C:\tadas\face_datasets\fera_2015\bp4d\AU Intensity Codes3.0/';
 elseif(exist('E:\datasets\FERA_2015\BP4D\AUCoding/', 'file'))
     BP4D_dir = 'E:\datasets\FERA_2015\BP4D\AUCoding/';       
+    BP4D_dir_int = 'E:\datasets\FERA_2015\BP4D\AU Intensity Codes3.0/';       
 elseif(exist('D:\datasets\face_datasets\fera_2015\bp4d\AUCoding/','file'))
     BP4D_dir = 'D:\datasets\face_datasets\fera_2015\bp4d\AUCoding/';
+    BP4D_dir_int = 'D:\datasets\face_datasets\fera_2015\bp4d\AU Intensity Codes3.0/';
 elseif(exist('I:\datasets\FERA_2015\BP4D\AUCoding/', 'file'))
     BP4D_dir = 'I:\datasets\FERA_2015\BP4D\AUCoding/';
+    BP4D_dir_int = 'I:\datasets\FERA_2015\BP4D\AU Intensity Codes3.0/';
 elseif(exist('D:/fera_2015/bp4d/AUCoding/', 'file'))
     BP4D_dir = 'D:/fera_2015/bp4d/AUCoding/';
+    BP4D_dir_int = 'D:/fera_2015/bp4d/AU Intensity Codes3.0/';
 else    
     fprintf('BP4D location not found (or not defined)\n'); 
 end
+
 
 hog_data_dir = [BP4D_dir, '../processed_data'];
 
