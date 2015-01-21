@@ -18,7 +18,7 @@ bp4d_dirs = devel_recs;
 
 in_txt = './txt_files/';
 
-for f1=1:numel(bp4d_dirs)
+parfor f1=1:numel(bp4d_dirs)
 
     if(isdir([bp4d_loc, bp4d_dirs{f1}]))
         
