@@ -297,7 +297,7 @@ void FaceAnalyser::PredictAUs(const cv::Mat_<double>& hog_features, const CLMTra
 	//if(clm_model.detection_success)
 	//{
 	// Perform AU prediction
-	AU_predictions = PredictCurrentAUs(orientation_to_use, true);
+	AU_predictions = PredictCurrentAUs(orientation_to_use, false);
 
 	auto AU_preds_class = PredictCurrentAUsClass(orientation_to_use);
 
