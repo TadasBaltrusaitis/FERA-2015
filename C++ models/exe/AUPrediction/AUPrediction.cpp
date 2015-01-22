@@ -792,53 +792,63 @@ int main (int argc, char **argv)
 
 		}		
 				
-		std::ofstream au_output_file_class;
-		au_output_file_class.open(output_aus_class[i], ios_base::out);
+		if(!output_aus_class.empty())	
+		{
+			std::ofstream au_output_file_class;
+			au_output_file_class.open(output_aus_class[i], ios_base::out);
 
-		// Print the results here
-		for(int au = 0; au < pred_names_class.size(); ++au)
-		{			
-			au_output_file_class << pred_names_class[au];					
-			for(int frame = 0; frame < all_predictions_class[au].size(); ++frame)
-			{
-				au_output_file_class << " " << all_predictions_class[au][frame];
+			// Print the results here
+			for(int au = 0; au < pred_names_class.size(); ++au)
+			{			
+				au_output_file_class << pred_names_class[au];					
+				for(int frame = 0; frame < all_predictions_class[au].size(); ++frame)
+				{
+					au_output_file_class << " " << all_predictions_class[au][frame];
+				}
+				au_output_file_class << std::endl;			
 			}
-			au_output_file_class << std::endl;			
+
+			au_output_file_class.close();
 		}
 
-		au_output_file_class.close();
+		if(!output_aus_reg.empty())	
+		{
 
-		std::ofstream au_output_file_reg;
-		au_output_file_reg.open(output_aus_reg[i], ios_base::out);
+			std::ofstream au_output_file_reg;
+			au_output_file_reg.open(output_aus_reg[i], ios_base::out);
 
-		// Print the results here
-		for(int au = 0; au < pred_names_reg.size(); ++au)
-		{			
-			au_output_file_reg << pred_names_reg[au];					
-			for(int frame = 0; frame < all_predictions_reg[au].size(); ++frame)
-			{
-				au_output_file_reg << " " << all_predictions_reg[au][frame];
+			// Print the results here
+			for(int au = 0; au < pred_names_reg.size(); ++au)
+			{			
+				au_output_file_reg << pred_names_reg[au];					
+				for(int frame = 0; frame < all_predictions_reg[au].size(); ++frame)
+				{
+					au_output_file_reg << " " << all_predictions_reg[au][frame];
+				}
+				au_output_file_reg << std::endl;			
 			}
-			au_output_file_reg << std::endl;			
+
+			au_output_file_reg.close();
 		}
 
-		au_output_file_reg.close();
+		if(!output_aus_reg_segmented.empty())	
+		{
+			std::ofstream au_output_file_reg_segmented;
+			au_output_file_reg_segmented.open(output_aus_reg_segmented[i], ios_base::out);
 
-		std::ofstream au_output_file_reg_segmented;
-		au_output_file_reg_segmented.open(output_aus_reg_segmented[i], ios_base::out);
-
-		// Print the results here
-		for(int au = 0; au < pred_names_reg_segmented.size(); ++au)
-		{			
-			au_output_file_reg_segmented << pred_names_reg_segmented[au];					
-			for(int frame = 0; frame < all_predictions_reg_segmented[au].size(); ++frame)
-			{
-				au_output_file_reg_segmented << " " << all_predictions_reg_segmented[au][frame];
+			// Print the results here
+			for(int au = 0; au < pred_names_reg_segmented.size(); ++au)
+			{			
+				au_output_file_reg_segmented << pred_names_reg_segmented[au];					
+				for(int frame = 0; frame < all_predictions_reg_segmented[au].size(); ++frame)
+				{
+					au_output_file_reg_segmented << " " << all_predictions_reg_segmented[au][frame];
+				}
+				au_output_file_reg_segmented << std::endl;			
 			}
-			au_output_file_reg_segmented << std::endl;			
-		}
 
-		au_output_file_reg_segmented.close();
+			au_output_file_reg_segmented.close();
+		}
 	}
 	return 0;
 }
