@@ -76,3 +76,5 @@ C++ models/exe/AUPrediction/Release/
 C++ models/exe/AUPrediction/Debug/
 runners/training_labels/
 runners/txt_files/
+C++ models/fera_2015_v1_Cambridge.zip
+C++ models/fera_2015_v1_Cambridge/
