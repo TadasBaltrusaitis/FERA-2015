@@ -38,7 +38,7 @@ function [ labels, valid_ids, vid_ids  ] = extract_SEMAINE_labels( SEMAINE_dir, 
         % all indices in SEMAINE are valid
         valid_ids{i} = ones(size(labels{i},1),1);
         
-        if(~exist(['training_labels/' recs{i} '_AU' num2str(aus) '.mat'], 'dir'))   
+        if(~exist(['training_labels/' recs{i} '_AU' num2str(aus) '.mat'], 'file'))   
             labels_rec = labels{i};
             valid_ids_rec = valid_ids{i};
             vid_ids_rec = vid_ids(i,:);

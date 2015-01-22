@@ -32,19 +32,20 @@ for a=1:numel(aus)
 
         rest_aus = setdiff(all_aus, au);        
 
-        find_SEMAINE;
         % load the training and testing data for the current fold
         
         if(ismember(aus(a), disfa_au))
         
-            [~, ~, test_samples, test_labels, raw_test, PC, means, scaling] = Prepare_HOG_AU_data_generic_dynamic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);
-
             find_DISFA;
             od = cd('../DISFA_baseline/training/');
             all_disfa = [1,2,4,5,6,9,12,15,17,20,25,26];
             rest_aus = setdiff(all_disfa, au);    
             [train_samples, train_labels, valid_samples, valid_labels, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic_dynamic(users, au, rest_aus, hog_data_dir);            
             cd(od);
+            
+            find_SEMAINE;
+            [~, ~, test_samples, test_labels, raw_test, PC, means, scaling] = Prepare_HOG_AU_data_generic_dynamic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);            
+            
             % Binarise the models            
             train_labels(train_labels < 1) = 0;
             train_labels(train_labels >= 1) = 1;
@@ -78,7 +79,7 @@ for a=1:numel(aus)
 
             %write_lin_dyn_svm(name, means, svs, b);
 
-            name = sprintf('trained/AU_%d_train_DISFA_test_SEMAINE.mat', au);
+            name = sprintf('paper_res/AU_%d_train_DISFA_test_SEMAINE.mat', au);
 
             tp = sum(test_labels == 1 & prediction == 1);
             fp = sum(test_labels == 0 & prediction == 1);

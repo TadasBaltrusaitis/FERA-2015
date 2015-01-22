@@ -27,7 +27,11 @@ for i=1:numel(train_users)
 end
 
 % Reading in the HOG data
+[train_geom_data] = Read_geom_files(train_users, hog_data_dir);
+
 [train_appearance_data, tracked_inds_hog, vid_ids_train] = Read_HOG_files(train_users, hog_data_dir);
+
+train_appearance_data = cat(2, train_appearance_data, train_geom_data);
 
 % Getting the indices describing the splits (full version)
 [training_inds, valid_inds, split] = construct_indices(vid_ids_train, train_users);
@@ -53,6 +57,14 @@ labels_train = labels_train(training_inds);
 pca_file = '../../pca_generation/generic_face_rigid.mat';
 load(pca_file);
      
+PC_n = zeros(size(PC)+size(train_geom_data, 2));
+PC_n(1:size(PC,1), 1:size(PC,2)) = PC;
+PC_n(size(PC,1)+1:end, size(PC,2)+1:end) = eye(size(train_geom_data, 2));
+PC = PC_n;
+
+means_norm = cat(2, means_norm, zeros(1, size(train_geom_data,2)));
+stds_norm = cat(2, stds_norm, ones(1, size(train_geom_data,2)));
+
 % Grab all data for validation as want good params for all the data
 raw_valid = train_appearance_data(valid_inds,:);
 
