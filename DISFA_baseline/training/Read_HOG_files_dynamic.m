@@ -112,7 +112,7 @@ function [hog_data, valid_data, vid_id] = Read_HOG_files_dynamic(users, hog_data
         end
         
         if(size(hog_data,1) < feats_filled+curr_ind)
-           hog_data = cat(1, hog_data, zeros(feats_filled + curr_ind - size(hog_data,1), num_feats));
+           hog_data = cat(1, hog_data, zeros(size(hog_data,1), num_feats));
         end
         
         hog_data(feats_filled+1:feats_filled+curr_ind,:) = curr_data;
