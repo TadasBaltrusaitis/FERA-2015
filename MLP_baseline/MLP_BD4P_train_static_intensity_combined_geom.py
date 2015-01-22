@@ -52,18 +52,30 @@ test_fn = mlp.test_mlp_reg
 hyperparams = {
    'batch_size': [100],
    'learning_rate': [0.8],
-   'lambda_reg': [0.001],
-   'num_hidden': [50, 100, 200],
+   'lambda_reg': [0.01, 0.001, 0.0001],
+   'num_hidden': [50, 100, 200, 300],
    'final_layer': ['sigmoid'],
    'error_func': 'euclidean',
    'pred_type': 'reg',
-   'n_epochs': 1000,
+   'n_epochs': 100,
    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden', 'final_layer']}
 
 # Cross-validate here
-best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
-                                                                  False, train_samples, train_labels, valid_samples,
-                                                                  valid_labels, hyperparams, num_repeat=2)
+#best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
+#                                                                  False, train_samples, train_labels, valid_samples,
+#                                                                  valid_labels, hyperparams, num_repeat=3)
+
+best_params = {
+   'batch_size': [100],
+   'learning_rate': [0.8],
+   'lambda_reg': [0.001],
+   'num_hidden': [200],
+   'final_layer': ['sigmoid'],
+   'error_func': 'euclidean',
+   'pred_type': 'reg',
+   'n_epochs': 200,
+   'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden', 'final_layer']}
+
 
 # Average results due to non-deterministic nature of the model
 corrs = numpy.zeros((1, train_labels.shape[1]))
@@ -71,11 +83,21 @@ mses = numpy.zeros((1, train_labels.shape[1]))
 
 num_repeat = 1
 
-print 'All params', all_params
+#print 'All params', all_params
 print 'Best params', best_params
 
-for i in range(num_repeat):
+corr_b = 0
+
+for i in range(3):
     model = train_fn(train_labels, train_samples, valid_labels, valid_samples, best_params)
+    _, _, _, corr, _ = test_fn(valid_labels, valid_samples, model)
+    if numpy.mean(corr) > corr_b:
+        best_model = model
+        corr_b = numpy.mean(corr)
+
+model = best_model
+
+for i in range(num_repeat):
     _, _, _, corr, mse = test_fn(valid_labels, valid_samples, model)
     corrs += corr
     mses += mse
