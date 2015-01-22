@@ -50,6 +50,9 @@ PC_n(1:size(PC,1), 1:size(PC,2)) = PC;
 PC_n(size(PC,1)+1:end, size(PC,2)+1:end) = eye(size(train_geom_data, 2));
 PC = PC_n;
 
+means_norm = cat(2, means_norm, zeros(1, size(train_geom_data,2)));
+stds_norm = cat(2, stds_norm, ones(1, size(train_geom_data,2)));
+
 % Grab all data for validation as want good params for all the data
 raw_devel = devel_appearance_data;
 

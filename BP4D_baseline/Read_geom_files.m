@@ -1,4 +1,4 @@
-function [geom_data] = Read_geom_files(users, vid_ids, hog_data_dir)
+function [geom_data] = Read_geom_files(users, hog_data_dir)
 
     geom_data = [];
 
@@ -10,7 +10,7 @@ function [geom_data] = Read_geom_files(users, vid_ids, hog_data_dir)
             geom_file = [hog_data_dir, geom_files(h).name];
 
             res = dlmread(geom_file, ' ');
-            res = res(vid_ids(i,1)+1:vid_ids(i,2),15:2:end);       
+            res = res(:,15:2:end);       
 
             geom_data = cat(1, geom_data, res);
                 

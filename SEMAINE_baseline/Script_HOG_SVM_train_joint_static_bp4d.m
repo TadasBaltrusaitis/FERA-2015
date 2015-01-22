@@ -1,4 +1,4 @@
-function Script_HOG_SVM_train_joint_dynamic_bp4d()
+function Script_HOG_SVM_train_joint_static_bp4d()
 
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
@@ -40,11 +40,11 @@ for a=1:numel(aus)
             od = cd('../BP4D_baseline/');
             all_bp4d = [1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23];
             rest_aus = setdiff(all_bp4d, au);    
-            [train_samples, train_labels, valid_samples, valid_labels, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic_dynamic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc);            
+            [train_samples, train_labels, valid_samples, valid_labels, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc);            
             cd(od);
             
             find_SEMAINE;
-            [~, ~, test_samples, test_labels, raw_test, PC, means, scaling] = Prepare_HOG_AU_data_generic_dynamic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);            
+            [~, ~, test_samples, test_labels, raw_test, PC, means, scaling] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);            
             
             % Binarise the models            
             train_labels(train_labels < 1) = 0;
@@ -79,7 +79,7 @@ for a=1:numel(aus)
 
             %write_lin_dyn_svm(name, means, svs, b);
 
-            name = sprintf('paper_res/AU_%d_train_BP4D_test_SEMAINE.mat', au);
+            name = sprintf('paper_res/AU_%d_train_BP4D_test_SEMAINE_static.mat', au);
 
             tp = sum(test_labels == 1 & prediction == 1);
             fp = sum(test_labels == 0 & prediction == 1);
