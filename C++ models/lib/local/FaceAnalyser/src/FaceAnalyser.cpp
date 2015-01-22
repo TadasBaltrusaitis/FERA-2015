@@ -248,8 +248,6 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	// Geom descriptor and its median
 	geom_descriptor_frame = clm_model.params_local.t();
 
-	cout << geom_descriptor_frame << endl;
-
 	UpdateRunningMedian(this->geom_desc_hist, this->geom_hist_sum, this->geom_descriptor_median, geom_descriptor_frame, update_median, this->num_bins_geom, this->min_val_geom, this->max_val_geom);
 
 	// First convert the face image to double representation as a row vector
@@ -547,7 +545,7 @@ void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& h
 		// Update the histogram count
 		hist_count++;
 	}
-	if(hist_count == 1)
+	if(hist_count <= 1)
 	{
 		median = descriptor.clone();
 	}

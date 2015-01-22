@@ -76,7 +76,7 @@ void SVM_static_lin::Predict(std::vector<double>& predictions, std::vector<std::
 		else
 		{
 			Mat_<double> input;
-			cv::hconcat(fhog_descriptor, geom_params);
+			cv::hconcat(fhog_descriptor, geom_params, input);
 
 			preds = (input - this->means) * this->support_vectors + this->biases;
 		}

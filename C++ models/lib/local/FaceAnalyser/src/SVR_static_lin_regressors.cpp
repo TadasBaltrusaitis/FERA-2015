@@ -65,7 +65,7 @@ void SVR_static_lin_regressors::Predict(std::vector<double>& predictions, std::v
 		else
 		{
 			Mat_<double> input;
-			cv::hconcat(fhog_descriptor, geom_params);
+			cv::hconcat(fhog_descriptor, geom_params, input);
 
 			preds = (input - this->means) * this->support_vectors + this->biases;
 		}

@@ -76,10 +76,10 @@ void SVM_dynamic_lin::Predict(std::vector<double>& predictions, std::vector<std:
 		else
 		{
 			Mat_<double> input;
-			cv::hconcat(fhog_descriptor, geom_params);
+			cv::hconcat(fhog_descriptor, geom_params, input);
 
 			Mat_<double> run_med;
-			cv::hconcat(running_median, running_median_geom);
+			cv::hconcat(running_median, running_median_geom, run_med);
 
 			preds = (input - this->means - run_med) * this->support_vectors + this->biases;
 		}
