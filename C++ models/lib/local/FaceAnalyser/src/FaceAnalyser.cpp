@@ -271,14 +271,11 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	//if(clm_model.detection_success)
 	//{
 	// Perform AU prediction
-	AU_predictions = PredictCurrentAUs(orientation_to_use, false);
+	AU_predictions_reg = PredictCurrentAUs(orientation_to_use, false);
 
-	auto AU_preds_class = PredictCurrentAUsClass(orientation_to_use);
+	AU_predictions_class = PredictCurrentAUsClass(orientation_to_use);
 
-	for (auto it = AU_preds_class.begin(); it < AU_preds_class.end(); ++it)
-	{
-		AU_predictions.push_back(*it);
-	}
+	AU_predictions_reg_segmented = PredictCurrentAUsSegmented(orientation_to_use, false);
 
 	this->current_time_seconds = timestamp_seconds;
 
@@ -297,15 +294,12 @@ void FaceAnalyser::PredictAUs(const cv::Mat_<double>& hog_features, const CLMTra
 	//if(clm_model.detection_success)
 	//{
 	// Perform AU prediction
-	AU_predictions = PredictCurrentAUs(orientation_to_use, false);
+	AU_predictions_reg = PredictCurrentAUs(orientation_to_use, false);
 
-	auto AU_preds_class = PredictCurrentAUsClass(orientation_to_use);
+	AU_predictions_class = PredictCurrentAUsClass(orientation_to_use);
 
-	for (auto it = AU_preds_class.begin(); it < AU_preds_class.end(); ++it)
-	{
-		AU_predictions.push_back(*it);
-	}
-	
+	AU_predictions_reg_segmented = PredictCurrentAUsSegmented(orientation_to_use, false);
+
 	view_used = orientation_to_use;
 }
 
@@ -313,10 +307,10 @@ void FaceAnalyser::PredictCurrentAVs(const CLMTracker::CLM& clm_model)
 {
 	// Can update the AU prediction track (used for predicting emotions)
 	// Pick out the predictions
-	Mat_<double> preds(1, AU_predictions.size(), 0.0);
-	for( size_t i = 0; i < AU_predictions.size(); ++i)
+	Mat_<double> preds(1, AU_predictions_combined.size(), 0.0);
+	for( size_t i = 0; i < AU_predictions_combined.size(); ++i)
 	{
-		preds.at<double>(0, i) = AU_predictions[i].second;
+		preds.at<double>(0, i) = AU_predictions_combined[i].second;
 	}
 
 	// Much smaller wait time for valence update (2.5 second)
@@ -457,15 +451,15 @@ std::string FaceAnalyser::GetCurrentCategoricalEmotion()
 
 	// Grab the latest AUs
 
-	if(!this->AU_predictions.empty())
+	if(!this->AU_predictions_combined.empty())
 	{
 
 		// Find the AUs of interest
 		map<string, double> au_activations;
 		
-		for(size_t i = 0; i < this->AU_predictions.size(); ++i)
+		for(size_t i = 0; i < this->AU_predictions_combined.size(); ++i)
 		{
-			au_activations[this->AU_predictions[i].first] = this->AU_predictions[i].second;
+			au_activations[this->AU_predictions_combined[i].first] = this->AU_predictions_combined[i].second;
 		}
 
 		double threshold = 3;
@@ -685,6 +679,84 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(int view, bool dyn_
 	return predictions;
 }
 
+// Apply the current predictors to the currently stored descriptors
+vector<pair<string, double>> FaceAnalyser::PredictCurrentAUsSegmented(int view, bool dyn_correct)
+{
+
+	vector<pair<string, double>> predictions;
+
+	if(!hog_desc_frame.empty())
+	{
+		vector<string> svr_lin_stat_aus;
+		vector<double> svr_lin_stat_preds;
+
+		AU_SVR_static_appearance_lin_regressors.Predict(svr_lin_stat_preds, svr_lin_stat_aus, hog_desc_frame);
+
+		for(size_t i = 0; i < svr_lin_stat_preds.size(); ++i)
+		{
+			predictions.push_back(pair<string, double>(svr_lin_stat_aus[i], svr_lin_stat_preds[i]));
+		}
+
+		vector<string> svr_lin_dyn_aus;
+		vector<double> svr_lin_dyn_preds;
+
+		AU_SVR_dynamic_appearance_lin_regressors.Predict(svr_lin_dyn_preds, svr_lin_dyn_aus, hog_desc_frame, this->hog_desc_median);
+
+		for(size_t i = 0; i < svr_lin_dyn_preds.size(); ++i)
+		{
+			predictions.push_back(pair<string, double>(svr_lin_dyn_aus[i], svr_lin_dyn_preds[i]));
+		}
+
+		// Correction that drags the predicion to 0 (assuming the bottom 10% of predictions are of neutral expresssions)
+		vector<double> correction(predictions.size(), 0.0);
+		UpdatePredictionTrack(au_prediction_correction_histogram[view], au_prediction_correction_count[view], correction, predictions, 0.10, 200, 0, 5, 1);
+		
+		for(size_t i = 0; i < correction.size(); ++i)
+		{
+			// TODO for segmented data might actually help
+			predictions[i].second = predictions[i].second - correction[i];
+
+			if(predictions[i].second < 1)
+				predictions[i].second = 1;
+			if(predictions[i].second > 5)
+				predictions[i].second = 5;
+		}
+
+		if(dyn_correct)
+		{
+			// Some scaling for effect better visualisation
+			// Also makes sense as till the maximum expression is seen, it is hard to tell how expressive a persons face is
+			if(dyn_scaling[view].empty())
+			{
+				dyn_scaling[view] = vector<double>(predictions.size(), 5.0);
+			}
+		
+			for(size_t i = 0; i < predictions.size(); ++i)
+			{
+				// First establish presence (assume it is maximum as we have not seen max) TODO this could be more robust
+				if(predictions[i].second > 1)
+				{
+					double scaling_curr = 5.0 / predictions[i].second;
+				
+					if(scaling_curr < dyn_scaling[view][i])
+					{
+						dyn_scaling[view][i] = scaling_curr;
+					}
+					predictions[i].second = predictions[i].second * dyn_scaling[view][i];
+				}
+
+				if(predictions[i].second > 5)
+				{
+					predictions[i].second = 5;
+				}
+			}
+		}
+	}
+
+	return predictions;
+}
+
+
 // Apply the current predictors to the currently stored descriptors (classification)
 vector<pair<string, double>> FaceAnalyser::PredictCurrentAUsClass(int view)
 {
@@ -729,9 +801,24 @@ Mat FaceAnalyser::GetLatestHOGDescriptorVisualisation()
 	return hog_descriptor_visualisation;
 }
 
-vector<pair<string, double>> FaceAnalyser::GetCurrentAUs()
+vector<pair<string, double>> FaceAnalyser::GetCurrentAUsClass()
 {
-	return AU_predictions;
+	return AU_predictions_class;
+}
+
+vector<pair<string, double>> FaceAnalyser::GetCurrentAUsReg()
+{
+	return AU_predictions_reg;
+}
+
+vector<pair<string, double>> FaceAnalyser::GetCurrentAUsRegSegmented()
+{
+	return AU_predictions_reg_segmented;
+}
+
+vector<pair<string, double>> FaceAnalyser::GetCurrentAUsCombined()
+{
+	return AU_predictions_combined;
 }
 
 // Reading in AU prediction modules
@@ -743,7 +830,7 @@ void FaceAnalyser::ReadAU(std::string au_model_location)
 
 	if(!locations.is_open())
 	{
-		cout << "Couldn't open the AU prediction files aborting" << endl;
+		cout << "Couldn't open the AU prediction files at: " << au_model_location.c_str() << " aborting" << endl;
 		cout.flush();
 		return;
 	}

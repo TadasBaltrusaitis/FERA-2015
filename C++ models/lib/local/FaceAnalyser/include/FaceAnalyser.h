@@ -44,7 +44,11 @@ public:
 	// Use basic emotion rules for inferring them from AUs
 	std::string GetCurrentCategoricalEmotion();
 
-	std::vector<std::pair<std::string, double>> GetCurrentAUs();
+	std::vector<std::pair<std::string, double>> GetCurrentAUsClass();
+	std::vector<std::pair<std::string, double>> GetCurrentAUsReg();
+	std::vector<std::pair<std::string, double>> GetCurrentAUsRegSegmented();
+
+	std::vector<std::pair<std::string, double>> GetCurrentAUsCombined();
 
 	void Reset();
 
@@ -78,7 +82,12 @@ public:
 private:
 
 	// Where the predictions are kept
-	std::vector<std::pair<std::string, double>> AU_predictions;
+	std::vector<std::pair<std::string, double>> AU_predictions_reg;
+	std::vector<std::pair<std::string, double>> AU_predictions_reg_segmented;
+	std::vector<std::pair<std::string, double>> AU_predictions_class;
+
+	std::vector<std::pair<std::string, double>> AU_predictions_combined;
+
 	double arousal_value;
 	double valence_value;
 	int frames_tracking;
@@ -130,6 +139,7 @@ private:
 	
 	// The AU predictions internally
 	std::vector<std::pair<std::string, double>> PredictCurrentAUs(int view, bool dyn_correct = false);
+	std::vector<std::pair<std::string, double>> PredictCurrentAUsSegmented(int view, bool dyn_correct = false);
 	std::vector<std::pair<std::string, double>> PredictCurrentAUsClass(int view);
 
 	void PredictCurrentAVs(const CLMTracker::CLM& clm);

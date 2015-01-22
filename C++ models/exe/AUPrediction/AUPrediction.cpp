@@ -95,7 +95,7 @@ vector<string> get_arguments(int argc, char **argv)
 }
 
 // Extracting the following command line arguments -f, -fd, -op, -of, -ov (and possible ordered repetitions)
-void get_output_feature_params(string& au_location, vector<string> &output_aus, double &similarity_scale, int &similarity_size, double &scaling, bool &video, bool &grayscale, bool &rigid, vector<int>& beg_frames, vector<int>& end_frames, vector<string> &arguments)
+void get_output_feature_params(string& au_location, vector<string> &output_aus_class, vector<string> &output_aus_reg, vector<string> &output_aus_segmented, double &similarity_scale, int &similarity_size, double &scaling, bool &video, bool &grayscale, bool &rigid, vector<int>& beg_frames, vector<int>& end_frames, vector<string> &arguments)
 {
 
 	bool* valid = new bool[arguments.size()];
@@ -137,9 +137,23 @@ void get_output_feature_params(string& au_location, vector<string> &output_aus, 
 			au_location = arguments[i + 1];
 			valid[i] = false;
 		}	
-		else if(arguments[i].compare("-oaus") == 0) 
+		else if(arguments[i].compare("-oausclass") == 0) 
 		{
-			output_aus.push_back(output_root + arguments[i + 1]);
+			output_aus_class.push_back(output_root + arguments[i + 1]);
+			valid[i] = false;
+			valid[i+1] = false;			
+			i++;
+		}
+		else if(arguments[i].compare("-oausreg") == 0) 
+		{
+			output_aus_reg.push_back(output_root + arguments[i + 1]);
+			valid[i] = false;
+			valid[i+1] = false;			
+			i++;
+		}
+		else if(arguments[i].compare("-oausregseg") == 0) 
+		{
+			output_aus_segmented.push_back(output_root + arguments[i + 1]);
 			valid[i] = false;
 			valid[i+1] = false;			
 			i++;
@@ -371,7 +385,9 @@ int main (int argc, char **argv)
 	// The modules that are being used for tracking
 	CLMTracker::CLM clm_model(clm_parameters.model_location);	
 
-	vector<string> output_aus;
+	vector<string> output_aus_class;
+	vector<string> output_aus_reg;
+	vector<string> output_aus_reg_segmented;
 
 	double sim_scale = 0.7;
 	int sim_size = 112;
@@ -390,7 +406,7 @@ int main (int argc, char **argv)
 	vector<int> beg_frames;
 	vector<int> end_frames;
 
-	get_output_feature_params(face_analyser_loc, output_aus, sim_scale, sim_size, scaling, video_output, grayscale, rigid, beg_frames, end_frames, arguments);
+	get_output_feature_params(face_analyser_loc, output_aus_class, output_aus_reg, output_aus_reg_segmented, sim_scale, sim_size, scaling, video_output, grayscale, rigid, beg_frames, end_frames, arguments);
 
 	if(!boost::filesystem::exists(path(face_analyser_loc)))
 	{
@@ -550,7 +566,7 @@ int main (int argc, char **argv)
 				Mat_<double> hog_descriptor;
 
 				// Use face analyser only if outputting neutrals and AUs
-				if(!output_aus.empty())
+				if(!output_aus_class.empty() || !output_aus_reg.empty() || !output_aus_reg_segmented.empty())
 				{
 					face_analyser.AddNextFrame(captured_image, clm_model, 0, false);
 
@@ -700,12 +716,29 @@ int main (int argc, char **argv)
 		}
 	}
 
-	for(int i = 0; i < output_aus.size(); ++i) // this is not a for loop as we might also be reading from a webcam
+	int num_outputs = 0;
+
+	if(!output_aus_class.empty())	
+		num_outputs = output_aus_class.size();
+
+	if(!output_aus_reg.empty())	
+		num_outputs = output_aus_reg.size();
+
+	if(!output_aus_reg_segmented.empty())	
+		num_outputs = output_aus_reg_segmented.size();
+
+
+	for(int i = 0; i < num_outputs; ++i) // this is not a for loop as we might also be reading from a webcam
 	{
 
 		// Collect all of the predictions
-		vector<vector<double>> all_predictions;
-		vector<string> pred_names;
+		vector<vector<double>> all_predictions_class;
+		vector<vector<double>> all_predictions_reg;
+		vector<vector<double>> all_predictions_reg_segmented;
+
+		vector<string> pred_names_class;
+		vector<string> pred_names_reg;
+		vector<string> pred_names_reg_segmented;
 
 		for(size_t frame = 0; frame < params_global_video[i].size(); ++frame)
 		{
@@ -717,39 +750,95 @@ int main (int argc, char **argv)
 				
 			face_analyser.PredictAUs(hog_descriptors[i][frame], clm_model);
 
-			auto au_preds = face_analyser.GetCurrentAUs();
+			auto au_preds_class = face_analyser.GetCurrentAUsClass();
+			auto au_preds_reg = face_analyser.GetCurrentAUsReg();
+			auto au_preds_reg_segmented = face_analyser.GetCurrentAUsRegSegmented();
 
 			if(frame == 0)
 			{
-				all_predictions.resize(au_preds.size());
-				for(int au = 0; au < au_preds.size(); ++au)
+				all_predictions_class.resize(au_preds_class.size());
+				for(int au = 0; au < au_preds_class.size(); ++au)
 				{
-					pred_names.push_back(au_preds[au].first);
+					pred_names_class.push_back(au_preds_class[au].first);
+				}
+
+				all_predictions_reg.resize(au_preds_reg.size());
+				for(int au = 0; au < au_preds_reg.size(); ++au)
+				{
+					pred_names_reg.push_back(au_preds_reg[au].first);
+				}
+
+				all_predictions_reg_segmented.resize(au_preds_reg_segmented.size());
+				for(int au = 0; au < au_preds_reg_segmented.size(); ++au)
+				{
+					pred_names_reg_segmented.push_back(au_preds_reg_segmented[au].first);
 				}
 			}
 
-			for(int au = 0; au < au_preds.size(); ++au)
-			{
-				
-				all_predictions[au].push_back(au_preds[au].second);
+			for(int au = 0; au < au_preds_class.size(); ++au)
+			{				
+				all_predictions_class[au].push_back(au_preds_class[au].second);
 			}
+
+			for(int au = 0; au < au_preds_reg.size(); ++au)
+			{				
+				all_predictions_reg[au].push_back(au_preds_reg[au].second);
+			}
+
+			for(int au = 0; au < au_preds_reg_segmented.size(); ++au)
+			{				
+				all_predictions_reg_segmented[au].push_back(au_preds_reg_segmented[au].second);
+			}
+
 		}		
 				
-		std::ofstream au_output_file;
-		au_output_file.open(output_aus[i], ios_base::out);
+		std::ofstream au_output_file_class;
+		au_output_file_class.open(output_aus_class[i], ios_base::out);
 
 		// Print the results here
-		for(int au = 0; au < pred_names.size(); ++au)
+		for(int au = 0; au < pred_names_class.size(); ++au)
 		{			
-			au_output_file << pred_names[au];					
-			for(int frame = 0; frame < all_predictions[au].size(); ++frame)
+			au_output_file_class << pred_names_class[au];					
+			for(int frame = 0; frame < all_predictions_class[au].size(); ++frame)
 			{
-				au_output_file << " " << all_predictions[au][frame];
+				au_output_file_class << " " << all_predictions_class[au][frame];
 			}
-			au_output_file << std::endl;			
+			au_output_file_class << std::endl;			
 		}
 
-		au_output_file.close();
+		au_output_file_class.close();
+
+		std::ofstream au_output_file_reg;
+		au_output_file_reg.open(output_aus_reg[i], ios_base::out);
+
+		// Print the results here
+		for(int au = 0; au < pred_names_reg.size(); ++au)
+		{			
+			au_output_file_reg << pred_names_reg[au];					
+			for(int frame = 0; frame < all_predictions_reg[au].size(); ++frame)
+			{
+				au_output_file_reg << " " << all_predictions_reg[au][frame];
+			}
+			au_output_file_reg << std::endl;			
+		}
+
+		au_output_file_reg.close();
+
+		std::ofstream au_output_file_reg_segmented;
+		au_output_file_reg_segmented.open(output_aus_reg_segmented[i], ios_base::out);
+
+		// Print the results here
+		for(int au = 0; au < pred_names_reg_segmented.size(); ++au)
+		{			
+			au_output_file_reg_segmented << pred_names_reg_segmented[au];					
+			for(int frame = 0; frame < all_predictions_reg_segmented[au].size(); ++frame)
+			{
+				au_output_file_reg_segmented << " " << all_predictions_reg_segmented[au][frame];
+			}
+			au_output_file_reg_segmented << std::endl;			
+		}
+
+		au_output_file_reg_segmented.close();
 	}
 	return 0;
 }
