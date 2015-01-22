@@ -3,7 +3,6 @@
 
 #include "SVR_dynamic_lin_regressors.h"
 #include "SVR_static_lin_regressors.h"
-#include "SVR_dynamic_lin_regressors_scale.h"
 #include "SVM_static_lin.h"
 #include "SVM_dynamic_lin.h"
 
@@ -126,7 +125,8 @@ private:
 	// The geometry descriptor (rigid followed by non-rigid shape parameters from CLM)
 	Mat_<double> geom_descriptor_frame;
 	Mat_<double> geom_descriptor_median;
-
+	
+	int geom_hist_sum;
 	Mat_<unsigned int> geom_desc_hist;
 	int num_bins_geom;
 	double min_val_geom;
@@ -159,8 +159,9 @@ private:
 	SVR_static_lin_regressors AU_SVR_static_appearance_lin_regressors;
 	SVR_dynamic_lin_regressors AU_SVR_dynamic_appearance_lin_regressors;
 		
-	SVR_dynamic_lin_regressors_scale arousal_predictor_lin_geom;
-	SVR_dynamic_lin_regressors_scale valence_predictor_lin_geom;
+	// TODO rem
+	//SVR_dynamic_lin_regressors_scale arousal_predictor_lin_geom;
+	//SVR_dynamic_lin_regressors_scale valence_predictor_lin_geom;
 
 	SVM_static_lin AU_SVM_static_appearance_lin;
 	SVM_dynamic_lin AU_SVM_dynamic_appearance_lin;

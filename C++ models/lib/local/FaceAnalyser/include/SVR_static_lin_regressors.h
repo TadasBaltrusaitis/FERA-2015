@@ -21,7 +21,7 @@ public:
 	{}
 
 	// Predict the AU from HOG appearance of the face
-	void Predict(std::vector<double>& predictions, std::vector<std::string>& names, const cv::Mat_<double>& fhog_descriptor);
+	void Predict(std::vector<double>& predictions, std::vector<std::string>& names, const cv::Mat_<double>& fhog_descriptor, const cv::Mat_<double>& geom_params);
 
 	// Reading in the model (or adding to it)
 	void Read(std::ifstream& stream, const std::vector<std::string>& au_names);

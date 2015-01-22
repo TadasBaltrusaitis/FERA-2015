@@ -35,9 +35,9 @@ FaceAnalyser::FaceAnalyser(vector<Vec3d> orientation_bins, double scale, int wid
 	min_val_hog = 0;
 
 	// The geometry histogram ranges from -3 to 3 TODO change this as we don't use scaling anymore
-	num_bins_geom = 400;
-	max_val_geom = 3;
-	min_val_geom = -3;
+	num_bins_geom = 10000;
+	max_val_geom = 60;
+	min_val_geom = -60;
 
 	av_prediction_correction_count = 0;
 		
@@ -60,6 +60,7 @@ FaceAnalyser::FaceAnalyser(vector<Vec3d> orientation_bins, double scale, int wid
 	hog_hist_sum.resize(head_orientations.size());
 	face_image_hist_sum.resize(head_orientations.size());
 	hog_desc_hist.resize(head_orientations.size());
+	geom_hist_sum = 0;
 	face_image_hist.resize(head_orientations.size());
 
 	au_prediction_correction_count.resize(head_orientations.size(), 0);
@@ -244,6 +245,13 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 
 	UpdateRunningMedian(this->hog_desc_hist[orientation_to_use], this->hog_hist_sum[orientation_to_use], this->hog_desc_median, hog_descriptor, update_median, this->num_bins_hog, this->min_val_hog, this->max_val_hog);
 	
+	// Geom descriptor and its median
+	geom_descriptor_frame = clm_model.params_local.t();
+
+	cout << geom_descriptor_frame << endl;
+
+	UpdateRunningMedian(this->geom_desc_hist, this->geom_hist_sum, this->geom_descriptor_median, geom_descriptor_frame, update_median, this->num_bins_geom, this->min_val_geom, this->max_val_geom);
+
 	// First convert the face image to double representation as a row vector
 	Mat_<uchar> aligned_face_cols(1, aligned_face.cols * aligned_face.rows * aligned_face.channels(), aligned_face.data, 1);
 	Mat_<double> aligned_face_cols_double;
@@ -303,87 +311,87 @@ void FaceAnalyser::PredictAUs(const cv::Mat_<double>& hog_features, const CLMTra
 	view_used = orientation_to_use;
 }
 
-void FaceAnalyser::PredictCurrentAVs(const CLMTracker::CLM& clm_model)
-{
-	// Can update the AU prediction track (used for predicting emotions)
-	// Pick out the predictions
-	Mat_<double> preds(1, AU_predictions_combined.size(), 0.0);
-	for( size_t i = 0; i < AU_predictions_combined.size(); ++i)
-	{
-		preds.at<double>(0, i) = AU_predictions_combined[i].second;
-	}
-
-	// Much smaller wait time for valence update (2.5 second)
-	AddDescriptor(AU_prediction_track, preds, this->frames_tracking - 1, 75);
-	Mat_<double> sum_stats_AU;
-	ExtractSummaryStatistics(AU_prediction_track, sum_stats_AU, true, false, false);
-	
-	vector<string> names_v;
-	vector<double> prediction_v;
-	valence_predictor_lin_geom.Predict(prediction_v, names_v, sum_stats_AU);
-	double valence_tmp = prediction_v[0];
-
-	// Arousal prediction
-	// Adding the geometry descriptor 
-	Mat_<double> geom_params;
-
-	// This is for tracking median of geometry parameters to subtract from the other models
-	Vec3d g_params(clm_model.params_global[1], clm_model.params_global[2], clm_model.params_global[3]);
-	geom_params.push_back(Mat(g_params));
-	geom_params.push_back(clm_model.params_local);
-	geom_params = geom_params.t();
-
-	AddDescriptor(geom_desc_track, geom_params, this->frames_tracking - 1);
-	Mat_<double> sum_stats_geom;
-	ExtractSummaryStatistics(geom_desc_track, sum_stats_geom, false, true, true);
-
-	sum_stats_geom = (sum_stats_geom - arousal_predictor_lin_geom.means)/arousal_predictor_lin_geom.scaling;
-
-	// Some clamping
-	sum_stats_geom.setTo(Scalar(-5), sum_stats_geom < -5);
-	sum_stats_geom.setTo(Scalar(5), sum_stats_geom > 5);
-
-	vector<string> names;
-	vector<double> prediction;
-	arousal_predictor_lin_geom.Predict(prediction, names, sum_stats_geom);
-	double arousal_tmp = prediction[0];
-
-	vector<double> correction(2, 0.0);
-	vector<pair<string,double>> predictions;
-	predictions.push_back(pair<string,double>("arousal", arousal_tmp));
-	predictions.push_back(pair<string,double>("valence", valence_tmp));
-
-	//UpdatePredictionTrack(av_prediction_correction_histogram, av_prediction_correction_count, correction, predictions, 0.5, 200, -1.0, 1.0, frames_for_adaptation);
-
-	//cout << "Corrections: ";
-	//for(size_t i = 0; i < correction.size(); ++i)
-	//{
-		//predictions[i].second = predictions[i].second - correction[i];
-		//cout << correction[i] << " ";
-	//}
-	//cout << endl;
-
-	// Correction of AU and Valence values (scale them for better visibility) (manual for now)
-	predictions[0].second = predictions[0].second + 0.1;
-
-	if(predictions[0].second > 0)
-	{
-		predictions[0].second = predictions[0].second * 1.5;
-	}
-
-	if(predictions[1].second > 0)
-	{
-		predictions[1].second = predictions[1].second * 1.5;
-	}
-	else
-	{
-		predictions[1].second = predictions[1].second * 1.5;
-	}
-
-	this->arousal_value = predictions[0].second;
-	this->valence_value = predictions[1].second;
-
-}
+//void FaceAnalyser::PredictCurrentAVs(const CLMTracker::CLM& clm_model)
+//{
+//	// Can update the AU prediction track (used for predicting emotions)
+//	// Pick out the predictions
+//	Mat_<double> preds(1, AU_predictions_combined.size(), 0.0);
+//	for( size_t i = 0; i < AU_predictions_combined.size(); ++i)
+//	{
+//		preds.at<double>(0, i) = AU_predictions_combined[i].second;
+//	}
+//
+//	// Much smaller wait time for valence update (2.5 second)
+//	AddDescriptor(AU_prediction_track, preds, this->frames_tracking - 1, 75);
+//	Mat_<double> sum_stats_AU;
+//	ExtractSummaryStatistics(AU_prediction_track, sum_stats_AU, true, false, false);
+//	
+//	vector<string> names_v;
+//	vector<double> prediction_v;
+//	valence_predictor_lin_geom.Predict(prediction_v, names_v, sum_stats_AU);
+//	double valence_tmp = prediction_v[0];
+//
+//	// Arousal prediction
+//	// Adding the geometry descriptor 
+//	Mat_<double> geom_params;
+//
+//	// This is for tracking median of geometry parameters to subtract from the other models
+//	Vec3d g_params(clm_model.params_global[1], clm_model.params_global[2], clm_model.params_global[3]);
+//	geom_params.push_back(Mat(g_params));
+//	geom_params.push_back(clm_model.params_local);
+//	geom_params = geom_params.t();
+//
+//	AddDescriptor(geom_desc_track, geom_params, this->frames_tracking - 1);
+//	Mat_<double> sum_stats_geom;
+//	ExtractSummaryStatistics(geom_desc_track, sum_stats_geom, false, true, true);
+//
+//	sum_stats_geom = (sum_stats_geom - arousal_predictor_lin_geom.means)/arousal_predictor_lin_geom.scaling;
+//
+//	// Some clamping
+//	sum_stats_geom.setTo(Scalar(-5), sum_stats_geom < -5);
+//	sum_stats_geom.setTo(Scalar(5), sum_stats_geom > 5);
+//
+//	vector<string> names;
+//	vector<double> prediction;
+//	arousal_predictor_lin_geom.Predict(prediction, names, sum_stats_geom);
+//	double arousal_tmp = prediction[0];
+//
+//	vector<double> correction(2, 0.0);
+//	vector<pair<string,double>> predictions;
+//	predictions.push_back(pair<string,double>("arousal", arousal_tmp));
+//	predictions.push_back(pair<string,double>("valence", valence_tmp));
+//
+//	//UpdatePredictionTrack(av_prediction_correction_histogram, av_prediction_correction_count, correction, predictions, 0.5, 200, -1.0, 1.0, frames_for_adaptation);
+//
+//	//cout << "Corrections: ";
+//	//for(size_t i = 0; i < correction.size(); ++i)
+//	//{
+//		//predictions[i].second = predictions[i].second - correction[i];
+//		//cout << correction[i] << " ";
+//	//}
+//	//cout << endl;
+//
+//	// Correction of AU and Valence values (scale them for better visibility) (manual for now)
+//	predictions[0].second = predictions[0].second + 0.1;
+//
+//	if(predictions[0].second > 0)
+//	{
+//		predictions[0].second = predictions[0].second * 1.5;
+//	}
+//
+//	if(predictions[1].second > 0)
+//	{
+//		predictions[1].second = predictions[1].second * 1.5;
+//	}
+//	else
+//	{
+//		predictions[1].second = predictions[1].second * 1.5;
+//	}
+//
+//	this->arousal_value = predictions[0].second;
+//	this->valence_value = predictions[1].second;
+//
+//}
 
 // Reset the models
 void FaceAnalyser::Reset()
@@ -398,6 +406,7 @@ void FaceAnalyser::Reset()
 		this->hog_desc_hist[i] = Mat_<unsigned int>(hog_desc_hist[i].rows, hog_desc_hist[i].cols, (unsigned int)0);
 		this->hog_hist_sum[i] = 0;
 
+
 		this->face_image_hist[i] = Mat_<unsigned int>(face_image_hist[i].rows, face_image_hist[i].cols, (unsigned int)0);
 		this->face_image_hist_sum[i] = 0;
 
@@ -408,6 +417,7 @@ void FaceAnalyser::Reset()
 
 	this->geom_descriptor_median.setTo(Scalar(0));
 	this->geom_desc_hist = Mat_<unsigned int>(geom_desc_hist.rows, geom_desc_hist.cols, (unsigned int)0);
+	geom_hist_sum = 0;
 
 	// Reset the predictions
 	AU_prediction_track = Mat_<double>(AU_prediction_track.rows, AU_prediction_track.cols, 0.0);
@@ -613,7 +623,7 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(int view, bool dyn_
 		vector<string> svr_lin_stat_aus;
 		vector<double> svr_lin_stat_preds;
 
-		AU_SVR_static_appearance_lin_regressors.Predict(svr_lin_stat_preds, svr_lin_stat_aus, hog_desc_frame);
+		AU_SVR_static_appearance_lin_regressors.Predict(svr_lin_stat_preds, svr_lin_stat_aus, hog_desc_frame, geom_descriptor_frame);
 
 		for(size_t i = 0; i < svr_lin_stat_preds.size(); ++i)
 		{
@@ -623,7 +633,7 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(int view, bool dyn_
 		vector<string> svr_lin_dyn_aus;
 		vector<double> svr_lin_dyn_preds;
 
-		AU_SVR_dynamic_appearance_lin_regressors.Predict(svr_lin_dyn_preds, svr_lin_dyn_aus, hog_desc_frame, this->hog_desc_median);
+		AU_SVR_dynamic_appearance_lin_regressors.Predict(svr_lin_dyn_preds, svr_lin_dyn_aus, hog_desc_frame, geom_descriptor_frame,  this->hog_desc_median, this->geom_descriptor_frame);
 
 		for(size_t i = 0; i < svr_lin_dyn_preds.size(); ++i)
 		{
@@ -690,7 +700,7 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUsSegmented(int view, 
 		vector<string> svr_lin_stat_aus;
 		vector<double> svr_lin_stat_preds;
 
-		AU_SVR_static_appearance_lin_regressors.Predict(svr_lin_stat_preds, svr_lin_stat_aus, hog_desc_frame);
+		AU_SVR_static_appearance_lin_regressors.Predict(svr_lin_stat_preds, svr_lin_stat_aus, hog_desc_frame, geom_descriptor_frame);
 
 		for(size_t i = 0; i < svr_lin_stat_preds.size(); ++i)
 		{
@@ -700,7 +710,7 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUsSegmented(int view, 
 		vector<string> svr_lin_dyn_aus;
 		vector<double> svr_lin_dyn_preds;
 
-		AU_SVR_dynamic_appearance_lin_regressors.Predict(svr_lin_dyn_preds, svr_lin_dyn_aus, hog_desc_frame, this->hog_desc_median);
+		AU_SVR_dynamic_appearance_lin_regressors.Predict(svr_lin_dyn_preds, svr_lin_dyn_aus, hog_desc_frame, geom_descriptor_frame, this->hog_desc_median, this->geom_descriptor_median);
 
 		for(size_t i = 0; i < svr_lin_dyn_preds.size(); ++i)
 		{
@@ -713,8 +723,8 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUsSegmented(int view, 
 		
 		for(size_t i = 0; i < correction.size(); ++i)
 		{
-			// TODO for segmented data might actually help
-			predictions[i].second = predictions[i].second - correction[i];
+			// TODO for segmented data might actually help			
+			//predictions[i].second = predictions[i].second - correction[i];
 
 			if(predictions[i].second < 1)
 				predictions[i].second = 1;
@@ -768,7 +778,7 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUsClass(int view)
 		vector<string> svm_lin_stat_aus;
 		vector<double> svm_lin_stat_preds;
 
-		AU_SVM_static_appearance_lin.Predict(svm_lin_stat_preds, svm_lin_stat_aus, hog_desc_frame);
+		AU_SVM_static_appearance_lin.Predict(svm_lin_stat_preds, svm_lin_stat_aus, hog_desc_frame, geom_descriptor_frame);
 
 		for(size_t i = 0; i < svm_lin_stat_aus.size(); ++i)
 		{
@@ -778,7 +788,7 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUsClass(int view)
 		vector<string> svm_lin_dyn_aus;
 		vector<double> svm_lin_dyn_preds;
 
-		AU_SVM_dynamic_appearance_lin.Predict(svm_lin_dyn_preds, svm_lin_dyn_aus, hog_desc_frame, this->hog_desc_median);
+		AU_SVM_dynamic_appearance_lin.Predict(svm_lin_dyn_preds, svm_lin_dyn_aus, hog_desc_frame, geom_descriptor_frame, this->hog_desc_median, this->geom_descriptor_median);
 
 		for(size_t i = 0; i < svm_lin_dyn_aus.size(); ++i)
 		{
@@ -942,7 +952,7 @@ void FaceAnalyser::ReadAV(std::string av_model_location)
 			vector<string> names;
 			names.push_back("arousal");
 
-			arousal_predictor_lin_geom.Read(regressor_stream, names);
+			//arousal_predictor_lin_geom.Read(regressor_stream, names);
 		}
 		if(strcmp(name.c_str(), "valence") == 0)
 		{
@@ -955,7 +965,7 @@ void FaceAnalyser::ReadAV(std::string av_model_location)
 			
 			vector<string> names;
 			names.push_back("arousal");
-			valence_predictor_lin_geom.Read(regressor_stream, names);
+			//valence_predictor_lin_geom.Read(regressor_stream, names);
 		}
 		
 	}

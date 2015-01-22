@@ -64,12 +64,23 @@ void SVM_static_lin::Read(std::ifstream& stream, const std::vector<std::string>&
 }
 
 // Prediction using the HOG descriptor
-void SVM_static_lin::Predict(std::vector<double>& predictions, std::vector<std::string>& names, const cv::Mat_<double>& fhog_descriptor)
+void SVM_static_lin::Predict(std::vector<double>& predictions, std::vector<std::string>& names, const cv::Mat_<double>& fhog_descriptor, const cv::Mat_<double>& geom_params)
 {
 	if(AU_names.size() > 0)
 	{
-		Mat_<double> preds = (fhog_descriptor - this->means) * this->support_vectors + this->biases;
-		
+		Mat_<double> preds;
+		if(fhog_descriptor.cols ==  this->means.cols)
+		{
+			preds = (fhog_descriptor - this->means) * this->support_vectors + this->biases;
+		}
+		else
+		{
+			Mat_<double> input;
+			cv::hconcat(fhog_descriptor, geom_params);
+
+			preds = (input - this->means) * this->support_vectors + this->biases;
+		}
+
 		for(int i = 0; i < preds.cols; ++i)
 		{		
 			if(preds.at<double>(i) > 0)

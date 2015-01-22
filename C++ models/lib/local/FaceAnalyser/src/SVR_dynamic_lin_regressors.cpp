@@ -53,12 +53,27 @@ void SVR_dynamic_lin_regressors::Read(std::ifstream& stream, const std::vector<s
 }
 
 // Prediction using the HOG descriptor
-void SVR_dynamic_lin_regressors::Predict(std::vector<double>& predictions, std::vector<std::string>& names, const cv::Mat_<double>& fhog_descriptor, const cv::Mat_<double>& running_median)
+void SVR_dynamic_lin_regressors::Predict(std::vector<double>& predictions, std::vector<std::string>& names, const cv::Mat_<double>& fhog_descriptor, const cv::Mat_<double>& geom_params,  const cv::Mat_<double>& running_median,  const cv::Mat_<double>& running_median_geom)
 {
 	if(AU_names.size() > 0)
 	{
-		Mat_<double> preds = (fhog_descriptor - this->means - running_median) * this->support_vectors + this->biases;
-		
+
+		Mat_<double> preds;
+		if(fhog_descriptor.cols ==  this->means.cols)
+		{
+			preds = (fhog_descriptor - this->means - running_median) * this->support_vectors + this->biases;
+		}
+		else
+		{
+			Mat_<double> input;
+			cv::hconcat(fhog_descriptor, geom_params);
+
+			Mat_<double> run_med;
+			cv::hconcat(running_median, running_median_geom);
+
+			preds = (input - this->means - run_med) * this->support_vectors + this->biases;
+		}
+
 		for(MatIterator_<double> pred_it = preds.begin(); pred_it != preds.end(); ++pred_it)
 		{		
 			predictions.push_back(*pred_it);

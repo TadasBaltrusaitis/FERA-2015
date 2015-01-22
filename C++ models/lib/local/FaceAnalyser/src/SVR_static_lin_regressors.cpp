@@ -53,12 +53,23 @@ void SVR_static_lin_regressors::Read(std::ifstream& stream, const std::vector<st
 }
 
 // Prediction using the HOG descriptor
-void SVR_static_lin_regressors::Predict(std::vector<double>& predictions, std::vector<std::string>& names, const cv::Mat_<double>& fhog_descriptor)
+void SVR_static_lin_regressors::Predict(std::vector<double>& predictions, std::vector<std::string>& names, const cv::Mat_<double>& fhog_descriptor, const cv::Mat_<double>& geom_params)
 {
 	if(AU_names.size() > 0)
 	{
-		Mat_<double> preds = (fhog_descriptor - this->means) * this->support_vectors + this->biases;
-		
+		Mat_<double> preds;
+		if(fhog_descriptor.cols ==  this->means.cols)
+		{
+			preds = (fhog_descriptor - this->means) * this->support_vectors + this->biases;
+		}
+		else
+		{
+			Mat_<double> input;
+			cv::hconcat(fhog_descriptor, geom_params);
+
+			preds = (input - this->means) * this->support_vectors + this->biases;
+		}
+
 		for(MatIterator_<double> pred_it = preds.begin(); pred_it != preds.end(); ++pred_it)
 		{		
 			predictions.push_back(*pred_it);
