@@ -66,11 +66,11 @@ hyperparams = {
 #                                                                  valid_labels, hyperparams, num_repeat=3)
 
 best_params = {
-   'batch_size': [100],
-   'learning_rate': [0.8],
-   'lambda_reg': [0.001],
-   'num_hidden': [200],
-   'final_layer': ['sigmoid'],
+   'batch_size': 100,
+   'learning_rate': 0.8,
+   'lambda_reg': 0.001,
+   'num_hidden': 200,
+   'final_layer': 'sigmoid',
    'error_func': 'euclidean',
    'pred_type': 'reg',
    'n_epochs': 200,

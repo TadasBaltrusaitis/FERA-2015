@@ -88,8 +88,11 @@ for a=1:numel(aus)
         assert(norm(preds_mine - actual_vals) < 1e-8);
 
         name = sprintf('trained/AU_%d_dynamic_joint.dat', au);
-
-        write_lin_dyn_svm(name, means, svs, b);
+        
+        pos_lbl = model.Label(1);
+        neg_lbl = model.Label(2);
+        
+        write_lin_dyn_svm(name, means, svs, b, pos_lbl, neg_lbl);
 
         name = sprintf('trained/AU_%d_dynamic_joint.mat', au);
 

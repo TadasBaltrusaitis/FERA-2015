@@ -90,7 +90,10 @@ for a=1:numel(aus)
 
         name = sprintf('trained/AU_%d_static_joint.dat', au);
 
-        write_lin_svm(name, means, svs, b);
+        pos_lbl = model.Label(1);
+        neg_lbl = model.Label(2);
+        
+        write_lin_svm(name, means, svs, b, pos_lbl, neg_lbl);
 
         name = sprintf('trained/AU_%d_static_joint.mat', au);
 

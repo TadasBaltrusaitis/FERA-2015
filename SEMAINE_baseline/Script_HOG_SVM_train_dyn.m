@@ -52,11 +52,14 @@ for a=1:numel(aus)
 
     assert(norm(preds_mine - actual_vals) < 1e-8);
 
-    name = sprintf('trained/AU_%d_dynamic.dat', au);
+    name = sprintf('paper_res/AU_%d_dynamic.dat', au);
+        
+    pos_lbl = model.Label(1);
+    neg_lbl = model.Label(2);
+        
+    write_lin_dyn_svm(name, means, svs, b, pos_lbl, neg_lbl);
 
-    write_lin_dyn_svm(name, means, svs, b);
-
-    name = sprintf('trained/AU_%d_dynamic.mat', au);
+    name = sprintf('paper_res/AU_%d_dynamic.mat', au);
 
     tp = sum(valid_labels == 1 & prediction == 1);
     fp = sum(valid_labels == 0 & prediction == 1);
