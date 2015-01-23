@@ -1,11 +1,10 @@
-function Script_HOG_SVM_train_joint()
+function Script_HOG_SVM_train_joint_static()
 
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
 addpath('../data extraction/');
 %% load shared definitions and AU data
 shared_defs;
-
 bp4d_au = intersect([1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23], all_aus);
 disfa_au = intersect([1,2,4,5,6,9,12,15,17,20,25,26], all_aus);
 
@@ -35,18 +34,23 @@ for a=1:numel(aus)
 
         find_SEMAINE;
         % load the training and testing data for the current fold
-        [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);
+        [train_samples, train_labels, test_samples, test_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);
 
+        valid_samples = test_samples;
+        valid_labels = test_labels;
+        
         if(ismember(aus(a), bp4d_au))
             od = cd('../BP4D_baseline/');
             find_BP4D;
-            rest_aus = setdiff(bp4d_au, au);    
-            [train_samples_bp4d, train_labels_bp4d, ~, ~, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc);
+            [train_samples_bp4d, train_labels_bp4d, valid_samples_bp4d, valid_labels_bp4d, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc);
             cd(od);
             
             % TODO should valid be included?
             train_samples = cat(1, train_samples, train_samples_bp4d);
             train_labels = cat(1, train_labels, train_labels_bp4d);
+            
+            valid_samples = cat(1, valid_samples, valid_samples_bp4d);
+            valid_labels = cat(1, valid_labels, valid_labels_bp4d);
             
         end
     
@@ -55,27 +59,32 @@ for a=1:numel(aus)
             od = cd('../DISFA_baseline/training/');
             all_disfa = [1,2,4,5,6,9,12,15,17,20,25,26];
             rest_aus = setdiff(all_disfa, au);    
-            [train_samples_disfa, train_labels_disfa, ~, ~, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic(users, au, rest_aus, hog_data_dir);            
+            [train_samples_disfa, train_labels_disfa, valid_samples_disfa, valid_labels_disfa, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic(users, au, rest_aus, hog_data_dir);            
             cd(od);
             % Binarise the models            
             train_labels_disfa(train_labels_disfa < 1) = 0;
             train_labels_disfa(train_labels_disfa >= 1) = 1;
             
+            valid_labels_disfa(valid_labels_disfa < 1) = 0;
+            valid_labels_disfa(valid_labels_disfa >= 1) = 1;
+            
             % TODO should valid be included?
             train_samples = cat(1, train_samples, train_samples_disfa);
             train_labels = cat(1, train_labels, train_labels_disfa);
             
+            valid_samples = cat(1, valid_samples, valid_samples_disfa);
+            valid_labels = cat(1, valid_labels, valid_labels_disfa);
         end
         
         train_samples = sparse(train_samples);
         valid_samples = sparse(valid_samples);
-
+        test_samples = sparse(test_samples);
         %% Cross-validate here                
         [ best_params, ~ ] = validate_grid_search(svm_train, svm_test, false, train_samples, train_labels, valid_samples, valid_labels, hyperparams);
 
         model = svm_train(train_labels, train_samples, best_params);        
 
-        [prediction, a, actual_vals] = predict(valid_labels, valid_samples, model);
+        [prediction, a, actual_vals] = predict(test_labels, test_samples, model);
 
         % Go from raw data to the prediction
         w = model.w(1:end-1)';
@@ -88,19 +97,19 @@ for a=1:numel(aus)
 
         assert(norm(preds_mine - actual_vals) < 1e-8);
 
-        name = sprintf('trained/AU_%d_static_joint.dat', au);
-
+        name = sprintf('paper_res/AU_%d_static_combined.dat', au);
+        
         pos_lbl = model.Label(1);
         neg_lbl = model.Label(2);
         
         write_lin_svm(name, means, svs, b, pos_lbl, neg_lbl);
 
-        name = sprintf('trained/AU_%d_static_joint.mat', au);
+        name = sprintf('paper_res/AU_%d_static_combined.mat', au);
 
-        tp = sum(valid_labels == 1 & prediction == 1);
-        fp = sum(valid_labels == 0 & prediction == 1);
-        fn = sum(valid_labels == 1 & prediction == 0);
-        tn = sum(valid_labels == 0 & prediction == 0);
+        tp = sum(test_labels == 1 & prediction == 1);
+        fp = sum(test_labels == 0 & prediction == 1);
+        fn = sum(test_labels == 1 & prediction == 0);
+        tn = sum(test_labels == 0 & prediction == 0);
 
         precision = tp/(tp+fp);
         recall = tp/(tp+fn);
