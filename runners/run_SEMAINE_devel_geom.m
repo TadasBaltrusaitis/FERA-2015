@@ -16,7 +16,7 @@ aus_SEMAINE = [2];
 
 [ labels, valid_ids, vid_ids  ] = extract_SEMAINE_labels(SEMAINE_dir, devel_recs, aus_SEMAINE);
 
-for f1=1:numel(devel_recs)
+parfor f1=1:numel(devel_recs)
 
 
     if(isdir([SEMAINE_dir, devel_recs{f1}]))

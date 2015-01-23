@@ -447,6 +447,7 @@ int main (int argc, char **argv)
 	
 	// TODO this might be done with a matrix
 	vector<vector<Mat_<double>>> hog_descriptors;
+	vector<vector<Mat_<double>>> geom_descriptors;
 
 	while(!done) // this is not a for loop as we might also be reading from a webcam
 	{
@@ -463,6 +464,7 @@ int main (int argc, char **argv)
 		detected_landmarks_video.push_back(vector<Mat_<double>>());
 	
 		hog_descriptors.push_back(vector<Mat_<double>>());
+		geom_descriptors.push_back(vector<Mat_<double>>());
 
 		if(video)
 		{
@@ -578,6 +580,8 @@ int main (int argc, char **argv)
 					face_analyser.GetLatestAlignedFace(sim_warped_img);
 					face_analyser.GetLatestHOG(hog_descriptor, num_hog_rows, num_hog_cols);
 					hog_descriptors[f_n].push_back(hog_descriptor.clone());
+					
+					geom_descriptors[f_n].push_back(clm_model.params_local.t());
 				}
 				else
 				{
@@ -748,7 +752,7 @@ int main (int argc, char **argv)
 			clm_model.params_global = params_global_video[i][frame];
 			clm_model.detection_success = successes_video[i][frame];
 				
-			face_analyser.PredictAUs(hog_descriptors[i][frame], clm_model);
+			face_analyser.PredictAUs(hog_descriptors[i][frame], geom_descriptors[i][frame], clm_model);
 
 			auto au_preds_class = face_analyser.GetCurrentAUsClass();
 			auto au_preds_reg = face_analyser.GetCurrentAUsReg();

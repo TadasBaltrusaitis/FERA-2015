@@ -30,7 +30,7 @@ public:
 	void AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm, double timestamp_seconds, bool visualise = true);
 
 	// If the features are extracted manually
-	void PredictAUs(const cv::Mat_<double>& hog_features, const CLMTracker::CLM& clm_model);
+	void PredictAUs(const cv::Mat_<double>& hog_features, const cv::Mat_<double>& geom_features, const CLMTracker::CLM& clm_model);
 
 	Mat GetLatestHOGDescriptorVisualisation();
 

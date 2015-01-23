@@ -247,7 +247,7 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	
 	// Geom descriptor and its median
 	geom_descriptor_frame = clm_model.params_local.t();
-
+	
 	UpdateRunningMedian(this->geom_desc_hist, this->geom_hist_sum, this->geom_descriptor_median, geom_descriptor_frame, update_median, this->num_bins_geom, this->min_val_geom, this->max_val_geom);
 
 	// First convert the face image to double representation as a row vector
@@ -289,13 +289,15 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 
 }
 
-void FaceAnalyser::PredictAUs(const cv::Mat_<double>& hog_features, const CLMTracker::CLM& clm_model)
+void FaceAnalyser::PredictAUs(const cv::Mat_<double>& hog_features, const cv::Mat_<double>& geom_features, const CLMTracker::CLM& clm_model)
 {
 	// Store the descriptor
 	hog_desc_frame = hog_features.clone();
+	this->geom_descriptor_frame = geom_features.clone();
 
 	Vec3d curr_orient(clm_model.params_global[1], clm_model.params_global[2], clm_model.params_global[3]);
 	int orientation_to_use = GetViewId(this->head_orientations, curr_orient);
+
 
 	//if(clm_model.detection_success)
 	//{
@@ -524,6 +526,7 @@ void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& h
 	if(histogram.empty())
 	{
 		histogram = Mat_<unsigned int>(descriptor.cols, num_bins, (unsigned int)0);
+		median = descriptor.clone();
 	}
 
 	if(update)
@@ -545,7 +548,8 @@ void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& h
 		// Update the histogram count
 		hist_count++;
 	}
-	if(hist_count <= 1)
+
+	if(hist_count == 1)
 	{
 		median = descriptor.clone();
 	}
@@ -563,7 +567,7 @@ void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& h
 				cummulative_sum += histogram.at<unsigned int>(i, j);
 				if(cummulative_sum > cutoff_point)
 				{
-					median.at<double>(i) = min_val + j * (max_val/num_bins) + (0.5*(length)/num_bins);
+					median.at<double>(i) = min_val + j * (length/num_bins) + (0.5*(length)/num_bins);
 					break;
 				}
 			}
