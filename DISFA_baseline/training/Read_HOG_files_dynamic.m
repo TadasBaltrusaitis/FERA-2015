@@ -59,47 +59,8 @@ function [hog_data, valid_data, vid_id] = Read_HOG_files_dynamic(users, hog_data
         
         curr_data = curr_data(1:curr_ind,:);
         
-        % Median normalise the data in a running median way
-        
- 
-        % Do the median computation every 5 frames then faster
-
-        med_file = sprintf('./medians/%s_%s.mat', 'LeftVideo', users{i});
-        
-        if(~exist(med_file, 'file'))
-            meds = zeros(size(curr_data));
-                   
-            num_every = 5;
-            filled_so_far = 0;
-            for m=1:num_every:size(curr_data,1)
-
-                if(m==1)
-                    curr_med = curr_data(1,:);
-                else                
-                    curr_med = median(curr_data(1:m,:), 1);
-                end
-
-                to_fill = num_every;
-
-                if(to_fill + filled_so_far > size(curr_data,1))
-                    to_fill = size(curr_data,1) - filled_so_far;
-                end       
-
-                meds(filled_so_far+1:filled_so_far+to_fill,:) = repmat(curr_med, to_fill, 1);
-                filled_so_far = filled_so_far + to_fill;            
-
-            end
-            
-            if(~exist('./medians', 'file'))
-                mkdir('./medians/');
-            end
-            
-            save(med_file, 'meds');
-        else
-           load(med_file); 
-        end
-        
-        curr_data(:,2:end) = bsxfun(@plus, curr_data(:,2:end), -meds(:,2:end));
+        % Median normalise the data
+        curr_data(:,2:end) = bsxfun(@plus, curr_data(:,2:end), -median(curr_data(:,2:end)));
         
         vid_id_curr = cell(curr_ind,1);
         vid_id_curr(:) = users(i);
