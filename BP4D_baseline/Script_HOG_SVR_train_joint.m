@@ -1,4 +1,4 @@
-function Script_HOG_SVR_train()
+function Script_HOG_SVR_train_joint()
 
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
@@ -19,6 +19,7 @@ svm_train = @svm_train_linear;
 svm_test = @svm_test_linear;
 
 pca_loc = '../pca_generation/generic_face_rigid.mat';
+all_aus_int = [6, 12, 17];
 
 %%
 for a=1:numel(all_aus_int)
@@ -28,6 +29,16 @@ for a=1:numel(all_aus_int)
     % load the training and testing data for the current fold
     [train_samples, train_labels, vid_ids_train, valid_samples, valid_labels, vid_ids_valid, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic_intensity(train_recs, devel_recs, au, BP4D_dir_int, hog_data_dir, pca_loc);
 
+    find_DISFA;
+    od = cd('../DISFA_baseline/training/');
+    all_disfa = [1,2,4,5,6,9,12,15,17,20,25,26];
+    rest_aus = setdiff(all_disfa, au);    
+    [train_samples_disfa, train_labels_disfa, ~, ~, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic(users, au, rest_aus, hog_data_dir);            
+    cd(od);
+
+    train_samples = cat(1, train_samples, train_samples_disfa);
+    train_labels = cat(1, train_labels, train_labels_disfa);    
+    
     train_samples = sparse(train_samples);
     valid_samples = sparse(valid_samples);
 
@@ -52,10 +63,10 @@ for a=1:numel(all_aus_int)
 
     assert(norm(preds_mine - actual_vals) < 1e-8);
 
-    name = sprintf('paper_res/AU_%d_static_intensity.dat', au);
+    name = sprintf('paper_res/AU_%d_static_intensity_combined.dat', au);
     write_lin_svr(name, means, svs, b);
 
-    name = sprintf('paper_res/AU_%d_static_intensity.mat', au);
+    name = sprintf('paper_res/AU_%d_static_intensity_combined.mat', au);
     
     correlation = corr(valid_labels, prediction);
     RMSE = sqrt(mean((valid_labels - prediction).^2));

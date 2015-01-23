@@ -9,8 +9,8 @@ num_test_folds = 27;
 shared_defs;
 
 % Set up the hyperparameters to be validated
-hyperparams.c = 10.^(-6:1:3);
-hyperparams.p = 2.^(-7:1:-1);
+hyperparams.c = 10.^(-6:2:3);
+hyperparams.p = 10.^(-2);
 
 hyperparams.validate_params = {'c', 'p'};
 
@@ -19,6 +19,8 @@ svr_train = @svm_train_linear;
     
 % Set the test function (the first output will be used for validation)
 svr_test = @svm_test_linear;
+
+aus = [6, 12, 17];
 
 %%
 for a=1:numel(aus)
@@ -56,11 +58,11 @@ for a=1:numel(aus)
 
     assert(norm(preds_mine - prediction) < 1e-8);
 
-    name = sprintf('trained/AU_%d_static.dat', au);
+    name = sprintf('paper_res/AU_%d_static_intensity.dat', au);
 
     write_lin_svr(name, means, svs, b);
 
-    name = sprintf('trained/AU_%d_static.mat', au);
+    name = sprintf('paper_res/AU_%d_static_intensity.mat', au);
 
     [ accuracies, F1s, corrs, rms, classes ] = evaluate_classification_results( prediction, valid_labels );    
 
