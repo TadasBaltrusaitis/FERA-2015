@@ -42,15 +42,12 @@ for a=1:numel(aus)
         if(ismember(aus(a), bp4d_au))
             od = cd('../BP4D_baseline/');
             find_BP4D;
-            [train_samples_bp4d, train_labels_bp4d, valid_samples_bp4d, valid_labels_bp4d, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic_dynamic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc);
+            [train_samples_bp4d, train_labels_bp4d, ~, ~, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic_dynamic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc);
             cd(od);
             
             % TODO should valid be included?
             train_samples = cat(1, train_samples, train_samples_bp4d);
-            train_labels = cat(1, train_labels, train_labels_bp4d);
-            
-            valid_samples = cat(1, valid_samples, valid_samples_bp4d);
-            valid_labels = cat(1, valid_labels, valid_labels_bp4d);
+            train_labels = cat(1, train_labels, train_labels_bp4d);            
             
         end
     
@@ -59,21 +56,15 @@ for a=1:numel(aus)
             od = cd('../DISFA_baseline/training/');
             all_disfa = [1,2,4,5,6,9,12,15,17,20,25,26];
             rest_aus = setdiff(all_disfa, au);    
-            [train_samples_disfa, train_labels_disfa, valid_samples_disfa, valid_labels_disfa, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic_dynamic(users, au, rest_aus, hog_data_dir);            
+            [train_samples_disfa, train_labels_disfa, ~, ~, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic_dynamic(users, au, rest_aus, hog_data_dir);            
             cd(od);
             % Binarise the models            
             train_labels_disfa(train_labels_disfa < 1) = 0;
             train_labels_disfa(train_labels_disfa >= 1) = 1;
-            
-            valid_labels_disfa(valid_labels_disfa < 1) = 0;
-            valid_labels_disfa(valid_labels_disfa >= 1) = 1;
-            
+                        
             % TODO should valid be included?
             train_samples = cat(1, train_samples, train_samples_disfa);
             train_labels = cat(1, train_labels, train_labels_disfa);
-            
-            valid_samples = cat(1, valid_samples, valid_samples_disfa);
-            valid_labels = cat(1, valid_labels, valid_labels_disfa);
         end
         
         train_samples = sparse(train_samples);
@@ -97,14 +88,14 @@ for a=1:numel(aus)
 
         assert(norm(preds_mine - actual_vals) < 1e-8);
 
-        name = sprintf('paper_res/AU_%d_dynamic_combined.dat', au);
+        name = sprintf('paper_res/AU_%d_dynamic_combined_v_sem.dat', au);
         
         pos_lbl = model.Label(1);
         neg_lbl = model.Label(2);
         
         write_lin_dyn_svm(name, means, svs, b, pos_lbl, neg_lbl);
 
-        name = sprintf('paper_res/AU_%d_dynamic_combined.mat', au);
+        name = sprintf('paper_res/AU_%d_dynamic_combined_v_sem.mat', au);
 
         tp = sum(test_labels == 1 & prediction == 1);
         fp = sum(test_labels == 0 & prediction == 1);
