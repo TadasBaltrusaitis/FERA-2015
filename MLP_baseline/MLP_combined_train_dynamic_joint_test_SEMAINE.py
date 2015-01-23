@@ -16,9 +16,6 @@ pca_loc = "../pca_generation/generic_face_rigid"
 [train_samples_bp4d, train_labels_bp4d, valid_samples_bp4d, valid_labels_bp4d, _, PC, means, scaling] = \
     data_preparation.Prepare_HOG_AU_data_generic_BP4D_dynamic(train_recs, devel_recs, all_aus_bp4d, BP4D_dir, hog_data_dir, pca_loc)
 
-train_recs += devel_recs
-devel_recs = train_recs[0:1]
-
 (all_aus_semaine, train_recs, devel_recs, semaine_dir, hog_data_dir) = shared_defs_SEMAINE.shared_defs()
 
 # load the training and testing data for the current fold

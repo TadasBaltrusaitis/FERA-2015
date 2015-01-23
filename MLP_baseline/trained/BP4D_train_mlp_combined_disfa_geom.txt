@@ -1,5 +1,5 @@
-{'lambda_reg': 0.001, 'num_hidden': 200, 'result': 0.55491929478435653, 'learning_rate': 0.2, 'batch_size': 100, 'n_epochs': 1000}
-1 0.4917 0.4508 0.4704
-4 0.4122 0.5073 0.4548
-6 0.7339 0.7919 0.7618
-15 0.6889 0.4057 0.5106
+{'lambda_reg': 1e-05, 'num_hidden': 300, 'validate_params': ['batch_size', 'learning_rate', 'lambda_reg', 'num_hidden'], 'learning_rate': 0.8, 'batch_size': 100, 'n_epochs': 200}
+1 0.4415 0.4527 0.4471
+4 0.3846 0.5324 0.4466
+6 0.7409 0.7889 0.7641
+15 0.4633 0.4774 0.4703

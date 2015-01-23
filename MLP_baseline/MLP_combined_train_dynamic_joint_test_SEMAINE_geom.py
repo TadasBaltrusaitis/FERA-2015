@@ -16,9 +16,6 @@ pca_loc = "../pca_generation/generic_face_rigid"
 [train_samples_bp4d, train_labels_bp4d, valid_samples_bp4d, valid_labels_bp4d, _, PC, means, scaling] = \
     data_preparation.Prepare_HOG_AU_data_generic_BP4D_dynamic(train_recs, devel_recs, all_aus_bp4d, BP4D_dir, hog_data_dir, pca_loc, geometry=True)
 
-train_recs += devel_recs
-devel_recs = train_recs[0:1]
-
 (all_aus_semaine, train_recs, devel_recs, semaine_dir, hog_data_dir) = shared_defs_SEMAINE.shared_defs()
 
 # load the training and testing data for the current fold
@@ -55,13 +52,13 @@ train_labels = numpy.concatenate((train_labels_bp4d[:, inds_to_use_bp4d],
 
 
 
-hyperparams = {
-    'batch_size': [100],
-    'learning_rate': [0.02, 0.04, 0.1],
-    'lambda_reg': [0.0001, 0.001, 0.01],
-    'num_hidden': [100, 200, 300, 400],
-    'n_epochs': 20,
-    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
+#hyperparams = {
+#    'batch_size': [100],
+#    'learning_rate': [0.02, 0.04, 0.1],
+#    'lambda_reg': [0.0001, 0.001, 0.01],
+#    'num_hidden': [100, 200, 300, 400],
+#    'n_epochs': 100,
+#    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
 import validation_helpers
 
@@ -74,13 +71,34 @@ valid_labels = valid_labels_semaine[:, inds_to_use_semaine]
 print numpy.mean(train_labels, axis=0), numpy.mean(valid_labels, axis=0)
 
 # Cross-validate here
-best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
-                                                                  False, train_samples, train_labels, valid_samples,
-                                                                  valid_labels, hyperparams, num_repeat=3)
-print 'All params', all_params
+#best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
+#                                                                  False, train_samples, train_labels, valid_samples,
+#                                                                  valid_labels, hyperparams, num_repeat=3)
+#print 'All params', all_params
+
+best_params = {
+    'batch_size': 100,
+    'learning_rate': 0.1,
+    'lambda_reg': 0.001,
+    'num_hidden': 200,
+    'n_epochs': 200,
+    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
+
+
 print 'Best params', best_params
 
-model = train_fn(train_labels, train_samples, valid_labels, valid_samples, best_params)
+f1_b = 0
+
+for i in range(3):
+    model = train_fn(train_labels, train_samples, valid_labels, valid_samples, best_params)
+    _, _, _, _, f1, _, _ = test_fn(valid_labels_semaine[:, inds_to_use_semaine], valid_samples_semaine, model)
+    if numpy.mean(f1) > f1_b:
+        best_model = model
+        f1_b = numpy.mean(f1)
+
+model = best_model
+
+model = best_model
 
 # Test on SEMAINE
 _, _, _, _, f1s, precisions, recalls = test_fn(valid_labels_semaine[:, inds_to_use_semaine], valid_samples_semaine, model)
@@ -112,13 +130,13 @@ train_labels = numpy.concatenate((train_labels_semaine[:, inds_to_use_semaine],
 valid_samples = valid_samples_semaine
 valid_labels = valid_labels_semaine[:, inds_to_use_semaine]
 
-hyperparams = {
-    'batch_size': [100],
-    'learning_rate': [0.02, 0.04, 0.1],
-    'lambda_reg': [0.0001, 0.001, 0.01],
-    'num_hidden': [100, 200, 300, 400],
-    'n_epochs': 20,
-    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
+#hyperparams = {
+#    'batch_size': [100],
+#    'learning_rate': [0.02, 0.04, 0.1],
+#    'lambda_reg': [0.0001, 0.001, 0.01],
+#    'num_hidden': [100, 200, 300, 400],
+#    'n_epochs': 100,
+#    'validate_params': ["batch_size", "learning_rate", "lambda_reg", 'num_hidden']}
 
 
 print train_samples.shape, train_labels.shape, valid_samples.shape, valid_labels.shape
@@ -129,13 +147,22 @@ train_fn = mlp.train_mlp_probe
 test_fn = mlp.test_mlp_class
 
 # Cross-validate here
-best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
-                                                                  False, train_samples, train_labels, valid_samples,
-                                                                  valid_labels, hyperparams, num_repeat=3)
-print 'All params', all_params
+#best_params, all_params = validation_helpers.validate_grid_search_cheat(train_fn, test_fn,
+#                                                                  False, train_samples, train_labels, valid_samples,
+#                                                                  valid_labels, hyperparams, num_repeat=3)
+#print 'All params', all_params
 print 'Best params', best_params
 
-model = train_fn(train_labels, train_samples, valid_labels, valid_samples, best_params)
+f1_b = 0
+
+for i in range(3):
+    model = train_fn(train_labels, train_samples, valid_labels, valid_samples, best_params)
+    _, _, _, _, f1, _, _ = test_fn(valid_labels_semaine[:, inds_to_use_semaine], valid_samples_semaine, model)
+    if numpy.mean(f1) > f1_b:
+        best_model = model
+        f1_b = numpy.mean(f1)
+
+model = best_model
 
 # Test on SEMAINE
 _, _, _, _, f1s, precisions, recalls = test_fn(valid_labels_semaine[:, inds_to_use_semaine], valid_samples_semaine, model)
