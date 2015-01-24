@@ -743,7 +743,7 @@ int main (int argc, char **argv)
 		vector<string> pred_names_class;
 		vector<string> pred_names_reg;
 		vector<string> pred_names_reg_segmented;
-
+		
 		for(size_t frame = 0; frame < params_global_video[i].size(); ++frame)
 		{
 		
@@ -796,24 +796,37 @@ int main (int argc, char **argv)
 
 		}		
 				
+		vector<string> sorted(pred_names_class);
+		std::sort(sorted.begin(), sorted.end());
+
 		if(!output_aus_class.empty())	
 		{
 			std::ofstream au_output_file_class;
 			au_output_file_class.open(output_aus_class[i], ios_base::out);
 
 			// Print the results here
-			for(int au = 0; au < pred_names_class.size(); ++au)
+			for(int au_out = 0; au_out < pred_names_class.size(); ++au_out)
 			{			
-				au_output_file_class << pred_names_class[au];					
-				for(int frame = 0; frame < all_predictions_class[au].size(); ++frame)
+				for(int au = 0; au < pred_names_class.size(); ++au)
 				{
-					au_output_file_class << " " << all_predictions_class[au][frame];
+					if(pred_names_class[au].compare(sorted[au_out]) == 0)
+					{
+						au_output_file_class << pred_names_class[au];					
+						for(int frame = 0; frame < all_predictions_class[au].size(); ++frame)
+						{
+							au_output_file_class << " " << all_predictions_class[au][frame];
+						}
+						au_output_file_class << std::endl;			
+						break;
+					}
 				}
-				au_output_file_class << std::endl;			
 			}
 
 			au_output_file_class.close();
 		}
+
+		vector<string> sorted_reg(pred_names_reg);
+		std::sort(sorted_reg.begin(), sorted_reg.end());
 
 		if(!output_aus_reg.empty())	
 		{
@@ -822,18 +835,28 @@ int main (int argc, char **argv)
 			au_output_file_reg.open(output_aus_reg[i], ios_base::out);
 
 			// Print the results here
-			for(int au = 0; au < pred_names_reg.size(); ++au)
+			for(int au_out = 0; au_out < pred_names_reg.size(); ++au_out)
 			{			
-				au_output_file_reg << pred_names_reg[au];					
-				for(int frame = 0; frame < all_predictions_reg[au].size(); ++frame)
+				for(int au = 0; au < pred_names_reg.size(); ++au)
 				{
-					au_output_file_reg << " " << all_predictions_reg[au][frame];
+					if(pred_names_reg[au].compare(sorted_reg[au_out]) == 0)
+					{
+						au_output_file_reg << pred_names_reg[au];					
+						for(int frame = 0; frame < all_predictions_reg[au].size(); ++frame)
+						{
+							au_output_file_reg << " " << all_predictions_reg[au][frame];
+						}
+						au_output_file_reg << std::endl;			
+						break;
+					}
 				}
-				au_output_file_reg << std::endl;			
 			}
 
 			au_output_file_reg.close();
 		}
+
+		vector<string> sorted_reg_segmented(pred_names_reg_segmented);
+		std::sort(sorted_reg_segmented.begin(), sorted_reg_segmented.end());
 
 		if(!output_aus_reg_segmented.empty())	
 		{
@@ -841,14 +864,21 @@ int main (int argc, char **argv)
 			au_output_file_reg_segmented.open(output_aus_reg_segmented[i], ios_base::out);
 
 			// Print the results here
-			for(int au = 0; au < pred_names_reg_segmented.size(); ++au)
+			for(int au_out = 0; au_out < pred_names_reg_segmented.size(); ++au_out)
 			{			
-				au_output_file_reg_segmented << pred_names_reg_segmented[au];					
-				for(int frame = 0; frame < all_predictions_reg_segmented[au].size(); ++frame)
+				for(int au = 0; au < pred_names_reg_segmented.size(); ++au)
 				{
-					au_output_file_reg_segmented << " " << all_predictions_reg_segmented[au][frame];
+					if(pred_names_reg_segmented[au].compare(sorted_reg_segmented[au_out]) == 0)
+					{
+						au_output_file_reg_segmented << pred_names_reg_segmented[au];					
+						for(int frame = 0; frame < all_predictions_reg_segmented[au].size(); ++frame)
+						{
+							au_output_file_reg_segmented << " " << all_predictions_reg_segmented[au][frame];
+						}
+						au_output_file_reg_segmented << std::endl;			
+						break;
+					}
 				}
-				au_output_file_reg_segmented << std::endl;			
 			}
 
 			au_output_file_reg_segmented.close();
