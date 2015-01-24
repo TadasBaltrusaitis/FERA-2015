@@ -25,7 +25,7 @@ all_aus_int = [6, 12, 17];
 for a=1:numel(all_aus_int)
     
     au = all_aus_int(a);
-            
+    find_BP4D;       
     % load the training and testing data for the current fold
     [train_samples, train_labels, vid_ids_train, valid_samples, valid_labels, vid_ids_valid, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic_intensity(train_recs, devel_recs, au, BP4D_dir_int, hog_data_dir, pca_loc);
 
@@ -71,8 +71,9 @@ for a=1:numel(all_aus_int)
     correlation = corr(valid_labels, prediction);
     RMSE = sqrt(mean((valid_labels - prediction).^2));
     
-    % convert to binary as well (to compare)    
-    [~, ~, valid_samples_bin, valid_labels_bin] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc);    
+    find_BP4D;       
+    % convert to binary as well (to compare)
+    [~, ~, ~, valid_samples_bin, valid_labels_bin] = Prepare_HOG_AU_data_generic_intensity(train_recs, devel_recs, au, BP4D_dir_int, hog_data_dir, pca_loc);    
     
     [prediction, a, actual_vals] = predict(valid_labels_bin, sparse(valid_samples_bin), model);
     
