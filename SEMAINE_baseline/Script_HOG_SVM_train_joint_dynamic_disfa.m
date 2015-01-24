@@ -40,7 +40,7 @@ for a=1:numel(aus)
             od = cd('../DISFA_baseline/training/');
             all_disfa = [1,2,4,5,6,9,12,15,17,20,25,26];
             rest_aus = setdiff(all_disfa, au);    
-            [train_samples, train_labels, valid_samples, valid_labels, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic_dynamic(users, au, rest_aus, hog_data_dir);            
+            [train_samples, train_labels, ~, ~, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic_dynamic(users, au, rest_aus, hog_data_dir);            
             cd(od);
             
             find_SEMAINE;
@@ -48,17 +48,13 @@ for a=1:numel(aus)
             
             % Binarise the models            
             train_labels(train_labels < 1) = 0;
-            train_labels(train_labels >= 1) = 1;
-                    
-            valid_labels(valid_labels < 1) = 0;
-            valid_labels(valid_labels >= 1) = 1;
+            train_labels(train_labels >= 1) = 1;                    
             
             train_samples = sparse(train_samples);
-            valid_samples = sparse(valid_samples);
             test_samples = sparse(test_samples);
             
             %% Cross-validate here                
-            [ best_params, ~ ] = validate_grid_search(svm_train, svm_test, false, train_samples, train_labels, valid_samples, valid_labels, hyperparams);
+            [ best_params, ~ ] = validate_grid_search(svm_train, svm_test, false, train_samples, train_labels, test_samples, test_labels, hyperparams);
 
             model = svm_train(train_labels, train_samples, best_params);        
 
