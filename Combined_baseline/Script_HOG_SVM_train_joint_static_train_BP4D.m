@@ -1,4 +1,4 @@
-function Script_HOG_SVM_train_joint_static_train_SEMAINE()
+function Script_HOG_SVM_train_joint_static_train_BP4D()
 
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
@@ -57,8 +57,8 @@ for a=1:numel(aus)
     valid_samples = cat(1, valid_samples_semaine, valid_samples_bp4d, valid_samples_disfa);
     valid_labels = cat(1, valid_labels_semaine, valid_labels_bp4d, valid_labels_disfa);            
 
-    train_samples = train_samples_semaine;
-    train_labels = train_labels_semaine;
+    train_samples = train_samples_bp4d;
+    train_labels = train_labels_bp4d;
     
     train_samples = sparse(train_samples);
     valid_samples = sparse(valid_samples);
@@ -83,14 +83,14 @@ for a=1:numel(aus)
 
 %     assert(norm(preds_mine - actual_vals) < 1e-8);
 
-    name = sprintf('paper_res/AU_%d_static_combined_semaine.dat', au);
+    name = sprintf('paper_res/AU_%d_static_combined_bp4d.dat', au);
 
     pos_lbl = model.Label(1);
     neg_lbl = model.Label(2);
 
     write_lin_svm(name, means, svs, b, pos_lbl, neg_lbl);
 
-    name = sprintf('paper_res/AU_%d_static_combined_semaine.mat', au);
+    name = sprintf('paper_res/AU_%d_static_combined_bp4d.mat', au);
 
     tp_semaine = sum(valid_labels_semaine == 1 & prediction_semaine == 1);
     fp_semaine = sum(valid_labels_semaine == 0 & prediction_semaine == 1);
