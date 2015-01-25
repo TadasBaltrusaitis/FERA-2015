@@ -40,7 +40,7 @@ for a=1:numel(aus)
             od = cd('../BP4D_baseline/');
             all_bp4d = [1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23];
             rest_aus = setdiff(all_bp4d, au);    
-            [train_samples, train_labels, valid_samples, valid_labels, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic_dynamic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc);            
+            [train_samples, train_labels, ~, ~, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic_dynamic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc);            
             cd(od);
             
             find_SEMAINE;
@@ -49,16 +49,12 @@ for a=1:numel(aus)
             % Binarise the models            
             train_labels(train_labels < 1) = 0;
             train_labels(train_labels >= 1) = 1;
-                    
-            valid_labels(valid_labels < 1) = 0;
-            valid_labels(valid_labels >= 1) = 1;
-            
+                                
             train_samples = sparse(train_samples);
-            valid_samples = sparse(valid_samples);
             test_samples = sparse(test_samples);
             
             %% Cross-validate here                
-            [ best_params, ~ ] = validate_grid_search(svm_train, svm_test, false, train_samples, train_labels, valid_samples, valid_labels, hyperparams);
+            [ best_params, ~ ] = validate_grid_search(svm_train, svm_test, false, train_samples, train_labels, test_samples, test_labels, hyperparams);
 
             model = svm_train(train_labels, train_samples, best_params);        
 

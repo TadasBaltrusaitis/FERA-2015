@@ -1,12 +1,12 @@
-function Script_HOG_SVM_train_joint_static_bp4d()
+function Script_HOG_SVM_train_joint_dynamic_disfa()
 
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
 addpath('../data extraction/');
 %% load shared definitions and AU data
 shared_defs;
-bp4d_au = intersect([1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23], all_aus);
-%disfa_au = intersect([1,2,4,5,6,9,12,15,17,20,25,26], all_aus);
+%bp4d_au = intersect([1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23], all_aus);
+disfa_au = intersect([1,2,4,5,6,9,12,15,17,20,25,26], all_aus);
 
 % Set up the hyperparameters to be validated
 hyperparams.c = 10.^(-6:1:3);
@@ -26,7 +26,7 @@ pca_loc = '../pca_generation/generic_face_rigid.mat';
 %%
 for a=1:numel(aus)
     
-    if(ismember(aus(a), bp4d_au))
+    if(ismember(aus(a), disfa_au))
     
         au = aus(a);
 
@@ -34,13 +34,13 @@ for a=1:numel(aus)
 
         % load the training and testing data for the current fold
         
-        if(ismember(aus(a), bp4d_au))
+        if(ismember(aus(a), disfa_au))
         
-            find_BP4D;
-            od = cd('../BP4D_baseline/');
-            all_bp4d = [1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23];
-            rest_aus = setdiff(all_bp4d, au);    
-            [train_samples, train_labels, ~, ~, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc);            
+            find_DISFA;
+            od = cd('../DISFA_baseline/training/');
+            all_disfa = [1,2,4,5,6,9,12,15,17,20,25,26];
+            rest_aus = setdiff(all_disfa, au);    
+            [train_samples, train_labels, ~, ~, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic(users, au, rest_aus, hog_data_dir);            
             cd(od);
             
             find_SEMAINE;
@@ -48,8 +48,7 @@ for a=1:numel(aus)
             
             % Binarise the models            
             train_labels(train_labels < 1) = 0;
-            train_labels(train_labels >= 1) = 1;
-                    
+            train_labels(train_labels >= 1) = 1;                    
             
             train_samples = sparse(train_samples);
             test_samples = sparse(test_samples);
@@ -76,7 +75,7 @@ for a=1:numel(aus)
 
             %write_lin_dyn_svm(name, means, svs, b);
 
-            name = sprintf('paper_res/AU_%d_train_BP4D_test_SEMAINE_static.mat', au);
+            name = sprintf('paper_res/AU_%d_train_DISFA_test_SEMAINE_static.mat', au);
 
             tp = sum(test_labels == 1 & prediction == 1);
             fp = sum(test_labels == 0 & prediction == 1);
