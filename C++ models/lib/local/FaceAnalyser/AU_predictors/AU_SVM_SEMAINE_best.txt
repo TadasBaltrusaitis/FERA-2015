@@ -9,3 +9,8 @@ svr_lin_bp4d_geom/AU_10_static_intensity.dat AU10
 svr_lin_bp4d_geom/AU_12_static_intensity.dat AU12
 svr_lin_bp4d_geom/AU_14_static_intensity.dat AU14
 svr_lin_bp4d_geom/AU_17_static_intensity.dat AU17
+svr_lin_bp4d_geom/AU_6_static_intensity_segmented.dat AU06
+svr_lin_bp4d_geom/AU_10_static_intensity_segmented.dat AU10
+svr_lin_bp4d_geom/AU_12_static_intensity_segmented.dat AU12
+svr_lin_bp4d_geom/AU_14_static_intensity_segmented.dat AU14
+svr_lin_bp4d_geom/AU_17_static_intensity_segmented.dat AU17

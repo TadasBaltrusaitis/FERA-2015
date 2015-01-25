@@ -36,7 +36,6 @@ parfor f1=1:numel(devel_recs)
 
             command = cat(2, command, [' -f "' curr_vid '" -oausclass "' output_aus '" -ef ' num2str(vid_ids(f1,2)) ' -bf ' num2str(vid_ids(f1,1))]);            
             dos(command);
-
         end
     end
 end
