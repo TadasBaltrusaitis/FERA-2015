@@ -1,4 +1,4 @@
-function Script_HOG_SVR_train_joint_segmented()
+function Script_HOG_SVR_train_disfa_segmented()
 
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
@@ -27,7 +27,7 @@ for a=1:numel(all_aus_int)
     au = all_aus_int(a);
     find_BP4D;       
     % load the training and testing data for the current fold
-    [train_samples, train_labels, vid_ids_train, valid_samples, valid_labels, vid_ids_valid, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic_intensity_segmented(train_recs, devel_recs, au, BP4D_dir_int, hog_data_dir, pca_loc);
+    [~, ~, vid_ids_train, valid_samples, valid_labels, vid_ids_valid, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic_intensity_segmented(train_recs, devel_recs, au, BP4D_dir_int, hog_data_dir, pca_loc);
 
     find_DISFA;
     od = cd('../DISFA_baseline/training/');
@@ -38,8 +38,8 @@ for a=1:numel(all_aus_int)
     train_labels_disfa = train_labels_disfa(train_labels_disfa > 0);
     cd(od);
 
-    train_samples = cat(1, train_samples, train_samples_disfa);
-    train_labels = cat(1, train_labels, train_labels_disfa);    
+    train_samples = train_samples_disfa;
+    train_labels = train_labels_disfa;    
     
     train_samples = sparse(train_samples);
     valid_samples = sparse(valid_samples);
@@ -65,10 +65,10 @@ for a=1:numel(all_aus_int)
 
     assert(norm(preds_mine - actual_vals) < 1e-8);
 
-    name = sprintf('paper_res/AU_%d_static_intensity_combined_segmented.dat', au);
+    name = sprintf('paper_res/AU_%d_static_intensity_disfa_segmented.dat', au);
     write_lin_svr_seg(name, means, svs, b);
 
-    name = sprintf('paper_res/AU_%d_static_intensity_combined_segmented.mat', au);
+    name = sprintf('paper_res/AU_%d_static_intensity_disfa_segmented.mat', au);
     
     correlation = corr(valid_labels, prediction);
     RMSE = sqrt(mean((valid_labels - prediction).^2));
