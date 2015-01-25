@@ -94,7 +94,7 @@ for a=1:numel(aus)
         pos_lbl = model.Label(1);
         neg_lbl = model.Label(2);
         
-        write_lin_dyn_svm(name, means, svs, b, pos_lbl, neg_lbl);
+        write_lin_svm(name, means, svs, b, pos_lbl, neg_lbl);
 
         name = sprintf('paper_res/AU_%d__static_combined_v_bp4d.mat', au);
 

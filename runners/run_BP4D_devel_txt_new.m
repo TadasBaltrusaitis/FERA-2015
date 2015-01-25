@@ -3,9 +3,9 @@ clear
 addpath('../data extraction/');
 find_BP4D;
 
-bp4d_loc = [BP4D_dir '../BP4D/BP4D-training/'];
+bp4d_loc = [BP4D_dir '../BP4D-training/'];
 
-out_loc = './out_bp4d_all_combined/';
+out_loc = './out_bp4d_all_combined_v2/';
 
 if(~exist(out_loc, 'dir'))
     mkdir(out_loc);

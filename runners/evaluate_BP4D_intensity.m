@@ -4,7 +4,7 @@ find_BP4D;
 
 aus_BP4D = [6, 10, 12, 14, 17];
 
-root = 'out_bp4d_all_latest/';
+root = 'out_bp4d_all_combined_v2/';
 
 [ labels_gt, valid_ids, vid_ids, filenames] = extract_BP4D_labels_intensity(BP4D_dir_int, devel_recs, aus_BP4D);
 

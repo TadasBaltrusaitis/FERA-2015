@@ -82,3 +82,5 @@ DISFA_baseline/training_labels/
 runners/out_bp4d_all_latest/
 runners/out_SEMAINE_best/
 ~$results_v2.xlsx
+runners/out_bp4d_all_combined_v2/
+runners/out_bp4d_all_combined/
