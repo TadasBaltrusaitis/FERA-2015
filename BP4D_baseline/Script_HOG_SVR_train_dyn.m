@@ -52,10 +52,10 @@ for a=1:numel(all_aus_int)
 
     assert(norm(preds_mine - actual_vals) < 1e-8);
 
-    name = sprintf('trained/AU_%d_dynamic_intensity.dat', au);
+    name = sprintf('paper_res/AU_%d_dynamic_intensity.dat', au);
     write_lin_dyn_svr(name, means, svs, b);
 
-    name = sprintf('trained/AU_%d_dynamic_intensity.mat', au);
+    name = sprintf('paper_res/AU_%d_dynamic_intensity.mat', au);
     
     correlation = corr(valid_labels, prediction);
     RMSE = sqrt(mean((valid_labels - prediction).^2));
