@@ -1,5 +1,0 @@
-svr_lin_bp4d/AU_6_static_intensity.dat AU6
-svr_lin_bp4d/AU_10_static_intensity.dat AU10
-svr_lin_bp4d/AU_12_static_intensity.dat AU12
-svr_lin_bp4d/AU_14_static_intensity.dat AU14
-svr_lin_bp4d/AU_17_static_intensity.dat AU17

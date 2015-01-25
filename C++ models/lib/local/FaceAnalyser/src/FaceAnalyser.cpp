@@ -702,7 +702,7 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUsSegmented(int view, 
 		vector<string> svr_lin_stat_aus;
 		vector<double> svr_lin_stat_preds;
 
-		AU_SVR_static_appearance_lin_regressors.Predict(svr_lin_stat_preds, svr_lin_stat_aus, hog_desc_frame, geom_descriptor_frame);
+		AU_SVR_static_appearance_lin_regressors_seg.Predict(svr_lin_stat_preds, svr_lin_stat_aus, hog_desc_frame, geom_descriptor_frame);
 
 		for(size_t i = 0; i < svr_lin_stat_preds.size(); ++i)
 		{
@@ -712,7 +712,7 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUsSegmented(int view, 
 		vector<string> svr_lin_dyn_aus;
 		vector<double> svr_lin_dyn_preds;
 
-		AU_SVR_dynamic_appearance_lin_regressors.Predict(svr_lin_dyn_preds, svr_lin_dyn_aus, hog_desc_frame, geom_descriptor_frame, this->hog_desc_median, this->geom_descriptor_median);
+		AU_SVR_dynamic_appearance_lin_regressors_seg.Predict(svr_lin_dyn_preds, svr_lin_dyn_aus, hog_desc_frame, geom_descriptor_frame, this->hog_desc_median, this->geom_descriptor_median);
 
 		for(size_t i = 0; i < svr_lin_dyn_preds.size(); ++i)
 		{
@@ -1083,7 +1083,14 @@ void FaceAnalyser::ReadRegressor(std::string fname, const vector<string>& au_nam
 	{
 		AU_SVM_dynamic_appearance_lin.Read(regressor_stream, au_names);		
 	}
-
+	else if(regressor_type == SVR_linear_static_seg)
+	{
+		AU_SVR_static_appearance_lin_regressors_seg.Read(regressor_stream, au_names);		
+	}
+	else if(regressor_type == SVR_linear_dynamic_seg)
+	{
+		AU_SVR_dynamic_appearance_lin_regressors_seg.Read(regressor_stream, au_names);		
+	}
 }
 
 double FaceAnalyser::GetCurrentArousal() {

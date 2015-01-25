@@ -79,3 +79,6 @@ runners/txt_files/
 C++ models/fera_2015_v1_Cambridge.zip
 C++ models/fera_2015_v1_Cambridge/
 DISFA_baseline/training_labels/
+runners/out_bp4d_all_latest/
+runners/out_SEMAINE_best/
+~$results_v2.xlsx

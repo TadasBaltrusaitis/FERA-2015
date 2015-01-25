@@ -21,7 +21,7 @@ class FaceAnalyser{
 public:
 
 
-	enum RegressorType{ SVR_appearance_static_linear = 0, SVR_appearance_dynamic_linear = 1, SVR_dynamic_geom_linear = 2, SVR_combined_linear = 3, SVM_linear_stat = 4, SVM_linear_dyn = 5};
+	enum RegressorType{ SVR_appearance_static_linear = 0, SVR_appearance_dynamic_linear = 1, SVR_dynamic_geom_linear = 2, SVR_combined_linear = 3, SVM_linear_stat = 4, SVM_linear_dyn = 5, SVR_linear_static_seg = 6, SVR_linear_dynamic_seg =7};
 
 	// Constructor from a model file (or a default one if not provided
 	// TODO scale width and height should be part of the model?
@@ -158,6 +158,10 @@ private:
 	// The linear SVR regressors
 	SVR_static_lin_regressors AU_SVR_static_appearance_lin_regressors;
 	SVR_dynamic_lin_regressors AU_SVR_dynamic_appearance_lin_regressors;
+		
+	// The linear SVR regressors for segmented use
+	SVR_static_lin_regressors AU_SVR_static_appearance_lin_regressors_seg;
+	SVR_dynamic_lin_regressors AU_SVR_dynamic_appearance_lin_regressors_seg;
 		
 	// TODO rem
 	//SVR_dynamic_lin_regressors_scale arousal_predictor_lin_geom;
