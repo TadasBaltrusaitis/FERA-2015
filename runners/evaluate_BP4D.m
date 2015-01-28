@@ -4,7 +4,7 @@ find_BP4D;
 
 aus_BP4D = [1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23];
 
-root = 'out_bp4d_all_combined_v2/';
+root = 'out_bp4d_all_best/';
 
 [ labels_gt, valid_ids, vid_ids, filenames] = extract_BP4D_labels(BP4D_dir, devel_recs, aus_BP4D);
 labels_gt = cat(1, labels_gt{:});
