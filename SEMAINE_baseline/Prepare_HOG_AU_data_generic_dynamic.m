@@ -16,11 +16,20 @@ addpath(genpath('../data extraction/'));
 labels_train = cat(1, labels_train{:});
 valid_ids_train = logical(cat(1, valid_ids_train{:}));
 
-reduced_inds = true(size(labels_train,1),1);
+% make sure the same number of positive and negative samples is taken
+pos_count = sum(labels_train == 1);
+neg_count = sum(labels_train == 0);
+
+inds_train = 1:size(labels_train,1);
+neg_samples = inds_train(labels_train == 0);
+to_rem = round(neg_count -  pos_count);
+neg_samples_to_rem = neg_samples(round(linspace(1, size(neg_samples,2), to_rem)));
 
 % Remove invalid ids based on CLM failing or AU not being labelled
+reduced_inds = true(size(labels_train,1),1);
 reduced_inds(~valid_ids_train) = false;
 reduced_inds(~valid_ids_train_hog) = false;
+reduced_inds(neg_samples_to_rem) = false;
 
 labels_train = labels_train(reduced_inds,:);
 train_appearance_data = train_appearance_data(reduced_inds,:);

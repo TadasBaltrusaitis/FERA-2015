@@ -7,7 +7,7 @@ addpath('C:\liblinear\matlab')
 shared_defs;
 
 % Set up the hyperparameters to be validated
-hyperparams.c = 10.^(-6:1:3);
+hyperparams.c = 10.^(-7:1:-2);
 %hyperparams.e = 10.^(-6:1:-1);
 hyperparams.e = 10.^(-3);
 
@@ -78,14 +78,22 @@ end
 end
 
 function [model] = svm_train_linear(train_labels, train_samples, hyper)
-    comm = sprintf('-s 1 -B 1 -e %f -c %f -q', hyper.e, hyper.c);
+    comm = sprintf('-s 1 -B 1 -e %.10f -c %.10f -q', hyper.e, hyper.c);
     model = train(train_labels, train_samples, comm);
 end
 
 function [result, prediction] = svm_test_linear(test_labels, test_samples, model)
 
-    [prediction, a, actual_vals] = predict(test_labels, test_samples, model);           
-    
+    w = model.w(1:end-1)';
+    b = model.w(end);
+
+    % Attempt own prediction
+    prediction = test_samples * w + b;
+    l1_inds = prediction > 0;
+    l2_inds = prediction <= 0;
+    prediction(l1_inds) = model.Label(1);
+    prediction(l2_inds) = model.Label(2);
+ 
     tp = sum(test_labels == 1 & prediction == 1);
     fp = sum(test_labels == 0 & prediction == 1);
     fn = sum(test_labels == 1 & prediction == 0);
@@ -96,8 +104,7 @@ function [result, prediction] = svm_test_linear(test_labels, test_samples, model
 
     f1 = 2 * precision * recall / (precision + recall);
 
-%     result = corr(test_labels, prediction);
-    
+    fprintf('F1:%.3f\n', f1);
     if(isnan(f1))
         f1 = 0;
     end

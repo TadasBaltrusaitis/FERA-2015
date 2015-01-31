@@ -16,16 +16,19 @@ train_appearance_data = cat(2, train_appearance_data, train_geom_data);
 labels_train = cat(1, labels_train{:});
 valid_ids_train = logical(cat(1, valid_ids_train{:}));
 
-% Remove two thirds of negative examples (to balance the training data a bit)
+% make sure the same number of positive and negative samples is taken
+pos_count = sum(labels_train == 1);
+neg_count = sum(labels_train == 0);
+
 inds_train = 1:size(labels_train,1);
 neg_samples = inds_train(labels_train == 0);
-reduced_inds = true(size(labels_train,1),1);
-% TODO don't do this here, will be done outside
-% reduced_inds(neg_samples(round(1:1.5:end))) = false;
+to_rem = round(neg_count -  pos_count);
+neg_samples_to_rem = neg_samples(round(linspace(1, size(neg_samples,2), to_rem)));
 
 % also remove invalid ids based on CLM failing or AU not being labelled
 reduced_inds(~valid_ids_train) = false;
 reduced_inds(~valid_ids_train_hog) = false;
+reduced_inds(neg_samples_to_rem) = false;
 
 labels_train = labels_train(reduced_inds,:);
 train_appearance_data = train_appearance_data(reduced_inds,:);
