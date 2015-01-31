@@ -19,3 +19,11 @@ def test_SVM(test_labels, test_samples, model):
     f1, precision, recall = scores.FERA_class_score(preds, test_l)
     
     return f1, precision, recall, preds
+
+def train_SVM_weights(train_labels, train_samples, hyperparams):
+
+    from sklearn import svm
+    clf = svm.LinearSVC(C=hyperparams['C'], class_weight='auto')
+    clf.fit(train_samples, train_labels)
+
+    return clf
