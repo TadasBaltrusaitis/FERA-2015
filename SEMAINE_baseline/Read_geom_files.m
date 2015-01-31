@@ -6,8 +6,17 @@ function [geom_data] = Read_geom_files(users, vid_ids, hog_data_dir)
         
         geom_file = [hog_data_dir, '/' users{i} '.params.txt'];
         
-        res = dlmread(geom_file, ' ');
-        res = res(vid_ids(i,1)+1:vid_ids(i,2),15:2:end);       
+        m_file = [hog_data_dir, '/' users{i} '.params.mat'];
+        
+        if(~exist(m_file, 'file'))
+            res = dlmread(geom_file, ' ');
+            res = res(vid_ids(i,1)+1:vid_ids(i,2),1:2:end);       
+            save(m_file, 'res');
+        else
+            load(m_file);
+        end
+        
+        res = res(:, 8:end);
         
         geom_data = cat(1, geom_data, res);
                 
