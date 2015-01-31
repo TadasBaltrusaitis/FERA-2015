@@ -28,6 +28,7 @@ to_rem = round(neg_count -  pos_count);
 neg_samples_to_rem = neg_samples(round(linspace(1, size(neg_samples,2), to_rem)));
 
 % also remove invalid ids based on CLM failing or AU not being labelled
+reduced_inds = true(size(valid_ids_train));
 reduced_inds(~valid_ids_train) = false;
 reduced_inds(~valid_ids_train_hog) = false;
 reduced_inds(neg_samples_to_rem) = false;
