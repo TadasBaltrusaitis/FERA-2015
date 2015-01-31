@@ -1116,13 +1116,13 @@ def Prepare_HOG_AU_data_generic_BP4D(train_recs, devel_recs, au, BP4D_dir, hog_d
     reduced_inds = np.ones((labels_train.shape[0], ), dtype='bool')
 
     # only remove the data if single au used
-    if len(au) == 1:
-        # Remove two thirds of negative examples (to balance the training data a bit)
-        inds_train = np.array(range(labels_train.shape[0]))
-        neg_samples = inds_train[labels_train == 0]
+    #if len(au) == 1:
+    #    # Remove two thirds of negative examples (to balance the training data a bit)
+    #    inds_train = np.array(range(labels_train.shape[0]))
+    #    neg_samples = inds_train[labels_train == 0]
 
-        to_rem = neg_samples[np.round(np.linspace(0, neg_samples.shape[0]-1, neg_samples.shape[0]/1.5).astype('int32'))]
-        reduced_inds[to_rem] = False
+    #    to_rem = neg_samples[np.round(np.linspace(0, neg_samples.shape[0]-1, neg_samples.shape[0]/1.5).astype('int32'))]
+    #    reduced_inds[to_rem] = False
     
     # also remove invalid ids based on CLM failing or AU not being labelled
     reduced_inds[valid_ids_train == False] = False
