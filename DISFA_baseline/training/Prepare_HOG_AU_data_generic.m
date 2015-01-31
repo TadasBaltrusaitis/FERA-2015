@@ -39,17 +39,24 @@ train_appearance_data = cat(2, train_appearance_data, train_geom_data);
 % Extracting the labels
 labels_train = extract_au_labels(input_train_label_files, au_train);
 
-% Getting the rebalanced training and validation indices and data
-[inds_train_rebalanced, inds_valid_rebalanced, ~] = construct_balanced(labels_train, training_inds, valid_inds, rest_aus, input_train_label_files);
-
 % can now extract the needed training labels (do not rebalance validation
 % data)
 labels_valid = labels_train(valid_inds);
 
+% make sure the same number of positive and negative samples is taken
+pos_count = sum(labels_train(training_inds) > 0);
+neg_count = sum(labels_train(training_inds) == 0);
+
+inds_train = 1:size(labels_train,1);
+neg_samples = inds_train(labels_train == 0 & training_inds);
+to_rem = round(neg_count -  pos_count);
+neg_samples_to_rem = neg_samples(round(linspace(1, size(neg_samples,2), to_rem)));
+
 % Get rid of non tracked frames
-training_inds = false(size(labels_train,1),1);
-training_inds(inds_train_rebalanced) = true;
-training_inds = training_inds & tracked_inds_hog;
+training_inds = true(size(labels_train,1),1);
+training_inds(~training_inds) = false;
+training_inds(~tracked_inds_hog) = false;
+training_inds(neg_samples_to_rem) = false;
 
 labels_train = labels_train(training_inds);
 
