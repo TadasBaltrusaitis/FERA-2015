@@ -65,7 +65,7 @@ for a=1:numel(aus)
 
     f1 = 2 * precision * recall / (precision + recall);    
     
-    save(name, 'model', 'f1', 'precision', 'recall');
+    save(name, 'model', 'f1', 'precision', 'recall', 'best_params');
         
 end
 
