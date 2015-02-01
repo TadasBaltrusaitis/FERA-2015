@@ -1,4 +1,4 @@
-function Script_HOG_SVM_train_dyn()
+function Script_HOG_SVM_train_dyn_clever_under()
 
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
@@ -28,7 +28,7 @@ for a=1:numel(aus)
     rest_aus = setdiff(all_aus, au);        
 
     % load the training and testing data for the current fold
-    [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic_dynamic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);
+    [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic_dynamic_clever(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);
 
     train_samples = sparse(train_samples);
     valid_samples = sparse(valid_samples);
@@ -51,14 +51,14 @@ for a=1:numel(aus)
 
     assert(norm(preds_mine - actual_vals) < 1e-8);
 
-    name = sprintf('paper_res/AU_%d_dynamic.dat', au);
-        
-    pos_lbl = model.Label(1);
-    neg_lbl = model.Label(2);
-        
-    write_lin_dyn_svm(name, means, svs, b, pos_lbl, neg_lbl);
+%     name = sprintf('trained_sampling/AU_%d_dynamic_clever.dat', au);
+%         
+%     pos_lbl = model.Label(1);
+%     neg_lbl = model.Label(2);
+%         
+%     write_lin_dyn_svm(name, means, svs, b, pos_lbl, neg_lbl);
 
-    name = sprintf('paper_res/AU_%d_dynamic.mat', au);
+    name = sprintf('trained_sampling/AU_%d_dynamic_clever.mat', au);
 
     tp = sum(valid_labels == 1 & prediction == 1);
     fp = sum(valid_labels == 0 & prediction == 1);

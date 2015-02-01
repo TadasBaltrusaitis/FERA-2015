@@ -7,7 +7,7 @@ addpath('C:\liblinear\matlab')
 shared_defs;
 
 % Set up the hyperparameters to be validated
-hyperparams.c = 10.^(-7:1:-2);
+hyperparams.c = 10.^(-7:0.5:-2);
 hyperparams.e = 10.^(-3);
 
 hyperparams.validate_params = {'c', 'e'};

@@ -88,3 +88,4 @@ runners/out_bp4d_all_best/
 C++ models/fera_2015_v2_Cambridge/
 C++ models/fera_2015_v2_Cambridge.zip
 runners/out_SEMAINE_best_final/
+SEMAINE_baseline/training_labels/
