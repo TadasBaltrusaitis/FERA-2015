@@ -74,7 +74,7 @@ for a=1:numel(aus)
 
     f1 = 2 * precision * recall / (precision + recall);    
     
-    save(name, 'model', 'f1', 'precision', 'recall');
+    save(name, 'model', 'f1', 'precision', 'recall', 'best_params');
 
         
 end
@@ -82,7 +82,7 @@ end
 end
 
 function [model] = svm_train_linear(train_labels, train_samples, hyper)
-    comm = sprintf('-s 1 -B 1 -e %f -c %f -q', hyper.e, hyper.c);
+    comm = sprintf('-s 1 -B 1 -e %.10f -c %.10f -q', hyper.e, hyper.c);
     model = train(train_labels, train_samples, comm);
 end
 

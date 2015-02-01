@@ -55,7 +55,7 @@ neg_samples_to_rem = neg_samples(round(linspace(1, size(neg_samples,2), to_rem))
 
 % Get rid of non tracked frames
 training_inds = true(size(labels_train,1),1);
-training_inds(~training_inds) = false;
+training_inds(valid_inds) = false;
 training_inds(~tracked_inds_hog) = false;
 training_inds(neg_samples_to_rem) = false;
 
