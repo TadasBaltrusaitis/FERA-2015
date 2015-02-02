@@ -7,10 +7,10 @@ addpath('../data extraction/');
 shared_defs;
 
 semaine_au = intersect([2,12,17,25,28,45], all_aus);
+all_aus_semaine = [2,12,17,25,28,45];
 
 % Set up the hyperparameters to be validated
-hyperparams.c = 10.^(-6:1:3);
-% hyperparams.e = 10.^(-6:1:-1);
+hyperparams.c = 10.^(-7:1:-1);
 hyperparams.e = 10.^(-3);
 
 hyperparams.validate_params = {'c', 'e'};
@@ -40,14 +40,12 @@ for a=1:numel(aus)
         
         od = cd('../SEMAINE_baseline/');
         find_SEMAINE;
-        rest_aus = setdiff(all_aus, au);        
+        rest_aus = setdiff(all_aus_semaine, au);        
         [train_samples_semaine, train_labels_semaine, ~, ~, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);
         cd(od);
 
-        % TODO should valid be included?
         train_samples = train_samples_semaine;
         train_labels = train_labels_semaine;            
-
         
         train_samples = sparse(train_samples);
         valid_samples = sparse(valid_samples);
@@ -90,14 +88,14 @@ for a=1:numel(aus)
 
         f1 = 2 * precision * recall / (precision + recall);    
 
-        save(name, 'model', 'f1', 'precision', 'recall');
+        save(name, 'model', 'f1', 'precision', 'recall', 'best_params');
     end
 end
 
 end
 
 function [model] = svm_train_linear(train_labels, train_samples, hyper)
-    comm = sprintf('-s 1 -B 1 -e %f -c %f -q', hyper.e, hyper.c);
+    comm = sprintf('-s 1 -B 1 -e %.10f -c %.10f -q', hyper.e, hyper.c);
     model = train(train_labels, train_samples, comm);
 end
 
