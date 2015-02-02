@@ -1,4 +1,4 @@
-function Script_HOG_SVM_train_joint_dynamic_disfa()
+function Script_HOG_SVM_train_joint_static_disfa()
 
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
@@ -9,11 +9,11 @@ shared_defs;
 disfa_au = intersect([1,2,4,5,6,9,12,15,17,20,25,26], all_aus);
 
 % Set up the hyperparameters to be validated
-hyperparams.c = 10.^(-6:1:3);
-% hyperparams.e = 10.^(-6:1:-1);
+hyperparams.c = 10.^(-7:1:-1);
+hyperparams.under_ratio = [1, 2, 3, 4, 6];
 hyperparams.e = 10.^(-3);
 
-hyperparams.validate_params = {'c', 'e'};
+hyperparams.validate_params = {'c', 'e', 'under_ratio'};
 
 % Set the training function
 svm_train = @svm_train_linear;
@@ -44,6 +44,7 @@ for a=1:numel(aus)
             cd(od);
             
             find_SEMAINE;
+            rest_aus = setdiff(all_aus, au);    
             [~, ~, test_samples, test_labels, raw_test, PC, means, scaling] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);            
             
             % Binarise the models            
@@ -87,7 +88,7 @@ for a=1:numel(aus)
 
             f1 = 2 * precision * recall / (precision + recall);    
 
-            save(name, 'model', 'f1', 'precision', 'recall');
+            save(name, 'model', 'f1', 'precision', 'recall', 'best_params');
         
         end
     end
@@ -96,7 +97,26 @@ end
 end
 
 function [model] = svm_train_linear(train_labels, train_samples, hyper)
-    comm = sprintf('-s 1 -B 1 -e %f -c %f -q', hyper.e, hyper.c);
+    comm = sprintf('-s 1 -B 1 -e %.10f -c %.10f -q', hyper.e, hyper.c);
+    
+    pos_count = sum(train_labels == 1);
+    neg_count = sum(train_labels == 0);
+    
+    if(pos_count * hyper.under_ratio < neg_count)
+    
+        inds_train = 1:size(train_labels,1);
+        neg_samples = inds_train(train_labels == 0);
+        reduced_inds = true(size(train_labels,1),1);
+        to_rem = round(neg_count -  pos_count * hyper.under_ratio);
+        neg_samples = neg_samples(round(linspace(1, size(neg_samples,2), to_rem)));
+        
+        reduced_inds(neg_samples) = false;
+
+        train_labels = train_labels(reduced_inds, :);
+        train_samples = train_samples(reduced_inds, :);
+        
+    end
+        
     model = train(train_labels, train_samples, comm);
 end
 
