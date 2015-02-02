@@ -7,7 +7,7 @@ addpath('C:\liblinear\matlab')
 shared_defs;
 
 % Set up the hyperparameters to be validated
-hyperparams.c = 10.^(-7:1:-2);
+hyperparams.c = 10.^(-7:0.5:-2);
 hyperparams.e = 10.^(-3);
 
 hyperparams.validate_params = {'c', 'e'};
@@ -32,7 +32,7 @@ for a=1:numel(aus)
     valid_samples = sparse(valid_samples);
 
     %% Cross-validate here                
-    [ best_params, ~ ] = validate_grid_search_no_par(svm_train, svm_test, false, train_samples, train_labels, valid_samples, valid_labels, hyperparams);
+    [ best_params, ~ ] = validate_grid_search(svm_train, svm_test, false, train_samples, train_labels, valid_samples, valid_labels, hyperparams);
 
     model = svm_train(train_labels, train_samples, best_params);        
 

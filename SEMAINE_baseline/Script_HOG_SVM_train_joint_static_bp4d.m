@@ -9,8 +9,7 @@ bp4d_au = intersect([1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23], all_aus);
 %disfa_au = intersect([1,2,4,5,6,9,12,15,17,20,25,26], all_aus);
 
 % Set up the hyperparameters to be validated
-hyperparams.c = 10.^(-6:1:3);
-% hyperparams.e = 10.^(-6:1:-1);
+hyperparams.c = 10.^(-8:0.5:-1);
 hyperparams.e = 10.^(-3);
 
 hyperparams.validate_params = {'c', 'e'};
@@ -44,6 +43,7 @@ for a=1:numel(aus)
             cd(od);
             
             find_SEMAINE;
+            rest_aus = setdiff(all_aus, au);   
             [~, ~, test_samples, test_labels, raw_test, PC, means, scaling] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);            
             
             % Binarise the models            
@@ -88,7 +88,7 @@ for a=1:numel(aus)
 
             f1 = 2 * precision * recall / (precision + recall);    
 
-            save(name, 'model', 'f1', 'precision', 'recall');
+            save(name, 'model', 'f1', 'precision', 'recall', 'best_params');
         
         end
     end
@@ -97,7 +97,7 @@ end
 end
 
 function [model] = svm_train_linear(train_labels, train_samples, hyper)
-    comm = sprintf('-s 1 -B 1 -e %f -c %f -q', hyper.e, hyper.c);
+    comm = sprintf('-s 1 -B 1 -e %.10f -c %.10f -q', hyper.e, hyper.c);
     model = train(train_labels, train_samples, comm);
 end
 

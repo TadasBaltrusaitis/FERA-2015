@@ -18,7 +18,7 @@ for au in all_aus:
     # load the training and testing data for the current fold
     [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = \
         data_preparation.Prepare_HOG_AU_data_generic_DISFA(train_recs, devel_recs, [au],
-                                                             DISFA_dir, hog_data_dir, pca_loc)
+                                                             DISFA_dir, hog_data_dir, pca_loc, geometry=True)
     train_labels[train_labels > 1] = 1
     valid_labels[valid_labels > 1] = 1
 

@@ -4,20 +4,22 @@ import data_preparation
 
 (all_aus, users, DISFA_dir, hog_data_dir) = shared_defs_DISFA.shared_defs()
 
-train_recs = users[0:int(len(users)/2)]
-devel_recs = users[(int(len(users)/2)):]
+train_recs = users[0:2*int(len(users)/3)]
+devel_recs = users[(2*int(len(users)/3)):]
+
+print devel_recs
 
 pca_loc = "../pca_generation/generic_face_rigid"
 
-f = open("./trained/DISFA_train_dynamic_lin_svm.txt", 'w')
+f = open("./trained/DISFA_train_static_lin_svm_weights.txt", 'w')
 
 for au in all_aus:
                
-    hyperparams = {"C": [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000], "validate_params": ["C"]}
+    hyperparams = {"C": [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1], "validate_params": ["C"]}
     
     # load the training and testing data for the current fold
     [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = \
-        data_preparation.Prepare_HOG_AU_data_generic_DISFA_dynamic(train_recs, devel_recs, [au],
+        data_preparation.Prepare_HOG_AU_data_generic_DISFA(train_recs, devel_recs, [au],
                                                              DISFA_dir, hog_data_dir, pca_loc, geometry=True)
     train_labels[train_labels > 1] = 1
     valid_labels[valid_labels > 1] = 1
@@ -25,7 +27,7 @@ for au in all_aus:
     import linear_SVM
     import validation_helpers
     
-    train_fn = linear_SVM.train_SVM
+    train_fn = linear_SVM.train_SVM_weights
     test_fn = linear_SVM.test_SVM
 
     # Cross-validate here                
@@ -39,6 +41,7 @@ for au in all_aus:
 
     print 'AU%d done: prec %.4f, recall %.4f, f1 %.4f\n' % (au, precision, recall, f1)
 
-    f.write("%d %.4f %.4f %.4f\n" % (au, precision, recall, f1))
+    f.write(str(best_params))
+    f.write(" %d %.4f %.4f %.4f\n" % (au, precision, recall, f1))
     
 f.close()

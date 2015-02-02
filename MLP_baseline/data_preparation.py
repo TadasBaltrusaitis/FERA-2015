@@ -950,8 +950,8 @@ def Prepare_HOG_AU_data_generic_DISFA(train_recs, devel_recs, au, DISFA_dir, hog
 
     reduced_inds = np.ones((labels_train.shape[0], ), dtype='bool')
 
-    to_rem = np.round(np.linspace(0, reduced_inds.shape[0]-1, reduced_inds.shape[0]/1.5).astype('int32'))
-    reduced_inds[to_rem] = False
+    #to_rem = np.round(np.linspace(0, reduced_inds.shape[0]-1, reduced_inds.shape[0]/1.5).astype('int32'))
+    #reduced_inds[to_rem] = False
 
     # also remove invalid ids based on CLM failing or AU not being labelled
     reduced_inds[valid_ids_train_hog == False] = False
@@ -1032,8 +1032,8 @@ def Prepare_HOG_AU_data_generic_DISFA_dynamic(train_recs, devel_recs, au, DISFA_
 
     reduced_inds = np.ones((labels_train.shape[0], ), dtype='bool')
 
-    to_rem = np.round(np.linspace(0, reduced_inds.shape[0]-1, reduced_inds.shape[0]/1.5).astype('int32'))
-    reduced_inds[to_rem] = False
+    #to_rem = np.round(np.linspace(0, reduced_inds.shape[0]-1, reduced_inds.shape[0]/1.5).astype('int32'))
+    #reduced_inds[to_rem] = False
 
     # also remove invalid ids based on CLM failing or AU not being labelled
     reduced_inds[valid_ids_train_hog == False] = False
