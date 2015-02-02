@@ -1,4 +1,4 @@
-function Script_HOG_SVM_train_dyn()
+function Script_HOG_SVM_train_stat_under()
 
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
@@ -9,10 +9,11 @@ num_test_folds = 27;
 shared_defs;
 
 % Set up the hyperparameters to be validated
-hyperparams.c = 10.^(-7:0.5:-1);
+hyperparams.c = 10.^(-7:1:-1);
 hyperparams.e = 10.^(-3);
+hyperparams.under_ratio = [1, 2, 3, 4, 5,6];
 
-hyperparams.validate_params = {'c', 'e'};
+hyperparams.validate_params = {'c', 'e', 'under_ratio'};
 
 % Set the training function
 svm_train = @svm_train_linear;
@@ -21,7 +22,7 @@ svm_train = @svm_train_linear;
 svm_test = @svm_test_linear;
 
 %%
-for a=1:numel(aus)
+for a=7:numel(aus)
     
     au = aus(a);
             
@@ -31,21 +32,21 @@ for a=1:numel(aus)
     rest_aus = setdiff(all_aus, au);        
 
     % load the training and testing data for the current fold
-    [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic_dynamic(users(train_users), au, rest_aus, hog_data_dir);
+    [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic(users(train_users), au, rest_aus, hog_data_dir);
     train_labels(train_labels > 1) = 1;
     valid_labels(valid_labels > 1) = 1;
     
     train_samples = sparse(train_samples);
     valid_samples = sparse(valid_samples);
-    
+
     %% Cross-validate here                
-    [ best_params, ~ ] = validate_grid_search(svm_train, svm_test, false, train_samples, train_labels, valid_samples, valid_labels, hyperparams);
+    [ best_params, ~ ] = validate_grid_search_no_par(svm_train, svm_test, false, train_samples, train_labels, valid_samples, valid_labels, hyperparams);
 
     model = svm_train(train_labels, train_samples, best_params);        
     [~, ~, actual_vals] = predict(valid_labels, valid_samples, model);
 
-    [~, prediction] = svm_test(valid_labels, valid_samples, model);
-
+    [~, prediction] = svm_test(valid_labels, valid_samples, model);    
+    
     % Go from raw data to the prediction
     w = model.w(1:end-1)';
     b = model.w(end);
@@ -55,13 +56,13 @@ for a=1:numel(aus)
     % Attempt own prediction
     preds_mine = bsxfun(@plus, raw_valid, -means) * svs + b;
 
-    assert(norm(preds_mine - actual_vals) < 1e-8);
+    %assert(norm(preds_mine - prediction) < 1e-8);
 
-    %name = sprintf('paper_res/AU_%d_dynamic.dat', au);
+    %name = sprintf('paper_res/AU_%d_static.dat', au);
 
     %write_lin_svm(name, means, svs, b, model.Label(1), model.Label(2));
 
-    name = sprintf('trained_sampling/AU_%d_dynamic.mat', au);
+    name = sprintf('trained_sampling/AU_%d_static_under.mat', au);
 
     tp = sum(valid_labels == 1 & prediction == 1);
     fp = sum(valid_labels == 0 & prediction == 1);
@@ -74,14 +75,33 @@ for a=1:numel(aus)
     f1 = 2 * precision * recall / (precision + recall);    
     
     save(name, 'model', 'f1', 'precision', 'recall', 'best_params');
-  
 
+        
 end
 
 end
 
 function [model] = svm_train_linear(train_labels, train_samples, hyper)
     comm = sprintf('-s 1 -B 1 -e %.10f -c %.10f -q', hyper.e, hyper.c);
+    
+    pos_count = sum(train_labels == 1);
+    neg_count = sum(train_labels == 0);
+    
+    if(pos_count * hyper.under_ratio < neg_count)
+    
+        inds_train = 1:size(train_labels,1);
+        neg_samples = inds_train(train_labels == 0);
+        reduced_inds = true(size(train_labels,1),1);
+        to_rem = round(neg_count -  pos_count * hyper.under_ratio);
+        neg_samples = neg_samples(round(linspace(1, size(neg_samples,2), to_rem)));
+        
+        reduced_inds(neg_samples) = false;
+
+        train_labels = train_labels(reduced_inds, :);
+        train_samples = train_samples(reduced_inds, :);
+        
+    end
+        
     model = train(train_labels, train_samples, comm);
 end
 
@@ -116,3 +136,4 @@ function [result, prediction] = svm_test_linear(test_labels, test_samples, model
     end
     result = f1;
 end
+

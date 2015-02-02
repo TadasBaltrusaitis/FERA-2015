@@ -1,4 +1,4 @@
-function Script_HOG_SVM_train_dyn()
+function Script_HOG_SVM_train_dyn_under()
 
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
@@ -9,10 +9,11 @@ num_test_folds = 27;
 shared_defs;
 
 % Set up the hyperparameters to be validated
-hyperparams.c = 10.^(-7:0.5:-1);
+hyperparams.c = 10.^(-7:1:-1);
 hyperparams.e = 10.^(-3);
+hyperparams.under_ratio = [1, 2, 3, 4, 5, 6];
 
-hyperparams.validate_params = {'c', 'e'};
+hyperparams.validate_params = {'c', 'e', 'under_ratio'};
 
 % Set the training function
 svm_train = @svm_train_linear;
@@ -61,7 +62,7 @@ for a=1:numel(aus)
 
     %write_lin_svm(name, means, svs, b, model.Label(1), model.Label(2));
 
-    name = sprintf('trained_sampling/AU_%d_dynamic.mat', au);
+    name = sprintf('trained_sampling/AU_%d_dynamic_under.mat', au);
 
     tp = sum(valid_labels == 1 & prediction == 1);
     fp = sum(valid_labels == 0 & prediction == 1);
@@ -82,6 +83,25 @@ end
 
 function [model] = svm_train_linear(train_labels, train_samples, hyper)
     comm = sprintf('-s 1 -B 1 -e %.10f -c %.10f -q', hyper.e, hyper.c);
+    
+    pos_count = sum(train_labels == 1);
+    neg_count = sum(train_labels == 0);
+    
+    if(pos_count * hyper.under_ratio < neg_count)
+    
+        inds_train = 1:size(train_labels,1);
+        neg_samples = inds_train(train_labels == 0);
+        reduced_inds = true(size(train_labels,1),1);
+        to_rem = round(neg_count -  pos_count * hyper.under_ratio);
+        neg_samples = neg_samples(round(linspace(1, size(neg_samples,2), to_rem)));
+        
+        reduced_inds(neg_samples) = false;
+
+        train_labels = train_labels(reduced_inds, :);
+        train_samples = train_samples(reduced_inds, :);
+        
+    end
+        
     model = train(train_labels, train_samples, comm);
 end
 

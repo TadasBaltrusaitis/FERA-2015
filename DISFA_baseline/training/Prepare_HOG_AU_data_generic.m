@@ -52,15 +52,14 @@ train_appearance_data = cat(2, train_appearance_data, train_geom_data);
 labels_valid = labels_train(valid_inds);
 
 % make sure the same number of positive and negative samples is taken
-pos_count = sum(labels_train(training_inds) > 0);
-neg_count = sum(labels_train(training_inds) == 0);
-
 reduced_inds = false(size(labels_train,1),1);
 reduced_inds(labels_train > 0 & training_inds) = true;
 
 % make sure the same number of positive and negative samples is taken
 pos_count = sum(labels_train(training_inds) > 0);
 neg_count = sum(labels_train(training_inds) == 0);
+
+pos_count = pos_count * 8;
 
 num_other = floor(pos_count / (size(labels_other, 2)));
 
@@ -70,7 +69,7 @@ for i=1:size(labels_other, 2)+1
    
     if(i > size(labels_other, 2))
         % fill the rest with a proportion of neutral
-        inds_other = inds_all(sum(labels_other(training_inds,:),2)==0 & ~labels_train & training_inds);   
+        inds_other = inds_all(sum(labels_other,2)==0 & ~labels_train & training_inds);   
         num_other_i = min(numel(inds_other), pos_count - sum(labels_train(reduced_inds,:)==0));     
     else
         % take a proportion of each other AU
@@ -85,7 +84,7 @@ end
 % Remove invalid ids based on CLM failing or AU not being labelled
 reduced_inds(~tracked_inds_hog) = false;
 
-training_inds(~reduced_inds) = false;
+training_inds = reduced_inds;
 
 labels_train = labels_train(training_inds);
 
