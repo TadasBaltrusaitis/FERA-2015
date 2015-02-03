@@ -10,8 +10,7 @@ semaine_au = intersect([2,12,17,25,28,45], all_aus);
 disfa_au = intersect([1,2,4,5,6,9,12,15,17,20,25,26], all_aus);
 
 % Set up the hyperparameters to be validated
-hyperparams.c = 10.^(-6:1:3);
-% hyperparams.e = 10.^(-6:1:-1);
+hyperparams.c = 10.^(-7:1:-1);
 hyperparams.e = 10.^(-3);
 
 hyperparams.validate_params = {'c', 'e'};
@@ -59,7 +58,28 @@ for a=1:numel(aus)
             train_labels_disfa(train_labels_disfa < 1) = 0;
             train_labels_disfa(train_labels_disfa >= 1) = 1;
             
-            % TODO should valid be included?
+            load(sprintf('paper_res/AU_%d_static_DISFA.mat', au), 'best_params');
+            under_ratio = best_params.under_ratio;
+            
+            pos_count = sum(train_labels_disfa == 1);
+            neg_count = sum(train_labels_disfa == 0);
+
+            if(pos_count * under_ratio < neg_count)
+
+                inds_train = 1:size(train_labels_disfa,1);
+                neg_samples = inds_train(train_labels_disfa == 0);
+                reduced_inds = true(size(train_labels_disfa,1),1);
+                to_rem = round(neg_count -  pos_count * under_ratio);
+                neg_samples = neg_samples(round(linspace(1, size(neg_samples,2), to_rem)));
+
+                reduced_inds(neg_samples) = false;
+
+                train_labels_disfa = train_labels_disfa(reduced_inds, :);
+                train_samples_disfa = train_samples_disfa(reduced_inds, :);
+
+            end
+        
+            
             train_samples = cat(1, train_samples, train_samples_disfa);
             train_labels = cat(1, train_labels, train_labels_disfa);
             
@@ -102,14 +122,14 @@ for a=1:numel(aus)
 
         f1 = 2 * precision * recall / (precision + recall);    
 
-        save(name, 'model', 'f1', 'precision', 'recall');
+        save(name, 'model', 'f1', 'precision', 'recall', 'best_params');
     end
 end
 
 end
 
 function [model] = svm_train_linear(train_labels, train_samples, hyper)
-    comm = sprintf('-s 1 -B 1 -e %f -c %f -q', hyper.e, hyper.c);
+    comm = sprintf('-s 1 -B 1 -e %.10f -c %.10f -q', hyper.e, hyper.c);
     model = train(train_labels, train_samples, comm);
 end
 
