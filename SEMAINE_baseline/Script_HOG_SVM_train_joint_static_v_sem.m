@@ -1,4 +1,4 @@
-function Script_HOG_SVM_train_joint_dynamic()
+function Script_HOG_SVM_train_joint_static_v_sem()
 
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
@@ -9,8 +9,7 @@ bp4d_au = intersect([1, 2, 4, 6, 7, 10, 12, 14, 15, 17, 23], all_aus);
 disfa_au = intersect([1,2,4,5,6,9,12,15,17,20,25,26], all_aus);
 
 % Set up the hyperparameters to be validated
-hyperparams.c = 10.^(-6:1:3);
-% hyperparams.e = 10.^(-6:1:-1);
+hyperparams.c = 10.^(-8:1:-1);
 hyperparams.e = 10.^(-3);
 
 hyperparams.validate_params = {'c', 'e'};
@@ -45,7 +44,6 @@ for a=1:numel(aus)
             [train_samples_bp4d, train_labels_bp4d, ~, ~, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic(train_recs, devel_recs, au, BP4D_dir, hog_data_dir, pca_loc);
             cd(od);
             
-            % TODO should valid be included?
             train_samples = cat(1, train_samples, train_samples_bp4d);
             train_labels = cat(1, train_labels, train_labels_bp4d);            
             
@@ -58,10 +56,31 @@ for a=1:numel(aus)
             rest_aus = setdiff(all_disfa, au);    
             [train_samples_disfa, train_labels_disfa, ~, ~, ~, ~, ~, ~] = Prepare_HOG_AU_data_generic(users, au, rest_aus, hog_data_dir);            
             cd(od);
-            % Binarise the models            
+            
+           % Binarise the models            
             train_labels_disfa(train_labels_disfa < 1) = 0;
             train_labels_disfa(train_labels_disfa >= 1) = 1;
                         
+            pos_count = sum(train_labels_disfa == 1);
+            neg_count = sum(train_labels_disfa == 0);
+
+            load(sprintf('paper_res/AU_%d_train_DISFA_test_SEMAINE_static.mat', aus(a)), 'best_params');
+            under_ratio = best_params.under_ratio;
+            if(pos_count * under_ratio < neg_count)
+
+                inds_train = 1:size(train_labels_disfa,1);
+                neg_samples = inds_train(train_labels_disfa == 0);
+                reduced_inds = true(size(train_labels_disfa,1),1);
+                to_rem = round(neg_count -  pos_count * under_ratio);
+                neg_samples = neg_samples(round(linspace(1, size(neg_samples,2), to_rem)));
+
+                reduced_inds(neg_samples) = false;
+
+                train_labels_disfa = train_labels_disfa(reduced_inds, :);
+                train_samples_disfa = train_samples_disfa(reduced_inds, :);
+
+            end            
+            
             % TODO should valid be included?
             train_samples = cat(1, train_samples, train_samples_disfa);
             train_labels = cat(1, train_labels, train_labels_disfa);
@@ -71,7 +90,7 @@ for a=1:numel(aus)
         valid_samples = sparse(valid_samples);
         test_samples = sparse(test_samples);
         %% Cross-validate here                
-        [ best_params, ~ ] = validate_grid_search(svm_train, svm_test, false, train_samples, train_labels, valid_samples, valid_labels, hyperparams);
+        [ best_params, ~ ] = validate_grid_search_no_par(svm_train, svm_test, false, train_samples, train_labels, valid_samples, valid_labels, hyperparams);
 
         model = svm_train(train_labels, train_samples, best_params);        
 
@@ -95,7 +114,7 @@ for a=1:numel(aus)
         
         write_lin_svm(name, means, svs, b, pos_lbl, neg_lbl);
 
-        name = sprintf('paper_res/AU_%d__static_combined_v_sem.mat', au);
+        name = sprintf('paper_res/AU_%d_static_combined_v_sem.mat', au);
 
         tp = sum(test_labels == 1 & prediction == 1);
         fp = sum(test_labels == 0 & prediction == 1);
@@ -107,14 +126,14 @@ for a=1:numel(aus)
 
         f1 = 2 * precision * recall / (precision + recall);    
 
-        save(name, 'model', 'f1', 'precision', 'recall');
+        save(name, 'model', 'f1', 'precision', 'recall', 'best_params');
     end
 end
 
 end
 
 function [model] = svm_train_linear(train_labels, train_samples, hyper)
-    comm = sprintf('-s 1 -B 1 -e %f -c %f -q', hyper.e, hyper.c);
+    comm = sprintf('-s 1 -B 1 -e %.10f -c %.10f -q', hyper.e, hyper.c);
     model = train(train_labels, train_samples, comm);
 end
 
