@@ -1,7 +1,10 @@
-function [geom_data] = Read_geom_files_dynamic(users, hog_data_dir)
+function [geom_data, valid_ids] = Read_geom_files_dynamic(users, hog_data_dir)
 
     geom_data = [];
-
+    valid_ids = [];
+    
+    load('../pca_generation/pdm_68_multi_pie.mat');
+    
     for i=1:numel(users)
         
         geom_files = dir([hog_data_dir, users{i} '*.params.txt']);
@@ -14,14 +17,25 @@ function [geom_data] = Read_geom_files_dynamic(users, hog_data_dir)
               
             if(~exist(m_file, 'file'))
                 res = dlmread(geom_file, ' ');
-                res = res(:,1:2:end);       
+                res = res(:,[1,2, 3:2:end]);       
                 save(m_file, 'res');
             else
                 load(m_file);
             end
             
-            res = res(:, 8:end);
-        
+            valid = res(:,2);      
+            res = res(:, 9:end);
+                    
+            % TODO remove?
+            actual_locs = bsxfun(@plus, res * V', M');
+%             actual_locs = res * V';
+            res = cat(2, actual_locs, res);
+            
+            valid_ids = cat(1, valid_ids, valid);            
+            
+%             actual_locs = bsxfun(@plus, res * V', M');
+%             res = actual_locs;            
+%             
             geom_data_curr = cat(1, geom_data_curr, res);
         end
         geom_data_curr = bsxfun(@plus, geom_data_curr, -median(res));

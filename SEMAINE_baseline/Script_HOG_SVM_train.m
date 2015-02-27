@@ -51,14 +51,14 @@ for a=1:numel(aus)
 
     assert(norm(preds_mine - actual_vals) < 1e-8);
 
-    name = sprintf('paper_res/AU_%d_static.dat', au);
+    name = sprintf('camera_ready/AU_%d_static.dat', au);
 
     pos_lbl = model.Label(1);
     neg_lbl = model.Label(2);
         
     write_lin_svm(name, means, svs, b, pos_lbl, neg_lbl);
 
-    name = sprintf('paper_res/AU_%d_static.mat', au);
+    name = sprintf('camera_ready/AU_%d_static.mat', au);
 
     tp = sum(valid_labels == 1 & prediction == 1);
     fp = sum(valid_labels == 0 & prediction == 1);
