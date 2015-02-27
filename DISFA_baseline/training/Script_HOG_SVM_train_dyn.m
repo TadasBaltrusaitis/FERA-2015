@@ -61,7 +61,7 @@ for a=1:numel(aus)
 
     %write_lin_svm(name, means, svs, b, model.Label(1), model.Label(2));
 
-    name = sprintf('trained_sampling/AU_%d_dynamic.mat', au);
+    name = sprintf('camera_ready/AU_%d_dynamic.mat', au);
 
     tp = sum(valid_labels == 1 & prediction == 1);
     fp = sum(valid_labels == 0 & prediction == 1);

@@ -56,11 +56,11 @@ for a=1:numel(aus)
 
     assert(norm(preds_mine - prediction) < 1e-8);
 
-    name = sprintf('trained/AU_%d_dyn.dat', au);
+    name = sprintf('camera_ready/AU_%d_dyn.dat', au);
 
     write_lin_dyn_svr(name, means, svs, b);
 
-    name = sprintf('trained/AU_%d_dyn.mat', au);
+    name = sprintf('camera_ready/AU_%d_dyn.mat', au);
 
     [ accuracies, F1s, corrs, rms, classes ] = evaluate_classification_results( prediction, valid_labels );    
 

@@ -76,7 +76,7 @@ for a=1:numel(aus)
 
             %write_lin_dyn_svm(name, means, svs, b);
 
-            name = sprintf('paper_res/AU_%d_train_BP4D_test_SEMAINE_static.mat', au);
+            name = sprintf('camera_ready/AU_%d_train_BP4D_test_SEMAINE_static.mat', au);
 
             tp = sum(test_labels == 1 & prediction == 1);
             fp = sum(test_labels == 0 & prediction == 1);

@@ -59,7 +59,7 @@ reduced_inds(labels_train > 0 & training_inds) = true;
 pos_count = sum(labels_train(training_inds) > 0);
 neg_count = sum(labels_train(training_inds) == 0);
 
-pos_count = pos_count * 8;
+% pos_count = pos_count * 8;
 
 num_other = floor(pos_count / (size(labels_other, 2)));
 

@@ -72,11 +72,11 @@ for a=1:numel(aus)
 
             assert(norm(preds_mine - actual_vals) < 1e-8);
 
-            %name = sprintf('trained/AU_%d_dynamic_joint.dat', au);
+%             name = sprintf('camera_ready/AU_%d_train_DISFA_test_SEMAINE.dat', au);
+% 
+%             write_lin_dyn_svm(name, means, svs, b);
 
-            %write_lin_dyn_svm(name, means, svs, b);
-
-            name = sprintf('paper_res/AU_%d_train_DISFA_test_SEMAINE.mat', au);
+            name = sprintf('camera_ready/AU_%d_train_DISFA_test_SEMAINE.mat', au);
 
             tp = sum(test_labels == 1 & prediction == 1);
             fp = sum(test_labels == 0 & prediction == 1);
