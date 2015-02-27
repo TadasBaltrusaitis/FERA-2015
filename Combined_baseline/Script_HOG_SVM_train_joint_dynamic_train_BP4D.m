@@ -83,14 +83,14 @@ for a=1:numel(aus)
 
 %     assert(norm(preds_mine - actual_vals) < 1e-8);
 
-    name = sprintf('paper_res/AU_%d_dynamic_combined_bp4d.dat', au);
+    name = sprintf('camera_ready/AU_%d_dynamic_combined_bp4d.dat', au);
 
     pos_lbl = model.Label(1);
     neg_lbl = model.Label(2);
 
     write_lin_dyn_svm(name, means, svs, b, pos_lbl, neg_lbl);
 
-    name = sprintf('paper_res/AU_%d_dynamic_combined_bp4d.mat', au);
+    name = sprintf('camera_ready/AU_%d_dynamic_combined_bp4d.mat', au);
 
     tp_semaine = sum(valid_labels_semaine == 1 & prediction_semaine == 1);
     fp_semaine = sum(valid_labels_semaine == 0 & prediction_semaine == 1);
