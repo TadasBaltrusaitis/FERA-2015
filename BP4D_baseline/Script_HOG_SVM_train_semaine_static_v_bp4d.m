@@ -69,14 +69,14 @@ for a=1:numel(aus)
 
         assert(norm(preds_mine - actual_vals) < 1e-8);
 
-        name = sprintf('paper_res/AU_%d_static_SEMAINE_v_bp4d.dat', au);
+        name = sprintf('camera_ready/AU_%d_static_SEMAINE_v_bp4d.dat', au);
         
         pos_lbl = model.Label(1);
         neg_lbl = model.Label(2);
         
         write_lin_dyn_svm(name, means, svs, b, pos_lbl, neg_lbl);
 
-        name = sprintf('paper_res/AU_%d_static_SEMAINE_v_bp4d.mat', au);
+        name = sprintf('camera_ready/AU_%d_static_SEMAINE_v_bp4d.mat', au);
 
         tp = sum(test_labels == 1 & prediction == 1);
         fp = sum(test_labels == 0 & prediction == 1);
