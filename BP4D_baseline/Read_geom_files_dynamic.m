@@ -27,8 +27,8 @@ function [geom_data, valid_ids] = Read_geom_files_dynamic(users, hog_data_dir)
             res = res(:, 9:end);
                     
             % TODO remove?
-            actual_locs = bsxfun(@plus, res * V', M');
-%             actual_locs = res * V';
+%             actual_locs = bsxfun(@plus, res * V', M');
+            actual_locs = res * V';
             res = cat(2, actual_locs, res);
             
             valid_ids = cat(1, valid_ids, valid);            
