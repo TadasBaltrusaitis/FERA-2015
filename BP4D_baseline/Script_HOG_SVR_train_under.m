@@ -7,9 +7,9 @@ addpath('C:\liblinear\matlab')
 shared_defs;
 
 % Set up the hyperparameters to be validated
-hyperparams.c = 10.^(-6:1:-3);
+hyperparams.c = 10.^(-7:1:-3);
 hyperparams.p = 10.^(-2);
-hyperparams.under_ratio = [1, 2, 3];
+hyperparams.under_ratio = [1];
 
 hyperparams.validate_params = {'c', 'p', 'under_ratio'};
 
@@ -56,7 +56,7 @@ for a=1:numel(all_aus_int)
 %     name = sprintf('trained_sampling/AU_%d_static_intensity.dat', au);
 %     write_lin_svr(name, means, svs, b);
 
-    name = sprintf('trained_sampling/AU_%d_static_intensity_under.mat', au);
+    name = sprintf('camera_ready/AU_%d_static_intensity_under.mat', au);
     
     correlation = corr(valid_labels, prediction);
     RMSE = sqrt(mean((valid_labels - prediction).^2));
@@ -86,7 +86,7 @@ end
 end
 
 function [model] = svm_train_linear(train_labels, train_samples, hyper)
-    comm = sprintf('-s 11 -B 1 -p %f -c %f -q', hyper.p, hyper.c);
+    comm = sprintf('-s 11 -B 1 -p %.10f -c %.10f -q', hyper.p, hyper.c);
     
     % do some under-sampling
     pos_count = sum(train_labels > 0);
