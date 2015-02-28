@@ -1,5 +1,6 @@
 function Script_HOG_SVR_train_joint()
 
+addpath('../data extraction/');
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
 
