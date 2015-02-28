@@ -11,7 +11,7 @@ disfa_au = intersect([1,2,4,5,6,9,12,15,17,20,25,26], all_aus);
 % Set up the hyperparameters to be validated
 hyperparams.c = 10.^(-7:1:-1);
 hyperparams.e = 10.^(-3);
-hyperparams.under_ratio = [1, 2, 4, 6];
+hyperparams.under_ratio = [1];
 
 hyperparams.validate_params = {'c', 'e', 'under_ratio'};
 
@@ -69,11 +69,11 @@ for a=1:numel(aus)
 
         assert(norm(preds_mine - actual_vals) < 1e-8);
 
-        name = sprintf('paper_res/AU_%d_dynamic_DISFA.dat', au);
+        name = sprintf('camera_ready/AU_%d_dynamic_DISFA.dat', au);
 
         write_lin_dyn_svm(name, means, svs, b, model.Label(1), model.Label(2));
 
-        name = sprintf('paper_res/AU_%d_dynamic_DISFA.mat', au);
+        name = sprintf('camera_ready/AU_%d_dynamic_DISFA.mat', au);
 
         tp = sum(valid_labels == 1 & prediction == 1);
         fp = sum(valid_labels == 0 & prediction == 1);
