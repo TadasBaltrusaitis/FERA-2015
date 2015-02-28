@@ -7,7 +7,7 @@ addpath('C:\liblinear\matlab')
 shared_defs;
 
 % Set up the hyperparameters to be validated
-hyperparams.c = 10.^(-6:2:3);
+hyperparams.c = 10.^(-7:1:1);
 hyperparams.p = 10.^(-2);
 
 hyperparams.validate_params = {'c', 'p'};
@@ -85,7 +85,7 @@ end
 end
 
 function [model] = svm_train_linear(train_labels, train_samples, hyper)
-    comm = sprintf('-s 11 -B 1 -p %f -c %f -q', hyper.p, hyper.c);
+    comm = sprintf('-s 11 -B 1 -p %.10f -c %.10f -q', hyper.p, hyper.c);
     model = train(train_labels, train_samples, comm);
 end
 
