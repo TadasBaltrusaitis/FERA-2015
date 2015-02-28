@@ -106,7 +106,7 @@ for a=1:numel(aus)
 
         assert(norm(preds_mine - actual_vals) < 1e-8);
 % 
-        name = sprintf('trained/AU_%d_static_joint.dat', au);
+        name = sprintf('camera_ready/AU_%d_static_joint.dat', au);
 
         write_lin_svm(name, means, svs, b, model.Label(1), model.Label(2));
 
