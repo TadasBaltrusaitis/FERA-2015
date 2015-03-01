@@ -10,7 +10,7 @@ semaine_au = intersect([2,12,17,25,28,45], all_aus);
 disfa_au = intersect([1,2,4,5,6,9,12,15,17,20,25,26], all_aus);
 
 % Set up the hyperparameters to be validated
-hyperparams.c = 10.^(-7:1:-1);
+hyperparams.c = 10.^(-7:0.5:1);
 hyperparams.e = 10.^(-3);
 
 hyperparams.validate_params = {'c', 'e'};
@@ -115,11 +115,11 @@ for a=1:numel(aus)
 
         assert(norm(preds_mine - actual_vals) < 1e-8);
 % 
-        name = sprintf('og/AU_%d_static_joint.dat', au);
+        name = sprintf('og/AU_%d_static_joint_og.dat', au);
 
         write_lin_svm(name, means, svs, b, model.Label(1), model.Label(2));
 
-        name = sprintf('og/AU_%d_static_joint.mat', au);
+        name = sprintf('og/AU_%d_static_joint_og.mat', au);
 
         tp = sum(valid_labels == 1 & prediction == 1);
         fp = sum(valid_labels == 0 & prediction == 1);
