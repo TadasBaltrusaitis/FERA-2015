@@ -13,7 +13,7 @@ i = 1;
 for a=all_aus
    
 
-    load(sprintf('../BP4D_baseline/camera_ready/AU_%d_static.mat', a));
+    load(sprintf('../BP4D_baseline/camera_ready/AU_%d_static_intensity.mat', a));
     
     test_labels = valid_labels_bp4d(:, i);
     

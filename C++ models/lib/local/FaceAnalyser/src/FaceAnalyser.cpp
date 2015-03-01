@@ -248,6 +248,11 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	// Geom descriptor and its median
 	geom_descriptor_frame = clm_model.params_local.t();
 	
+	// Stack with the actual feature point locations (without mean)
+	Mat_<double> locs = clm_model.pdm.princ_comp * clm_model.params_local;
+	
+	cv::hconcat(locs.t(), geom_descriptor_frame.clone(), geom_descriptor_frame);
+	
 	UpdateRunningMedian(this->geom_desc_hist, this->geom_hist_sum, this->geom_descriptor_median, geom_descriptor_frame, update_median, this->num_bins_geom, this->min_val_geom, this->max_val_geom);
 
 	// First convert the face image to double representation as a row vector
@@ -287,6 +292,11 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 
 	view_used = orientation_to_use;
 
+}
+
+void FaceAnalyser::GetGeomDescriptor(Mat_<double>& geom_desc)
+{
+	geom_desc = this->geom_descriptor_frame.clone();
 }
 
 void FaceAnalyser::PredictAUs(const cv::Mat_<double>& hog_features, const cv::Mat_<double>& geom_features, const CLMTracker::CLM& clm_model)
@@ -643,22 +653,22 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(int view, bool dyn_
 		}
 
 		// Correction that drags the predicion to 0 (assuming the bottom 10% of predictions are of neutral expresssions)
-		vector<double> correction(predictions.size(), 0.0);
-		UpdatePredictionTrack(au_prediction_correction_histogram[view], au_prediction_correction_count[view], correction, predictions, 0.10, 200, 0, 5, 1);
-		
-		for(size_t i = 0; i < correction.size(); ++i)
-		{
-			// TODO important only for semaine?
-			//predictions[i].second = predictions[i].second - correction[i];
-
-			if(predictions[i].second < 0)
-				predictions[i].second = 0;
-			if(predictions[i].second > 5)
-				predictions[i].second = 5;
-		}
-
 		if(dyn_correct)
 		{
+			vector<double> correction(predictions.size(), 0.0);
+			UpdatePredictionTrack(au_prediction_correction_histogram[view], au_prediction_correction_count[view], correction, predictions, 0.10, 200, 0, 5, 1);
+		
+
+			for(size_t i = 0; i < correction.size(); ++i)
+			{
+				// TODO important only for semaine? (this is pulled out, but should be back in final versions
+				predictions[i].second = predictions[i].second - correction[i];
+
+				if(predictions[i].second < 0)
+					predictions[i].second = 0;
+				if(predictions[i].second > 5)
+					predictions[i].second = 5;
+			}
 			// Some scaling for effect better visualisation
 			// Also makes sense as till the maximum expression is seen, it is hard to tell how expressive a persons face is
 			if(dyn_scaling[view].empty())
@@ -719,47 +729,53 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUsSegmented(int view, 
 			predictions.push_back(pair<string, double>(svr_lin_dyn_aus[i], svr_lin_dyn_preds[i]));
 		}
 
-		// Correction that drags the predicion to 0 (assuming the bottom 10% of predictions are of neutral expresssions)
-		vector<double> correction(predictions.size(), 0.0);
-		UpdatePredictionTrack(au_prediction_correction_histogram[view], au_prediction_correction_count[view], correction, predictions, 0.10, 200, 0, 5, 1);
-		
-		for(size_t i = 0; i < correction.size(); ++i)
+		if(predictions.size() > 0)
 		{
-			// TODO for segmented data might actually help			
-			//predictions[i].second = predictions[i].second - correction[i];
+			
 
-			if(predictions[i].second < 1)
-				predictions[i].second = 1;
-			if(predictions[i].second > 5)
-				predictions[i].second = 5;
-		}
-
-		if(dyn_correct)
-		{
-			// Some scaling for effect better visualisation
-			// Also makes sense as till the maximum expression is seen, it is hard to tell how expressive a persons face is
-			if(dyn_scaling[view].empty())
+			if(dyn_correct)
 			{
-				dyn_scaling[view] = vector<double>(predictions.size(), 5.0);
-			}
-		
-			for(size_t i = 0; i < predictions.size(); ++i)
-			{
-				// First establish presence (assume it is maximum as we have not seen max) TODO this could be more robust
-				if(predictions[i].second > 1)
-				{
-					double scaling_curr = 5.0 / predictions[i].second;
 				
-					if(scaling_curr < dyn_scaling[view][i])
-					{
-						dyn_scaling[view][i] = scaling_curr;
-					}
-					predictions[i].second = predictions[i].second * dyn_scaling[view][i];
+				// Correction that drags the predicion to 0 (assuming the bottom 10% of predictions are of neutral expresssions)
+				vector<double> correction(predictions.size(), 0.0);
+				UpdatePredictionTrack(au_prediction_correction_histogram[view], au_prediction_correction_count[view], correction, predictions, 0.10, 200, 0, 5, 1);
+		
+				for(size_t i = 0; i < correction.size(); ++i)
+				{
+					// TODO for segmented data might actually help			
+					//predictions[i].second = predictions[i].second - correction[i];
+
+					if(predictions[i].second < 1)
+						predictions[i].second = 1;
+					if(predictions[i].second > 5)
+						predictions[i].second = 5;
 				}
 
-				if(predictions[i].second > 5)
+				// Some scaling for effect better visualisation
+				// Also makes sense as till the maximum expression is seen, it is hard to tell how expressive a persons face is
+				if(dyn_scaling[view].empty())
 				{
-					predictions[i].second = 5;
+					dyn_scaling[view] = vector<double>(predictions.size(), 5.0);
+				}
+		
+				for(size_t i = 0; i < predictions.size(); ++i)
+				{
+					// First establish presence (assume it is maximum as we have not seen max) TODO this could be more robust
+					if(predictions[i].second > 1)
+					{
+						double scaling_curr = 5.0 / predictions[i].second;
+				
+						if(scaling_curr < dyn_scaling[view][i])
+						{
+							dyn_scaling[view][i] = scaling_curr;
+						}
+						predictions[i].second = predictions[i].second * dyn_scaling[view][i];
+					}
+
+					if(predictions[i].second > 5)
+					{
+						predictions[i].second = 5;
+					}
 				}
 			}
 		}
@@ -779,7 +795,7 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUsClass(int view)
 	{
 		vector<string> svm_lin_stat_aus;
 		vector<double> svm_lin_stat_preds;
-
+		
 		AU_SVM_static_appearance_lin.Predict(svm_lin_stat_preds, svm_lin_stat_aus, hog_desc_frame, geom_descriptor_frame);
 
 		for(size_t i = 0; i < svm_lin_stat_aus.size(); ++i)

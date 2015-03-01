@@ -75,8 +75,12 @@ public:
 	Mat_<int> FaceAnalyser::GetTriangulation();
 
 	Mat_<uchar> GetLatestAlignedFaceGrayscale();
+	
+	void GetGeomDescriptor(Mat_<double>& geom_desc);
 
 	void ExtractCurrentMedians(vector<Mat>& hog_medians, vector<Mat>& face_image_medians, vector<Vec3d>& orientations);
+
+
 
 private:
 

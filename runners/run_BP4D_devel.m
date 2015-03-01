@@ -38,7 +38,7 @@ parfor f1=1:numel(bp4d_dirs)
 
                 output_aus = [out_loc name '.au.txt'];
                 
-                command = cat(2, command, [' -fdir "' curr_vid '" -oaus "' output_aus '"']);
+                command = cat(2, command, [' -fdir "' curr_vid '" -oausclass "' output_aus '"']);
             end
         end
         

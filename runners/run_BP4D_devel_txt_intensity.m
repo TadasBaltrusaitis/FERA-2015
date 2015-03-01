@@ -41,7 +41,7 @@ parfor f1=1:numel(bp4d_dirs)
 
                 output_aus = [out_loc name '.au.txt'];
                 
-                command = cat(2, command, [' -ftxt "' curr_txt_file '" -oaus "' output_aus '"']);
+                command = cat(2, command, [' -ftxt "' curr_txt_file '" -oausreg "' output_aus '"']);
             end
             
             dos(command);

@@ -581,7 +581,9 @@ int main (int argc, char **argv)
 					face_analyser.GetLatestHOG(hog_descriptor, num_hog_rows, num_hog_cols);
 					hog_descriptors[f_n].push_back(hog_descriptor.clone());
 					
-					geom_descriptors[f_n].push_back(clm_model.params_local.t());
+					Mat_<double> geom_desc;
+					face_analyser.GetGeomDescriptor(geom_desc);
+					geom_descriptors[f_n].push_back(geom_desc);
 				}
 				else
 				{
@@ -796,6 +798,75 @@ int main (int argc, char **argv)
 
 		}		
 				
+		int window = 7;
+		int sub_window = 3;
+		// Some running average smoothing of classes
+		for(size_t frame = sub_window; frame < params_global_video[i].size() - sub_window; ++frame)
+		{
+			auto copy_class(all_predictions_class);
+
+			for(int au = 0; au < pred_names_class.size(); ++au)
+			{			
+				all_predictions_class[au][frame] = 0;
+				for(int w = 0; w < window; ++w)
+				{
+					all_predictions_class[au][frame] += copy_class[au][frame + w - sub_window];
+				}
+				all_predictions_class[au][frame] = all_predictions_class[au][frame] / window;
+				if(all_predictions_class[au][frame] > 0.5)
+					all_predictions_class[au][frame] = 1;
+				else
+					all_predictions_class[au][frame] = 0;
+
+				//if(!successes_video[i][frame])
+				//	all_predictions_class[au][frame] = 0;
+			}
+
+			auto copy_reg(all_predictions_reg);
+
+			for(int au = 0; au < pred_names_reg.size(); ++au)
+			{			
+				all_predictions_reg[au][frame] = 0;
+				for(int w = 0; w < window; ++w)
+				{
+					all_predictions_reg[au][frame] += copy_reg[au][frame + w - sub_window];
+				}
+				all_predictions_reg[au][frame] = all_predictions_reg[au][frame] / window;
+				
+				if(all_predictions_reg[au][frame] < 0)
+					all_predictions_reg[au][frame] = 0;
+				
+				if(all_predictions_reg[au][frame] > 5)
+					all_predictions_reg[au][frame] = 5;
+
+				//if(!successes_video[i][frame])
+				//	all_predictions_reg[au][frame] = 0;
+
+
+			}
+
+			auto copy_reg_segmented(all_predictions_reg_segmented);
+
+			for(int au = 0; au < pred_names_reg_segmented.size(); ++au)
+			{			
+				all_predictions_reg_segmented[au][frame] = 0;
+				for(int w = 0; w < window; ++w)
+				{
+					all_predictions_reg_segmented[au][frame] += copy_reg_segmented[au][frame + w - sub_window];
+				}
+				all_predictions_reg_segmented[au][frame] = all_predictions_reg_segmented[au][frame] / window;
+
+				if(all_predictions_reg_segmented[au][frame] < 1)
+					all_predictions_reg_segmented[au][frame] = 1;
+				
+				if(all_predictions_reg_segmented[au][frame] > 5)
+					all_predictions_reg_segmented[au][frame] = 5;
+
+				//if(!successes_video[i][frame])
+				//	all_predictions_reg_segmented[au][frame] = 0;
+			}
+		}
+
 		vector<string> sorted(pred_names_class);
 		std::sort(sorted.begin(), sorted.end());
 
