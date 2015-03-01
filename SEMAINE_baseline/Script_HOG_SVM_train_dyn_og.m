@@ -1,4 +1,4 @@
-function Script_HOG_SVM_train_dyn()
+function Script_HOG_SVM_train_dyn_og()
 
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
@@ -29,6 +29,11 @@ for a=1:numel(aus)
 
     % load the training and testing data for the current fold
     [train_samples, train_labels, valid_samples, valid_labels, raw_valid, PC, means, scaling] = Prepare_HOG_AU_data_generic_dynamic(train_recs, devel_recs, au, rest_aus, SEMAINE_dir, hog_data_dir, pca_loc);
+    
+    PC(1:end-227,1:end-227) = 0;
+
+    train_samples = extract_og(train_samples);
+    valid_samples = extract_og(valid_samples);
 
     train_samples = sparse(train_samples);
     valid_samples = sparse(valid_samples);
@@ -51,14 +56,14 @@ for a=1:numel(aus)
 
     assert(norm(preds_mine - actual_vals) < 1e-8);
 
-    name = sprintf('camera_ready/AU_%d_dynamic.dat', au);
+    name = sprintf('og/AU_%d_dynamic_og.dat', au);
         
     pos_lbl = model.Label(1);
     neg_lbl = model.Label(2);
         
     write_lin_dyn_svm(name, means, svs, b, pos_lbl, neg_lbl);
 
-    name = sprintf('camera_ready/AU_%d_dynamic.mat', au);
+    name = sprintf('og/AU_%d_dynamic_og.mat', au);
 
     tp = sum(valid_labels == 1 & prediction == 1);
     fp = sum(valid_labels == 0 & prediction == 1);
@@ -108,4 +113,12 @@ function [result, prediction] = svm_test_linear(test_labels, test_samples, model
         f1 = 0;
     end
     result = f1;
+end
+
+function data_out = extract_og(data_in)
+
+    % Last 227 elements
+    data_in(:,1:end-227) = 0;
+    data_out = data_in;
+    
 end
