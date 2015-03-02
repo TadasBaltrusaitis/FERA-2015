@@ -801,6 +801,55 @@ int main (int argc, char **argv)
 		int window = 7;
 		int sub_window = 3;
 		// Some running average smoothing of classes
+
+		for(size_t frame = 0; frame < sub_window || frame < params_global_video[i].size() - sub_window; ++frame)
+		{
+			for(int au = 0; au < pred_names_reg.size(); ++au)
+			{			
+				if(all_predictions_reg[au][frame] < 0.01)
+					all_predictions_reg[au][frame] = 0;
+				
+				if(all_predictions_reg[au][frame] > 5)
+					all_predictions_reg[au][frame] = 5;
+			}
+			
+
+			for(int au = 0; au < pred_names_reg_segmented.size(); ++au)
+			{			
+				all_predictions_reg_segmented[au][frame] = all_predictions_reg[au][frame];
+
+				if(all_predictions_reg_segmented[au][frame] < 1)
+					all_predictions_reg_segmented[au][frame] = 1;
+				
+				if(all_predictions_reg_segmented[au][frame] > 5)
+					all_predictions_reg_segmented[au][frame] = 5;
+			}
+		}
+
+
+		for(size_t frame = params_global_video[i].size() - sub_window; frame < params_global_video[i].size(); ++frame)
+		{
+			for(int au = 0; au < pred_names_reg.size(); ++au)
+			{			
+				if(all_predictions_reg[au][frame] < 0.01)
+					all_predictions_reg[au][frame] = 0;
+				
+				if(all_predictions_reg[au][frame] > 5)
+					all_predictions_reg[au][frame] = 5;
+			}
+
+			for(int au = 0; au < pred_names_reg_segmented.size(); ++au)
+			{			
+				all_predictions_reg_segmented[au][frame] = all_predictions_reg[au][frame];
+
+				if(all_predictions_reg_segmented[au][frame] < 1)
+					all_predictions_reg_segmented[au][frame] = 1;
+				
+				if(all_predictions_reg_segmented[au][frame] > 5)
+					all_predictions_reg_segmented[au][frame] = 5;				
+			}
+		}
+
 		for(size_t frame = sub_window; frame < params_global_video[i].size() - sub_window; ++frame)
 		{
 			auto copy_class(all_predictions_class);
@@ -833,7 +882,7 @@ int main (int argc, char **argv)
 				}
 				all_predictions_reg[au][frame] = all_predictions_reg[au][frame] / window;
 				
-				if(all_predictions_reg[au][frame] < 0)
+				if(all_predictions_reg[au][frame] < 0.01)
 					all_predictions_reg[au][frame] = 0;
 				
 				if(all_predictions_reg[au][frame] > 5)
@@ -849,12 +898,15 @@ int main (int argc, char **argv)
 
 			for(int au = 0; au < pred_names_reg_segmented.size(); ++au)
 			{			
-				all_predictions_reg_segmented[au][frame] = 0;
-				for(int w = 0; w < window; ++w)
-				{
-					all_predictions_reg_segmented[au][frame] += copy_reg_segmented[au][frame + w - sub_window];
-				}
-				all_predictions_reg_segmented[au][frame] = all_predictions_reg_segmented[au][frame] / window;
+				//all_predictions_reg_segmented[au][frame] = 0;
+				//for(int w = 0; w < window; ++w)
+				//{
+				// all_predictions_reg_segmented[au][frame] += copy_reg_segmented[au][frame + w - sub_window];
+				//}
+				//all_predictions_reg_segmented[au][frame] = all_predictions_reg_segmented[au][frame] / window;
+				
+				// Use the regular predictions instead of retraining the models
+				all_predictions_reg_segmented[au][frame] = all_predictions_reg[au][frame];
 
 				if(all_predictions_reg_segmented[au][frame] < 1)
 					all_predictions_reg_segmented[au][frame] = 1;
