@@ -2,7 +2,7 @@
 
 #include "Face_utils.h"
 
-#include "CLM_utils.h"
+#include "CLM_core.h"
 
 #include <stdio.h>
 #include <iostream>
@@ -243,8 +243,11 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	//}
 	update_median = update_median & clm_model.detection_success;
 
-	UpdateRunningMedian(this->hog_desc_hist[orientation_to_use], this->hog_hist_sum[orientation_to_use], this->hog_desc_median, hog_descriptor, update_median, this->num_bins_hog, this->min_val_hog, this->max_val_hog);
-	
+	// A small speedup
+	if(frames_tracking % 2 == 1)
+	{
+		UpdateRunningMedian(this->hog_desc_hist[orientation_to_use], this->hog_hist_sum[orientation_to_use], this->hog_desc_median, hog_descriptor, update_median, this->num_bins_hog, this->min_val_hog, this->max_val_hog);
+	}	
 	// Geom descriptor and its median
 	geom_descriptor_frame = clm_model.params_local.t();
 	
@@ -253,7 +256,11 @@ void FaceAnalyser::AddNextFrame(const cv::Mat& frame, const CLMTracker::CLM& clm
 	
 	cv::hconcat(locs.t(), geom_descriptor_frame.clone(), geom_descriptor_frame);
 	
-	UpdateRunningMedian(this->geom_desc_hist, this->geom_hist_sum, this->geom_descriptor_median, geom_descriptor_frame, update_median, this->num_bins_geom, this->min_val_geom, this->max_val_geom);
+	// A small speedup
+	if(frames_tracking % 2 == 1)
+	{
+		UpdateRunningMedian(this->geom_desc_hist, this->geom_hist_sum, this->geom_descriptor_median, geom_descriptor_frame, update_median, this->num_bins_geom, this->min_val_geom, this->max_val_geom);
+	}
 
 	// First convert the face image to double representation as a row vector
 	Mat_<uchar> aligned_face_cols(1, aligned_face.cols * aligned_face.rows * aligned_face.channels(), aligned_face.data, 1);
@@ -317,6 +324,19 @@ void FaceAnalyser::PredictAUs(const cv::Mat_<double>& hog_features, const cv::Ma
 	AU_predictions_class = PredictCurrentAUsClass(orientation_to_use);
 
 	AU_predictions_reg_segmented = PredictCurrentAUsSegmented(orientation_to_use, false);
+
+	for(size_t i = 0; i < AU_predictions_reg.size(); ++i)
+	{
+		AU_predictions_combined.push_back(AU_predictions_reg[i]);
+	}
+	for(size_t i = 0; i < AU_predictions_class.size(); ++i)
+	{
+		AU_predictions_combined.push_back(AU_predictions_class[i]);
+	}
+	for(size_t i = 0; i < AU_predictions_reg_segmented.size(); ++i)
+	{
+		AU_predictions_combined.push_back(AU_predictions_reg_segmented[i]);
+	}
 
 	view_used = orientation_to_use;
 }

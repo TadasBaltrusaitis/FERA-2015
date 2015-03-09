@@ -1,6 +1,6 @@
 #include "SVM_dynamic_lin.h"
 
-#include "CLM_utils.h"
+#include "CLM_core.h"
 
 using namespace Psyche;
 

@@ -1,6 +1,6 @@
 #include "SVR_dynamic_lin_regressors.h"
 
-#include "CLM_utils.h"
+#include "CLM_core.h"
 
 using namespace Psyche;
 

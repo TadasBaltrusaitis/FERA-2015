@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LocalDebuggerCommandArguments>-auloc "./AU_predictors/AU_SVM_SEMAINE_dyn.txt" -fx 800 -fy 800 -rigid -asvid -simscale 0.7 -simsize 112  -f "E:\datasets\FERA_2015\semaine/SEMAINE-Sessions/rec9/2009.02.12.10.49.45_User Frontal_C_Spike.avi" -oausclass "./out_SEMAINE_dyn/rec9.au.txt" -ef 4146 -bf 1147</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-auloc "./AU_predictors/AU_SVM_SEMAINE_best.txt" -fx 800 -fy 800 -rigid -asvid -simscale 0.7 -simsize 112  -f "E:\datasets\FERA_2015\semaine/SEMAINE-Sessions/rec9/2009.02.12.10.49.45_User Frontal_C_Spike.avi" -oausclass "./out_SEMAINE_best/rec9.au.txt" -ef 4146 -bf 1147</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerWorkingDirectory>$(TargetDir)</LocalDebuggerWorkingDirectory>
   </PropertyGroup>

@@ -43,15 +43,14 @@
 
 // SimpleCLM.cpp : Defines the entry point for the console application.
 
-#include <CLM.h>
-#include <CLMTracker.h>
-#include <CLMParameters.h>
-#include <CLM_utils.h>
+#include "CLM_core.h"
 
 #include <fstream>
 #include <sstream>
 
 #include <cv.h>
+#include <opencv2/videoio/videoio.hpp>  // Video write
+#include <opencv2/videoio/videoio_c.h>  // Video write
 
 #include <filesystem.hpp>
 #include <filesystem/fstream.hpp>
@@ -338,7 +337,7 @@ int main (int argc, char **argv)
 	vector<string> files;
 
 	// Unused elements
-	vector<string> depth_directories, pose_output_files, tracked_videos_output, landmark_output_files;
+	vector<string> depth_directories, pose_output_files, tracked_videos_output, landmark_output_files, landmark_3D_output_files;
 	// By default try webcam 0
 	int device = 0;
 
@@ -351,7 +350,7 @@ int main (int argc, char **argv)
 	
 	// Indicates that rotation should be with respect to camera plane or with respect to camera
 	bool use_camera_plane_pose;
-	CLMTracker::get_video_input_output_params(files, depth_directories, pose_output_files, tracked_videos_output, landmark_output_files, use_camera_plane_pose, arguments);
+	CLMTracker::get_video_input_output_params(files, depth_directories, pose_output_files, tracked_videos_output, landmark_output_files, landmark_3D_output_files, use_camera_plane_pose, arguments);
 
 	bool video = true;
 	bool images_as_video = false;
@@ -763,35 +762,35 @@ int main (int argc, char **argv)
 			if(frame == 0)
 			{
 				all_predictions_class.resize(au_preds_class.size());
-				for(int au = 0; au < au_preds_class.size(); ++au)
+				for(size_t au = 0; au < au_preds_class.size(); ++au)
 				{
 					pred_names_class.push_back(au_preds_class[au].first);
 				}
 
 				all_predictions_reg.resize(au_preds_reg.size());
-				for(int au = 0; au < au_preds_reg.size(); ++au)
+				for(size_t au = 0; au < au_preds_reg.size(); ++au)
 				{
 					pred_names_reg.push_back(au_preds_reg[au].first);
 				}
 
 				all_predictions_reg_segmented.resize(au_preds_reg_segmented.size());
-				for(int au = 0; au < au_preds_reg_segmented.size(); ++au)
+				for(size_t au = 0; au < au_preds_reg_segmented.size(); ++au)
 				{
 					pred_names_reg_segmented.push_back(au_preds_reg_segmented[au].first);
 				}
 			}
 
-			for(int au = 0; au < au_preds_class.size(); ++au)
+			for(size_t au = 0; au < au_preds_class.size(); ++au)
 			{				
 				all_predictions_class[au].push_back(au_preds_class[au].second);
 			}
 
-			for(int au = 0; au < au_preds_reg.size(); ++au)
+			for(size_t au = 0; au < au_preds_reg.size(); ++au)
 			{				
 				all_predictions_reg[au].push_back(au_preds_reg[au].second);
 			}
 
-			for(int au = 0; au < au_preds_reg_segmented.size(); ++au)
+			for(size_t au = 0; au < au_preds_reg_segmented.size(); ++au)
 			{				
 				all_predictions_reg_segmented[au].push_back(au_preds_reg_segmented[au].second);
 			}
@@ -802,9 +801,9 @@ int main (int argc, char **argv)
 		int sub_window = 3;
 		// Some running average smoothing of classes
 
-		for(size_t frame = 0; frame < sub_window || frame < params_global_video[i].size() - sub_window; ++frame)
+		for(int frame = 0; frame < sub_window || frame < (int)params_global_video[i].size() - sub_window; ++frame)
 		{
-			for(int au = 0; au < pred_names_reg.size(); ++au)
+			for(size_t au = 0; au < pred_names_reg.size(); ++au)
 			{			
 				if(all_predictions_reg[au][frame] < 0.01)
 					all_predictions_reg[au][frame] = 0;
@@ -814,7 +813,7 @@ int main (int argc, char **argv)
 			}
 			
 
-			for(int au = 0; au < pred_names_reg_segmented.size(); ++au)
+			for(size_t au = 0; au < pred_names_reg_segmented.size(); ++au)
 			{			
 				all_predictions_reg_segmented[au][frame] = all_predictions_reg[au][frame];
 
@@ -829,7 +828,7 @@ int main (int argc, char **argv)
 
 		for(size_t frame = params_global_video[i].size() - sub_window; frame < params_global_video[i].size(); ++frame)
 		{
-			for(int au = 0; au < pred_names_reg.size(); ++au)
+			for(size_t au = 0; au < pred_names_reg.size(); ++au)
 			{			
 				if(all_predictions_reg[au][frame] < 0.01)
 					all_predictions_reg[au][frame] = 0;
@@ -838,7 +837,7 @@ int main (int argc, char **argv)
 					all_predictions_reg[au][frame] = 5;
 			}
 
-			for(int au = 0; au < pred_names_reg_segmented.size(); ++au)
+			for(size_t au = 0; au < pred_names_reg_segmented.size(); ++au)
 			{			
 				all_predictions_reg_segmented[au][frame] = all_predictions_reg[au][frame];
 
@@ -854,7 +853,7 @@ int main (int argc, char **argv)
 		{
 			auto copy_class(all_predictions_class);
 
-			for(int au = 0; au < pred_names_class.size(); ++au)
+			for(size_t au = 0; au < pred_names_class.size(); ++au)
 			{			
 				all_predictions_class[au][frame] = 0;
 				for(int w = 0; w < window; ++w)
@@ -867,13 +866,11 @@ int main (int argc, char **argv)
 				else
 					all_predictions_class[au][frame] = 0;
 
-				//if(!successes_video[i][frame])
-				//	all_predictions_class[au][frame] = 0;
 			}
 
 			auto copy_reg(all_predictions_reg);
 
-			for(int au = 0; au < pred_names_reg.size(); ++au)
+			for(size_t au = 0; au < pred_names_reg.size(); ++au)
 			{			
 				all_predictions_reg[au][frame] = 0;
 				for(int w = 0; w < window; ++w)
@@ -888,34 +885,24 @@ int main (int argc, char **argv)
 				if(all_predictions_reg[au][frame] > 5)
 					all_predictions_reg[au][frame] = 5;
 
-				//if(!successes_video[i][frame])
-				//	all_predictions_reg[au][frame] = 0;
-
-
 			}
 
 			auto copy_reg_segmented(all_predictions_reg_segmented);
 
-			for(int au = 0; au < pred_names_reg_segmented.size(); ++au)
+			for(size_t au = 0; au < pred_names_reg_segmented.size(); ++au)
 			{			
-				//all_predictions_reg_segmented[au][frame] = 0;
-				//for(int w = 0; w < window; ++w)
-				//{
-				// all_predictions_reg_segmented[au][frame] += copy_reg_segmented[au][frame + w - sub_window];
-				//}
-				//all_predictions_reg_segmented[au][frame] = all_predictions_reg_segmented[au][frame] / window;
-				
-				// Use the regular predictions instead of retraining the models
-				all_predictions_reg_segmented[au][frame] = all_predictions_reg[au][frame];
-
+				all_predictions_reg_segmented[au][frame] = 0;
+				for(int w = 0; w < window; ++w)
+				{
+				 all_predictions_reg_segmented[au][frame] += copy_reg_segmented[au][frame + w - sub_window];
+				}
+				all_predictions_reg_segmented[au][frame] = all_predictions_reg_segmented[au][frame] / window;
+								
 				if(all_predictions_reg_segmented[au][frame] < 1)
 					all_predictions_reg_segmented[au][frame] = 1;
 				
 				if(all_predictions_reg_segmented[au][frame] > 5)
 					all_predictions_reg_segmented[au][frame] = 5;
-
-				//if(!successes_video[i][frame])
-				//	all_predictions_reg_segmented[au][frame] = 0;
 			}
 		}
 
@@ -928,14 +915,14 @@ int main (int argc, char **argv)
 			au_output_file_class.open(output_aus_class[i], ios_base::out);
 
 			// Print the results here
-			for(int au_out = 0; au_out < pred_names_class.size(); ++au_out)
+			for(size_t au_out = 0; au_out < pred_names_class.size(); ++au_out)
 			{			
-				for(int au = 0; au < pred_names_class.size(); ++au)
+				for(size_t au = 0; au < pred_names_class.size(); ++au)
 				{
 					if(pred_names_class[au].compare(sorted[au_out]) == 0)
 					{
 						au_output_file_class << pred_names_class[au];					
-						for(int frame = 0; frame < all_predictions_class[au].size(); ++frame)
+						for(size_t frame = 0; frame < all_predictions_class[au].size(); ++frame)
 						{
 							au_output_file_class << " " << all_predictions_class[au][frame];
 						}
@@ -958,14 +945,14 @@ int main (int argc, char **argv)
 			au_output_file_reg.open(output_aus_reg[i], ios_base::out);
 
 			// Print the results here
-			for(int au_out = 0; au_out < pred_names_reg.size(); ++au_out)
+			for(size_t au_out = 0; au_out < pred_names_reg.size(); ++au_out)
 			{			
-				for(int au = 0; au < pred_names_reg.size(); ++au)
+				for(size_t au = 0; au < pred_names_reg.size(); ++au)
 				{
 					if(pred_names_reg[au].compare(sorted_reg[au_out]) == 0)
 					{
 						au_output_file_reg << pred_names_reg[au];					
-						for(int frame = 0; frame < all_predictions_reg[au].size(); ++frame)
+						for(size_t frame = 0; frame < all_predictions_reg[au].size(); ++frame)
 						{
 							au_output_file_reg << " " << all_predictions_reg[au][frame];
 						}
@@ -987,14 +974,14 @@ int main (int argc, char **argv)
 			au_output_file_reg_segmented.open(output_aus_reg_segmented[i], ios_base::out);
 
 			// Print the results here
-			for(int au_out = 0; au_out < pred_names_reg_segmented.size(); ++au_out)
+			for(size_t au_out = 0; au_out < pred_names_reg_segmented.size(); ++au_out)
 			{			
-				for(int au = 0; au < pred_names_reg_segmented.size(); ++au)
+				for(size_t au = 0; au < pred_names_reg_segmented.size(); ++au)
 				{
 					if(pred_names_reg_segmented[au].compare(sorted_reg_segmented[au_out]) == 0)
 					{
 						au_output_file_reg_segmented << pred_names_reg_segmented[au];					
-						for(int frame = 0; frame < all_predictions_reg_segmented[au].size(); ++frame)
+						for(size_t frame = 0; frame < all_predictions_reg_segmented[au].size(); ++frame)
 						{
 							au_output_file_reg_segmented << " " << all_predictions_reg_segmented[au][frame];
 						}

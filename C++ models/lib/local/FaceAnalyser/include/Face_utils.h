@@ -4,7 +4,7 @@
 #include <cv.h>
 #include <highgui.h>
 
-#include <CLM.h>
+#include "CLM_core.h"
 
 namespace Psyche
 {

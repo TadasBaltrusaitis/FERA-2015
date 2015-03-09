@@ -43,10 +43,7 @@
 
 // SimpleCLM.cpp : Defines the entry point for the console application.
 
-#include <CLM.h>
-#include <CLMTracker.h>
-#include <CLMParameters.h>
-#include <CLM_utils.h>
+#include "CLM_core.h"
 
 #include <fstream>
 #include <sstream>
@@ -322,7 +319,7 @@ int main (int argc, char **argv)
 	vector<string> arguments = get_arguments(argc, argv);
 
 	// Some initial parameters that can be overriden from command line	
-	vector<string> files, depth_directories, pose_output_files, tracked_videos_output, landmark_output_files;
+	vector<string> files, depth_directories, pose_output_files, tracked_videos_output, landmark_output_files, landmark_3d_output_files;
 	
 	// By default try webcam 0
 	int device = 0;
@@ -336,7 +333,7 @@ int main (int argc, char **argv)
 	
 	// Indicates that rotation should be with respect to camera plane or with respect to camera
 	bool use_camera_plane_pose;
-	CLMTracker::get_video_input_output_params(files, depth_directories, pose_output_files, tracked_videos_output, landmark_output_files, use_camera_plane_pose, arguments);
+	CLMTracker::get_video_input_output_params(files, depth_directories, pose_output_files, tracked_videos_output, landmark_output_files, landmark_3d_output_files, use_camera_plane_pose, arguments);
 
 	bool video = true;
 	bool images_as_video = false;
@@ -838,7 +835,7 @@ int main (int argc, char **argv)
 				}
 				face_analyser.AddNextFrame(captured_image, clm_model, 0, false);
 				
-				auto au_preds = face_analyser.GetCurrentAUs();
+				auto au_preds = face_analyser.GetCurrentAUsCombined();
 
 				// Print the results here
 				au_output_file << successes_video[frame] << " ";
