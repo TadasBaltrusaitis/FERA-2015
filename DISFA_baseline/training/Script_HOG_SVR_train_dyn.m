@@ -9,8 +9,8 @@ num_test_folds = 27;
 shared_defs;
 
 % Set up the hyperparameters to be validated
-hyperparams.c = 10.^(-6:1:3);
-hyperparams.p = 2.^(-7:1:-1);
+hyperparams.c = 10.^(-7:1:3);
+hyperparams.p = 10.^(-2);
 
 hyperparams.validate_params = {'c', 'p'};
 
@@ -56,11 +56,11 @@ for a=1:numel(aus)
 
     assert(norm(preds_mine - prediction) < 1e-8);
 
-    name = sprintf('camera_ready/AU_%d_dyn.dat', au);
+    name = sprintf('new_tracker/AU_%d_dyn.dat', au);
 
     write_lin_dyn_svr(name, means, svs, b);
 
-    name = sprintf('camera_ready/AU_%d_dyn.mat', au);
+    name = sprintf('new_tracker/AU_%d_dyn.mat', au);
 
     [ accuracies, F1s, corrs, rms, classes ] = evaluate_classification_results( prediction, valid_labels );    
 
@@ -71,7 +71,7 @@ end
 end
 
 function [model] = svm_train_linear(train_labels, train_samples, hyper)
-    comm = sprintf('-s 11 -B 1 -p %f -c %f -q', hyper.p, hyper.c);
+    comm = sprintf('-s 11 -B 1 -p %.10f -c %.10f -q', hyper.p, hyper.c);
     model = train(train_labels, train_samples, comm);
 end
 

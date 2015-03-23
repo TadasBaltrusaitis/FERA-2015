@@ -2,7 +2,7 @@ function [geom_data] = Read_geom_files_dynamic(users, hog_data_dir)
 
     geom_data = [];
     
-    load('../../pca_generation/pdm_68_multi_pie.mat');
+    load('../../pca_generation/pdm_68_aligned_wild.mat');
     
     for i=1:numel(users)
         

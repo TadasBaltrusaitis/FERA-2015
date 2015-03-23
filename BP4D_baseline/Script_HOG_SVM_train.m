@@ -49,11 +49,11 @@ for a=1:numel(aus)
 
     assert(norm(preds_mine - actual_vals) < 1e-8);
 
-    name = sprintf('camera_ready/AU_%d_static.dat', au);
+    name = sprintf('new_tracker/AU_%d_static.dat', au);
 
     write_lin_svm(name, means, svs, b, model.Label(1), model.Label(2));
 
-    name = sprintf('camera_ready/AU_%d_static.mat', au);
+    name = sprintf('new_tracker/AU_%d_static.mat', au);
 
     tp = sum(valid_labels == 1 & prediction == 1);
     fp = sum(valid_labels == 0 & prediction == 1);

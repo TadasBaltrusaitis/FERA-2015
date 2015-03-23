@@ -3,7 +3,7 @@ function [geom_data, valid_ids] = Read_geom_files(users, hog_data_dir)
     geom_data = [];
     valid_ids = [];
 
-    load('../pca_generation/pdm_68_multi_pie.mat');
+    load('../pca_generation/pdm_68_aligned_wild.mat');
 
     brow_ids = [18,27,19,26,20,25,21,24,22,23];
     

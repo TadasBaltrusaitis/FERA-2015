@@ -1,21 +1,20 @@
-oldDir = chdir('..\C++ models\Release\');
 
-features_exe = '"FeatureExtraction.exe"';
+features_exe = '"..\C++ models\Release\FeatureExtraction.exe"';
 
-fera_loc = 'C:\tadas\face_datasets\fera\';
+fera_loc = 'D:\datasets\face_datasets\fera\';
 
-out_loc = 'C:\tadas\face_datasets\hog_aligned_rigid\';
+out_loc = 'D:\datasets\face_datasets\hog_aligned_rigid\';
 
 % Go two levels deep
 fera_dirs = dir(fera_loc);
 fera_dirs = fera_dirs(3:end);
 
-parfor f1=1:numel(fera_dirs)
+for f1=1:numel(fera_dirs)
 
     fera_dirs_level_2 = dir([fera_loc, fera_dirs(f1).name]);
     fera_dirs_level_2 = fera_dirs_level_2(3:end);
    
-    for f2=1:numel(fera_dirs_level_2)
+    parfor f2=1:numel(fera_dirs_level_2)
 
         vid_files = dir([fera_loc, fera_dirs(f1).name, '/', fera_dirs_level_2(f2).name, '/*.avi']);
         
@@ -39,5 +38,3 @@ parfor f1=1:numel(fera_dirs)
     end    
     
 end
-
-chdir(oldDir)

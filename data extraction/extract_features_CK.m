@@ -1,10 +1,8 @@
-oldDir = chdir('..\C++ models\Release\');
+features_exe = '"..\C++ models\Release\FeatureExtraction.exe"';
 
-features_exe = '"FeatureExtraction.exe"';
+ck_loc = 'D:\datasets\face_datasets/ck+\cohn-kanade-images\';
 
-ck_loc = 'C:\tadas\face_datasets\ck+\cohn-kanade-images\';
-
-out_loc = 'C:\tadas\face_datasets\hog_aligned_rigid\';
+out_loc = 'D:\datasets\face_datasets/hog_aligned_rigid\';
 
 % Go two levels deep
 ck_dirs = dir(ck_loc);
@@ -38,5 +36,3 @@ parfor f1=1:numel(ck_dirs)
     end    
     
 end
-
-chdir(oldDir);

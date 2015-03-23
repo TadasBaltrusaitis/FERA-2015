@@ -43,10 +43,7 @@
 
 // SimpleAnalyser.cpp : Defines the entry point for the console application.
 
-#include <CLM.h>
-#include <CLMTracker.h>
-#include <CLMParameters.h>
-#include <CLM_utils.h>
+#include "CLM_core.h"
 
 #include <FaceAnalyser.h>
 #include <Face_Utils.h>
@@ -82,7 +79,7 @@ vector<string> get_arguments(int argc, char **argv)
 
 	vector<string> arguments;
 
-	for(int i = 1; i < argc; ++i)
+	for(int i = 0; i < argc; ++i)
 	{
 		arguments.push_back(string(argv[i]));
 	}
@@ -142,7 +139,7 @@ int main (int argc, char **argv)
 	vector<string> arguments = get_arguments(argc, argv);
 
 	// Some initial parameters that can be overriden from command line	
-	vector<string> files, depth_directories, pose_output_files, tracked_videos_output, landmark_output_files;
+	vector<string> files, depth_directories, pose_output_files, tracked_videos_output, landmark_output_files, landmark_output_3D_files;
 	
 	// By default try webcam 0
 	int device = 0;
@@ -156,7 +153,7 @@ int main (int argc, char **argv)
 	
 	// Indicates that rotation should be with respect to camera plane or with respect to camera
 	bool use_camera_plane_pose;
-	CLMTracker::get_video_input_output_params(files, depth_directories, pose_output_files, tracked_videos_output, landmark_output_files, use_camera_plane_pose, arguments);
+	CLMTracker::get_video_input_output_params(files, depth_directories, pose_output_files, tracked_videos_output, landmark_output_files, landmark_output_3D_files, use_camera_plane_pose, arguments);
 	// Get camera parameters
 	CLMTracker::get_camera_params(device, fx, fy, cx, cy, arguments);    
 	
@@ -169,16 +166,22 @@ int main (int argc, char **argv)
 	vector<Vec3d> head_orientations;
 	// Adding orientations for slight profile and slight head up/down modes
 	head_orientations.push_back(Vec3d(    0, 0.0, 0));
-	head_orientations.push_back(Vec3d(    0, 0.4, 0));
-	head_orientations.push_back(Vec3d(    0,-0.4, 0));
-	head_orientations.push_back(Vec3d(    0, 0.7, 0));
-	head_orientations.push_back(Vec3d(    0,-0.7, 0));
-	head_orientations.push_back(Vec3d( 0.3,    0, 0));
-	head_orientations.push_back(Vec3d(-0.3,    0, 0));
-	head_orientations.push_back(Vec3d( 0.6,    0, 0));
-	head_orientations.push_back(Vec3d(-0.6,    0, 0));
+	//head_orientations.push_back(Vec3d(    0, 0.4, 0));
+	//head_orientations.push_back(Vec3d(    0,-0.4, 0));
+	//head_orientations.push_back(Vec3d(    0, 0.7, 0));
+	//head_orientations.push_back(Vec3d(    0,-0.7, 0));
+	//head_orientations.push_back(Vec3d( 0.3,    0, 0));
+	//head_orientations.push_back(Vec3d(-0.3,    0, 0));
+	//head_orientations.push_back(Vec3d( 0.6,    0, 0));
+	//head_orientations.push_back(Vec3d(-0.6,    0, 0));
+	
+	string face_analyser_loc("./AU_predictors/AU_SVM_BP4D_best.txt");
+	string face_analyser_loc_av("./AV_regressors/av_regressors.txt");
+	string tri_location("./model/tris_68_full.txt");
+	double sim_scale = 0.7;
+	int sim_size = 112;
 
-	Psyche::FaceAnalyser face_analyser(head_orientations);
+	Psyche::FaceAnalyser face_analyser(head_orientations, sim_scale, sim_size, sim_size);
 
 	// If multiple video files are tracked, use this to indicate if we are done
 	bool done = false;	
@@ -347,7 +350,7 @@ int main (int argc, char **argv)
 			{
 				face_analyser.AddNextFrame(grayscale_image, clm_model, 0);
 							
-				au_preds = face_analyser.GetCurrentAUs();
+				au_preds = face_analyser.GetCurrentAUsCombined();
 
 
 				// Print the results here (for now)
@@ -391,8 +394,7 @@ int main (int argc, char **argv)
 			// Only draw if the reliability is reasonable, the value is slightly ad-hoc
 			if(detection_certainty < visualisation_boundary)
 			{
-				vector<Point> landmarks = CLMTracker::CalculateLandmarks(clm_model);
-				CLMTracker::DrawLandmarks(captured_image, landmarks);
+				CLMTracker::Draw(captured_image, clm_model);
 
 				if(detection_certainty > 1)
 					detection_certainty = 1;
@@ -407,9 +409,7 @@ int main (int argc, char **argv)
 				Vec6d pose_estimate_to_draw = CLMTracker::GetCorrectedPoseCameraPlane(clm_model, fx, fy, cx, cy, clm_parameters);
 
 				// Draw it in reddish if uncertain, blueish if certain
-
-				vector<pair<Point,Point>> lines = CLMTracker::CalculateBox(pose_estimate_to_draw, fx, fy, cx, cy);
-				CLMTracker::DrawBox(lines, captured_image, Scalar((1-detection_certainty)*255.0,0, detection_certainty*255), thickness);
+				CLMTracker::DrawBox(captured_image, pose_estimate_to_draw, Scalar((1-detection_certainty)*255.0,0, detection_certainty*255), thickness, fx, fy, cx, cy);
 
 			}
 

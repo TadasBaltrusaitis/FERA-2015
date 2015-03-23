@@ -1,10 +1,9 @@
-oldDir = chdir('..\C++ models\Release\');
 
-features_exe = '"FeatureExtraction.exe"';
+features_exe = '"..\C++ models\Release\FeatureExtraction.exe"';
 
-avec_loc = 'C:\tadas\face_datasets\avec\';
+avec_loc = 'D:\datasets\face_datasets\avec\';
 
-out_loc = 'C:\tadas\face_datasets\hog_aligned_rigid\';
+out_loc = 'D:\datasets\face_datasets\hog_aligned_rigid\';
 
 % Go two levels deep
 avec_dirs = dir(avec_loc);

@@ -52,10 +52,10 @@ for a=1:numel(all_aus_int)
 
     assert(norm(preds_mine - actual_vals) < 1e-8);
 
-    name = sprintf('camera_ready/AU_%d_static_intensity.dat', au);
+    name = sprintf('new_tracker/AU_%d_static_intensity.dat', au);
     write_lin_svr(name, means, svs, b);
 
-    name = sprintf('camera_ready/AU_%d_static_intensity.mat', au);
+    name = sprintf('new_tracker/AU_%d_static_intensity.mat', au);
     
     correlation = corr(valid_labels, prediction);
     RMSE = sqrt(mean((valid_labels - prediction).^2));

@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LocalDebuggerCommandArguments>-f "../videos/default.wmv"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-rigid -f "D:\datasets\face_datasets\fera_2015\semaine\SEMAINE-Sessions/rec1/2008.12.05.16.03.15_User Frontal_C_Obadiah.avi" -simalign "D:\datasets\face_datasets\fera_2015\semaine\SEMAINE-Sessions/../processed_data/train/rec1/" -simscale 0.7 -simsize 112 -hogalign "D:\datasets\face_datasets\fera_2015\semaine\SEMAINE-Sessions/../processed_data/train/rec1.hog" -oparams "D:\datasets\face_datasets\fera_2015\semaine\SEMAINE-Sessions/../processed_data/train/rec1.params.txt"</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerWorkingDirectory>$(TargetDir)</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LocalDebuggerWorkingDirectory>$(TargetDir)</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>-f "../videos/default.wmv"</LocalDebuggerCommandArguments>
   </PropertyGroup>

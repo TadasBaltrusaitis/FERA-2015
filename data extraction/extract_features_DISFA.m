@@ -1,7 +1,6 @@
 % Biwi dataset experiment
 
-features_exe = '"FeatureExtraction.exe"';
-oldDir = chdir('..\C++ models\Release\');
+features_exe = '"..\C++ models\Release\FeatureExtraction.exe"';
 
 if(exist('D:/Databases/DISFA/', 'dir'))
     DISFA_loc = 'D:/Databases/DISFA/';    
@@ -82,4 +81,3 @@ parfor i=1:numel(disfa_loc_2_files)
 end
 
 timeTaken = toc;
-chdir(oldDir);
