@@ -1,7 +1,7 @@
 clear;
 
-%% CK+, FERA and AVEC
-hog_dir = 'D:\datasets/face_datasets/hog_aligned_rigid/';
+%% CK+, FERA, AVEC and UNBC
+hog_dir = 'D:\Datasets/face_datasets/hog_aligned_rigid/';
 hog_files = dir([hog_dir, '*.hog']);
 
 [appearance_data, valid_inds, vid_ids_train] = Read_HOG_files_small(hog_files, hog_dir);
@@ -9,7 +9,7 @@ appearance_data = appearance_data(valid_inds,:);
 vid_ids_train = vid_ids_train(valid_inds,:);
 
 %% DISFA
-hog_dir = 'D:\datasets\face_datasets\DISFA\hog_aligned_rigid/';
+hog_dir = 'D:\Datasets\DISFA\hog_aligned_rigid/';
 hog_files = dir([hog_dir, '*.hog']);
 
 [appearance_data_disfa, valid_inds, vid_ids_train_disfa] = Read_HOG_files_small(hog_files, hog_dir, 100);
@@ -21,7 +21,7 @@ appearance_data = cat(1,appearance_data, appearance_data_disfa);
 vid_ids_train = cat(1,vid_ids_train, vid_ids_train_disfa);
 
 %% BP4D
-hog_dir = 'D:\datasets\face_datasets\fera_2015\bp4d\processed_data/train/';
+hog_dir = 'D:\Datasets\FERA_2015\bp4d\processed_data/train/';
 hog_files = dir([hog_dir, '*.hog']);
 
 [appearance_data_bp, valid_inds, vid_ids_train_bp] = Read_HOG_files_small(hog_files, hog_dir, 50);
@@ -33,7 +33,7 @@ appearance_data = cat(1,appearance_data, appearance_data_bp);
 vid_ids_train = cat(1,vid_ids_train, vid_ids_train_bp);
 
 %% SEMAINE
-hog_dir = 'D:\datasets\face_datasets\fera_2015\semaine\processed_data\train\';
+hog_dir = 'D:\Datasets\FERA_2015\semaine\processed_data\train\';
 hog_files = dir([hog_dir, '*.hog']);
 
 [appearance_data_semaine, valid_inds, vid_ids_train_semaine] = Read_HOG_files_small(hog_files, hog_dir, 300);

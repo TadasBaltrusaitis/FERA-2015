@@ -17,6 +17,9 @@ elseif(exist('E:\datasets\FERA_2015\BP4D\AUCoding/', 'file'))
 elseif(exist('D:\datasets\face_datasets\fera_2015\bp4d\AUCoding/','file'))
     BP4D_dir = 'D:\datasets\face_datasets\fera_2015\bp4d\AUCoding/';
     BP4D_dir_int = 'D:\datasets\face_datasets\fera_2015\bp4d\AU Intensity Codes3.0/';
+elseif(exist('D:\Datasets\FERA_2015\BP4D\AUCoding/','file'))
+    BP4D_dir = 'D:\Datasets\FERA_2015\BP4D\AUCoding/';
+    BP4D_dir_int = 'D:\Datasets\FERA_2015\BP4D\AU Intensity Codes3.0/';
 elseif(exist('I:\datasets\FERA_2015\BP4D\AUCoding/', 'file'))
     BP4D_dir = 'I:\datasets\FERA_2015\BP4D\AUCoding/';
     BP4D_dir_int = 'I:\datasets\FERA_2015\BP4D\AU Intensity Codes3.0/';

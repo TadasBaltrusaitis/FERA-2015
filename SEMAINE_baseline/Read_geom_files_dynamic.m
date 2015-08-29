@@ -24,8 +24,12 @@ function [geom_data, valid_ids] = Read_geom_files_dynamic(users, vid_ids, hog_da
     
     for i=1:numel(users)
         
-        geom_file = [hog_data_dir, '/' users{i} '.params.txt'];
-        m_file = [hog_data_dir, '/' users{i} '.params.mat'];
+        geom_file = [hog_data_dir, '/train/' users{i} '.params.txt'];
+        m_file = [hog_data_dir, '/train/' users{i} '.params.mat'];
+        if(~exist(geom_file, 'file'))            
+            geom_file = [hog_data_dir, '/devel/' users{i} '.params.txt'];
+            m_file = [hog_data_dir, '/devel/' users{i} '.params.mat'];
+        end
         
         if(~exist(m_file, 'file'))
             res = dlmread(geom_file, ' ');

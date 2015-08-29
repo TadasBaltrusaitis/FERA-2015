@@ -6,8 +6,11 @@ function [hog_data, valid_inds, vid_id] = Read_HOG_files(users, vid_ids, hog_dat
     feats_filled = 0;
 
     for i=1:numel(users)
-        
-        hog_file = [hog_data_dir, '/' users{i} '.hog'];
+                
+        hog_file = [hog_data_dir, '/train/' users{i} '.hog'];
+        if(~exist(hog_file, 'file'))            
+            hog_file = [hog_data_dir, '/devel/' users{i} '.hog'];
+        end
         
         f = fopen(hog_file, 'r');
                         

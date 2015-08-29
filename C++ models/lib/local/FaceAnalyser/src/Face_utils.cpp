@@ -190,19 +190,22 @@ namespace Psyche
 		destination_landmarks.col(1) = destination_landmarks.col(1) + warp_matrix(1,2);
 		
 		// Move the eyebrows up to include more of upper face
-		destination_landmarks.at<double>(0,1) -= 15; 
-		destination_landmarks.at<double>(16,1) -= 15; 
+		double motion_up_large = 30;
+		//double motion_up_small = 15;
 
-		destination_landmarks.at<double>(17,1) -= 7; 
-		destination_landmarks.at<double>(18,1) -= 7; 
-		destination_landmarks.at<double>(19,1) -= 7; 
-		destination_landmarks.at<double>(20,1) -= 7; 
-		destination_landmarks.at<double>(21,1) -= 7; 
-		destination_landmarks.at<double>(22,1) -= 7; 
-		destination_landmarks.at<double>(23,1) -= 7; 
-		destination_landmarks.at<double>(24,1) -= 7; 
-		destination_landmarks.at<double>(25,1) -= 7; 
-		destination_landmarks.at<double>(26,1) -= 7; 
+		destination_landmarks.at<double>(0,1) -= motion_up_large; 
+		destination_landmarks.at<double>(16,1) -= motion_up_large; 
+
+		destination_landmarks.at<double>(17,1) -= motion_up_large; 
+		destination_landmarks.at<double>(18,1) -= motion_up_large; 
+		destination_landmarks.at<double>(19,1) -= motion_up_large; 
+		destination_landmarks.at<double>(20,1) -= motion_up_large; 
+		destination_landmarks.at<double>(21,1) -= motion_up_large; 
+		destination_landmarks.at<double>(22,1) -= motion_up_large; 
+		destination_landmarks.at<double>(23,1) -= motion_up_large; 
+		destination_landmarks.at<double>(24,1) -= motion_up_large; 
+		destination_landmarks.at<double>(25,1) -= motion_up_large; 
+		destination_landmarks.at<double>(26,1) -= motion_up_large; 
 
 		destination_landmarks = Mat(destination_landmarks.t()).reshape(1, 1).t();		
 

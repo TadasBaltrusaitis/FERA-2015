@@ -1,9 +1,10 @@
-
+clear
 features_exe = '"..\C++ models\Release\FeatureExtraction.exe"';
 
-fera_loc = 'D:\datasets\face_datasets\fera\';
+fera_loc = 'D:\Datasets\fera\';
 
-out_loc = 'D:\datasets\face_datasets\hog_aligned_rigid\';
+out_loc = 'D:\Datasets\face_datasets\hog_aligned_rigid\';
+out_loc_params = 'D:\Datasets\face_datasets\clm_params\';
 
 % Go two levels deep
 fera_dirs = dir(fera_loc);
@@ -28,9 +29,14 @@ for f1=1:numel(fera_dirs)
             output_file = [out_loc fera_dirs(f1).name '_' name '/'];
 
             output_hog = [out_loc fera_dirs(f1).name '_' name '.hog'];
-    
+                
+            output_params = [out_loc_params fera_dirs(f1).name '_' name '.txt'];
+            
             command = cat(2, command, [' -rigid -f "' curr_vid '" -simalign "' output_file  '" -simscale 0.7 -simsize 112']);
-            command = cat(2, command, [' -hogalign "' output_hog ]);
+            command = cat(2, command, [' -hogalign "' output_hog '"']);
+    
+            command = cat(2, command, [' -oparams "' output_params '"']);
+    
             dos(command);
             
         end

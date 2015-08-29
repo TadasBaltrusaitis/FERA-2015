@@ -13,7 +13,6 @@ function [geom_data] = Read_geom_files(users, hog_data_dir)
         actual_locs = res * V';
         res = cat(2, actual_locs, res);
             
-        geom_data = cat(1, geom_data, res);
-                
+        geom_data = cat(1, geom_data, res);       
     end
 end

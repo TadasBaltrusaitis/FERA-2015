@@ -4,6 +4,8 @@ features_exe = '"..\C++ models\Release\FeatureExtraction.exe"';
 
 if(exist('D:/Databases/DISFA/', 'dir'))
     DISFA_loc = 'D:/Databases/DISFA/';    
+elseif(exist('D:/Datasets/DISFA/', 'dir'))
+    DISFA_loc = 'D:/Datasets/DISFA/';   
 elseif(exist('E:/datasets/DISFA/', 'dir'))
     DISFA_loc = 'E:/datasets/DISFA/';       
 elseif(exist('C:/tadas/DISFA', 'dir'))
@@ -37,7 +39,7 @@ disfa_loc_1_files = dir([DISFA_loc_1, '/*.avi']);
 disfa_loc_2_files = dir([DISFA_loc_2, '/*.avi']);
 
 %%
-
+% 1 is slightly shaky, 2 is quite shaky
 tic;
 
 parfor i=1:numel(disfa_loc_1_files)

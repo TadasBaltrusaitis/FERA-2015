@@ -1,4 +1,4 @@
-function [ accuracies, F1s, corrs, rms, classes ] = evaluate_classification_results( labels, ground_truth )
+function [ accuracies, F1s, corrs, ccc, rms, classes ] = evaluate_classification_results( labels, ground_truth )
 %EVALUATE_CLASSIFICATION_RESULTS Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -9,6 +9,11 @@ function [ accuracies, F1s, corrs, rms, classes ] = evaluate_classification_resu
     corrs = corr(labels, ground_truth);
     
     rms = sqrt(mean((labels-ground_truth).^2));
+        
+    std_g = std(ground_truth);
+    std_p = std(labels);
+    
+    ccc = 2 * corrs * std_g * std_p / (std_g^2 + std_p^2 + (mean(labels) - mean(ground_truth))^2);
     
     % the label is taken to belong to a class it is closest to
     label_dists = zeros(numel(labels), numel(classes));
@@ -43,6 +48,7 @@ function [ accuracies, F1s, corrs, rms, classes ] = evaluate_classification_resu
         F1s(i) = 2 * TPs / (2*TPs + FNs + FPs);
         
     end
+    
     
 end
 

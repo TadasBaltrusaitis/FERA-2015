@@ -1,15 +1,19 @@
+% load all of the data together (for efficiency)
+% it will be split up accordingly at later stages
 if(exist('F:/datasets/DISFA/', 'file'))
     DISFA_dir = 'F:/datasets/DISFA/';
 elseif(exist('D:/Databases/DISFA/', 'file'))        
     DISFA_dir = 'D:/Databases/DISFA/';
+elseif(exist('D:\datasets\face_datasets\DISFA/', 'file'))        
+    DISFA_dir = 'D:\datasets\face_datasets\DISFA/';    
+elseif(exist('D:\Datasets\DISFA/', 'file'))        
+    DISFA_dir = 'D:\Datasets\DISFA/';  
 elseif(exist('Z:/datasets/DISFA/', 'file'))        
     DISFA_dir = 'Z:/Databases/DISFA/';
 elseif(exist('E:/datasets/DISFA/', 'file'))        
     DISFA_dir = 'E:/datasets/DISFA/';
 elseif(exist('C:/tadas/DISFA/', 'file'))        
     DISFA_dir = 'C:/tadas/DISFA/';
-elseif(exist('D:\datasets\face_datasets\DISFA/', 'file'))        
-    DISFA_dir = 'D:\datasets\face_datasets\DISFA/';
 else
     fprintf('DISFA location not found (or not defined)\n'); 
 end

@@ -12,6 +12,8 @@ elseif(exist('D:/Databases/DISFA/', 'file'))
     DISFA_dir = 'D:/Databases/DISFA/';
 elseif(exist('D:\datasets\face_datasets\DISFA/', 'file'))        
     DISFA_dir = 'D:\datasets\face_datasets\DISFA/';    
+elseif(exist('D:\Datasets\DISFA/', 'file'))        
+    DISFA_dir = 'D:\Datasets\DISFA/';  
 elseif(exist('Z:/datasets/DISFA/', 'file'))        
     DISFA_dir = 'Z:/Databases/DISFA/';
 elseif(exist('E:/datasets/DISFA/', 'file'))        

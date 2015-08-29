@@ -1,7 +1,7 @@
 
 features_exe = '"..\C++ models\Release\FeatureExtraction.exe"';
 
-avec_loc = 'D:\datasets\face_datasets\avec\';
+avec_loc = 'D:\datasets\avec\';
 
 out_loc = 'D:\datasets\face_datasets\hog_aligned_rigid\';
 

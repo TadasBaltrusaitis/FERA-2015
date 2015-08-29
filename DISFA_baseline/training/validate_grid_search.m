@@ -95,7 +95,7 @@ function [ best_params, all_params ] = validate_grid_search(train_fn, test_fn, m
     end
             
     % Crossvalidate the c, p, and gamma values
-    parfor p = 1:num_params
+    for p = 1:num_params
 
         for r=1:num_repeat
             model = train_fn(labels_train, samples_train, all_params(p));

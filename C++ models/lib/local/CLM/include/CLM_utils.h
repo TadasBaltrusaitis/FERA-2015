@@ -2,13 +2,13 @@
 // Copyright (C) 2014, University of Southern California and University of Cambridge,
 // all rights reserved.
 //
-// THIS SOFTWARE IS PROVIDED “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES,
-// INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
-// AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
-// THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY. OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// THIS SOFTWARE IS PROVIDED “AS IS” FOR ACADEMIC USE ONLY AND ANY EXPRESS
+// OR IMPLIED WARRANTIES WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS
+// BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY.
+// OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
 // HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
@@ -102,9 +102,19 @@ namespace CLMTracker
 	void Project(Mat_<double>& dest, const Mat_<double>& mesh, double fx, double fy, double cx, double cy);
 	void DrawBox(Mat image, Vec6d pose, Scalar color, int thickness, float fx, float fy, float cx, float cy);
 
+	// Drawing face bounding box
+	vector<pair<Point, Point>> CalculateBox(Vec6d pose, float fx, float fy, float cx, float cy);
+	void DrawBox(vector<pair<Point, Point>> lines, Mat image, Scalar color, int thickness);
+
+	vector<Point2d> CalculateLandmarks(const Mat_<double>& shape2D, Mat_<int>& visibilities);
+	vector<Point2d> CalculateLandmarks(const Mat_<double>& shape2D);
+	vector<Point2d> CalculateLandmarks(CLM& clm_model);
+	void DrawLandmarks(cv::Mat img, vector<Point> landmarks);
+
 	void Draw(cv::Mat img, const Mat_<double>& shape2D, Mat_<int>& visibilities);
 	void Draw(cv::Mat img, const Mat_<double>& shape2D);
 	void Draw(cv::Mat img, CLM& clm_model);
+
 
 	//===========================================================================
 	// Angle representation conversion helpers

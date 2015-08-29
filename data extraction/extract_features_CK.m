@@ -1,8 +1,10 @@
+clear
 features_exe = '"..\C++ models\Release\FeatureExtraction.exe"';
 
-ck_loc = 'D:\datasets\face_datasets/ck+\cohn-kanade-images\';
+ck_loc = 'D:\Datasets\ck+\cohn-kanade-images\';
 
 out_loc = 'D:\datasets\face_datasets/hog_aligned_rigid\';
+out_loc_params = 'D:\datasets\face_datasets/clm_params\';
 
 % Go two levels deep
 ck_dirs = dir(ck_loc);
@@ -28,9 +30,13 @@ parfor f1=1:numel(ck_dirs)
         output_file = [out_loc name '/'];
 
         output_hog = [out_loc name '.hog'];
-
+        output_params = [out_loc_params name '.txt'];
+            
         command = cat(2, command, [' -rigid -asvid -fdir "' curr_vid '" -simalign "' output_file  '" -simscale 0.7 -simsize 112 -g']);
-        command = cat(2, command, [' -hogalign "' output_hog ]);
+        command = cat(2, command, [' -hogalign "' output_hog, '"' ]);
+        
+        command = cat(2, command, [' -oparams "' output_params '"']);
+        
         dos(command);
             
     end    

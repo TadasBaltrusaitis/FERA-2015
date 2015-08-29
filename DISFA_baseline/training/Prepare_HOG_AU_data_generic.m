@@ -1,14 +1,16 @@
-function [data_train, labels_train, data_valid, labels_valid, raw_valid, PC, means_norm, stds_norm] = ...
-    Prepare_HOG_AU_data_generic(train_users, au_train, rest_aus, hog_data_dir)
+function [data_train, labels_train, data_valid, labels_valid, raw_valid, PC, means_norm, stds_norm, vid_ids_valid] = ...
+    Prepare_HOG_AU_data_generic(all_users, au_train, rest_aus, hog_data_dir, offset, prop)
 
 %% This should be a separate function?
 
-input_train_label_files = cell(numel(train_users),1);
+input_train_label_files = cell(numel(all_users),1);
     
 if(exist('F:/datasets/DISFA/', 'file'))
     root = 'F:/datasets/DISFA/';
 elseif(exist('D:/Databases/DISFA/', 'file'))        
     root = 'D:/Databases/DISFA/';
+elseif(exist('D:/Datasets/DISFA/', 'file'))        
+    root = 'D:/Datasets/DISFA/';    
 elseif(exist('Z:/datasets/DISFA/', 'file'))        
     root = 'Z:/Databases/DISFA/';
 elseif(exist('E:/datasets/DISFA/', 'file'))        
@@ -22,8 +24,8 @@ else
 end
     
 % This is for loading the labels
-for i=1:numel(train_users)   
-    input_train_label_files{i} = [root, '/ActionUnit_Labels/', train_users{i}, '/', train_users{i}];
+for i=1:numel(all_users)   
+    input_train_label_files{i} = [root, '/ActionUnit_Labels/', all_users{i}, '/', all_users{i}];
 end
 
 % Extracting the labels
@@ -38,18 +40,24 @@ for i=1:numel(rest_aus)
 end
     
 % Reading in the HOG data
-[train_geom_data] = Read_geom_files(train_users, hog_data_dir);
+[train_geom_data] = Read_geom_files(all_users, hog_data_dir);
 
-[train_appearance_data, tracked_inds_hog, vid_ids_train] = Read_HOG_files(train_users, hog_data_dir);
+[train_appearance_data, tracked_inds_hog, vid_ids_train] = Read_HOG_files(all_users, hog_data_dir);
 
 train_appearance_data = cat(2, train_appearance_data, train_geom_data);
 
+if(nargin <= 4)
+    offset = 1;
+    prop = 1/4;
+end
+
 % Getting the indices describing the splits (full version)
-[training_inds, valid_inds, split] = construct_indices(vid_ids_train, train_users);
+[training_inds, valid_inds] = construct_indices(all_users, vid_ids_train, au_train, offset, prop);
 
 % can now extract the needed training labels (do not rebalance validation
 % data)
 labels_valid = labels_train(valid_inds);
+vid_ids_valid = vid_ids_train(valid_inds);
 
 % make sure the same number of positive and negative samples is taken
 reduced_inds = false(size(labels_train,1),1);
@@ -111,16 +119,14 @@ data_valid = valid_appearance_data * PC;
 
 end
 
-function [training_inds, valid_inds, split] = construct_indices(video_inds, train_users)
-
-    % Randomise the training and validation users TODO this makes it worse?
-%     train_users = train_users(randperm(numel(train_users)));
+function [training_inds, valid_inds] = construct_indices(all_users, video_inds, au, offset, prop)
 
     % extract these separately so as to guarantee person independent splits for
     % validation
-    split = round(2*numel(train_users)/3);
 
-    users_train = train_users(1:split);
+    [users_train, users_valid] = get_balanced_fold(all_users, au, prop, offset);
+    
+%     users_train = train_users(1:split);
 
     training_inds = false(size(video_inds));
     for i=1:numel(users_train)
@@ -128,41 +134,10 @@ function [training_inds, valid_inds, split] = construct_indices(video_inds, trai
         training_inds = training_inds | user_ind;
     end
     
-    users_valid = train_users(split+1:end);
+%     users_valid = train_users(split+1:end);
     valid_inds = false(size(video_inds));
     for i=1:numel(users_valid)
         user_ind = strcmp(video_inds,  users_valid(i));
         valid_inds = valid_inds | user_ind;
     end        
-end
-
-function [inds_train_rebalanced, inds_valid_rebalanced, sample_length] = construct_balanced(labels_all, training_inds, valid_inds,...
-                                                                            rest_aus, input_labels_files)
-    
-    all_subs = 1:size(labels_all,1);
-                                                                        
-    labels_train = labels_all(training_inds);
-    labels_valid = labels_all(valid_inds);
-    
-    labels_other_au = zeros(size(labels_all,1), numel(rest_aus));
-
-    % This is used to pick up activity of other AUs for a more 'interesting'
-    % data split and not only neutral expressions for negative samples    
-    for i=1:numel(rest_aus)
-        labels_other_au(:,i) = extract_au_labels(input_labels_files, rest_aus(i));
-    end
-    
-    labels_other_au_train = labels_other_au(training_inds,:);
-    labels_other_au_valid = labels_other_au(valid_inds,:);
-    
-    [ inds_train_rebalanced, sample_length ] = extract_events( labels_train, labels_other_au_train );
-    [ inds_valid_rebalanced ] = extract_events( labels_valid, labels_other_au_valid, sample_length );
-    
-    % Need to move from indices in labels_train space to indices in
-    % original labels_all space
-    sub_train = all_subs(training_inds);
-    inds_train_rebalanced = sub_train(inds_train_rebalanced);
-    
-    sub_valid = all_subs(valid_inds);
-    inds_valid_rebalanced = sub_valid(inds_valid_rebalanced);
 end
