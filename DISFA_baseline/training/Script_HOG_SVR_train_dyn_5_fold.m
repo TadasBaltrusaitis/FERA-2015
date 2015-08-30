@@ -1,5 +1,3 @@
-function Script_HOG_SVR_train_dyn_5_fold()
-
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
 
@@ -20,6 +18,8 @@ svr_train = @svr_train_linear;
 % Set the test function (the first output will be used for validation)
 svr_test = @svr_test_linear;
 
+test_folds = get_test_folds(num_test_folds, users);
+
 %%
 for a=1:numel(aus)
     
@@ -33,12 +33,15 @@ for a=1:numel(aus)
         rest_aus = setdiff(all_aus, au);        
 
         % load the training and testing data for the current fold
-        [~, ~, test_samples, test_labels, ~, ~, ~, ~, test_ids, test_success] = Prepare_HOG_AU_data_generic_dynamic(users, au, rest_aus, hog_data_dir, t, 1/num_test_folds);
+        [~, ~, test_samples, test_labels, ~, ~, ~, ~, test_ids, test_success] = Prepare_HOG_AU_data_generic_dynamic({}, test_folds{t}, au, rest_aus, hog_data_dir);
 
-        users_train = setdiff(users, unique(test_ids));
-
+        % create the training and validation data
+        users_train = setdiff(users, unique(test_ids));        
+        % make sure validation data's labels are balanced
+        [users_train, users_valid] = get_balanced_fold(DISFA_dir, users_train, au, 1/4, 1);
+        
         % need to split the rest
-        [train_samples, train_labels, valid_samples, valid_labels, ~, PC, means, scaling, valid_ids, valid_success] = Prepare_HOG_AU_data_generic_dynamic(users_train, au, rest_aus, hog_data_dir);
+        [train_samples, train_labels, valid_samples, valid_labels, ~, PC, means, scaling, valid_ids, valid_success] = Prepare_HOG_AU_data_generic_dynamic(users_train, users_valid, au, rest_aus, hog_data_dir);
 
         train_samples = sparse(train_samples);
         valid_samples = sparse(valid_samples);
@@ -78,8 +81,6 @@ for a=1:numel(aus)
     [ accuracies, F1s, corrs, ccc, rms, classes ] = evaluate_classification_results( prediction_all, test_all );    
 
     save(name, 'model', 'accuracies', 'F1s', 'corrs', 'rms', 'ccc', 'prediction_all', 'test_all');        
-
-end
 
 end
 

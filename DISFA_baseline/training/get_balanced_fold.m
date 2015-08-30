@@ -1,26 +1,8 @@
-function [train_users, dev_users] = get_balanced_fold(users, au, prop_test, offset)
-
-    if(exist('F:/datasets/DISFA/', 'file'))
-        root = 'F:/datasets/DISFA/';
-    elseif(exist('D:/Databases/DISFA/', 'file'))        
-        root = 'D:/Databases/DISFA/';
-    elseif(exist('Z:/datasets/DISFA/', 'file'))        
-        root = 'Z:/Databases/DISFA/';
-    elseif(exist('E:/datasets/DISFA/', 'file'))        
-        root = 'E:/datasets/DISFA/';
-    elseif(exist('C:/tadas/DISFA/', 'file'))        
-        root = 'C:/tadas/DISFA/';
-    elseif(exist('D:\datasets\face_datasets\DISFA/', 'file'))        
-        root = 'D:\datasets\face_datasets\DISFA/';
-    elseif(exist('D:\Datasets\DISFA/','file'))
-        root = 'D:\Datasets\DISFA/';
-    else
-        fprintf('DISFA location not found (or not defined)\n');
-    end    
+function [train_users, dev_users] = get_balanced_fold(DISFA_dir, users, au, prop_test, offset)
 
     % This is for loading the labels
     for i=1:numel(users)   
-        input_train_label_files{i} = [root, '/ActionUnit_Labels/', users{i}, '/', users{i}];
+        input_train_label_files{i} = [DISFA_dir, '/ActionUnit_Labels/', users{i}, '/', users{i}];
     end
 
     % Extracting the labels

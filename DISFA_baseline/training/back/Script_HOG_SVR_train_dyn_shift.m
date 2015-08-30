@@ -14,10 +14,10 @@ hyperparams.p = 10.^(-2);
 hyperparams.validate_params = {'c', 'p'};
 
 % Set the training function
-svr_train = @svr_train_linear_shift_learn;
+svr_train = @svr_train_linear_shift;
     
 % Set the test function (the first output will be used for validation)
-svr_test = @svr_test_linear_shift_learn;
+svr_test = @svr_test_linear_shift;
 
 %%
 for a=1:numel(aus)
@@ -30,15 +30,15 @@ for a=1:numel(aus)
     rest_aus = setdiff(all_aus, au);        
 
     % load the training and testing data for the current fold
-    [~, ~, test_samples, test_labels, ~, ~, ~, ~, test_ids] = Prepare_HOG_AU_data_generic(users(train_users), au, rest_aus, hog_data_dir);
+    [~, ~, test_samples, test_labels, ~, ~, ~, ~, test_ids] = Prepare_HOG_AU_data_generic_dynamic(users(train_users), au, rest_aus, hog_data_dir);
 
     users_train = setdiff(users, unique(test_ids));
     
     % need to split the rest
-    [train_samples, train_labels, valid_samples, valid_labels, ~, PC, means, scaling, valid_ids] = Prepare_HOG_AU_data_generic(users_train, au, rest_aus, hog_data_dir);
+    [train_samples, train_labels, valid_samples, valid_labels, ~, PC, means, scaling, valid_ids] = Prepare_HOG_AU_data_generic_dynamic(users_train, au, rest_aus, hog_data_dir);
     
-    hyperparams.valid_samples = valid_samples;
-    hyperparams.valid_labels = valid_labels;
+%     hyperparams.valid_samples = valid_samples;
+%     hyperparams.valid_labels = valid_labels;
     hyperparams.vid_ids = valid_ids;
     
     train_samples = sparse(train_samples);
@@ -70,7 +70,7 @@ for a=1:numel(aus)
 % 
 %     write_lin_svr(name, means, svs, b);
 
-    name = sprintf('results_ideal_shift/AU_%d_stat_learned.mat', au);
+    name = sprintf('results_ideal_shift/AU_%d_dynamic.mat', au);
 
     [ accuracies, F1s, corrs, rms, classes ] = evaluate_classification_results( prediction, test_labels );    
 

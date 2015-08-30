@@ -1,5 +1,3 @@
-function Script_HOG_SVR_train_stat()
-
 % Change to your downloaded location
 addpath('C:\liblinear\matlab')
 
@@ -72,24 +70,4 @@ for a=1:numel(aus)
 
     save(name, 'model', 'accuracies', 'F1s', 'corrs', 'rms');        
 
-end
-
-end
-
-function [result, prediction] = svr_test_linear(test_labels, test_samples, model)
-
-    prediction = predict(test_labels, test_samples, model);
-    
-    % All the models should include shifting
-    
-    prediction(prediction<0)=0;
-    prediction(prediction>5)=5;
-    % using the average of RMS errors
-%     result = mean(sqrt(mean((prediction - test_labels).^2)));  
-    result = corr(test_labels, prediction);
-    
-    if(isnan(result))
-        result = 0;
-    end
-    
 end
