@@ -11,9 +11,9 @@ labels_other = cat(1, labels_other{:});
 % First extracting the labels
 [ labels_train, valid_ids_train, vid_ids_train ] = extract_BP4D_labels(bp4d_dir, train_users, au_train);
 
-train_geom_data = Read_geom_files(train_users, [hog_data_dir, '/train/']);
+train_geom_data = Read_geom_files(train_users, hog_data_dir);
 % Reading in the HOG data (of only relevant frames)
-[train_appearance_data, valid_ids_train_hog, vid_ids_train_string] = Read_HOG_files(train_users, [hog_data_dir, '/train/']);
+[train_appearance_data, valid_ids_train_hog, vid_ids_train_string] = Read_HOG_files(train_users, hog_data_dir);
 train_appearance_data = cat(2, train_appearance_data, train_geom_data);
 
 % Subsample the data to make training quicker
@@ -68,8 +68,8 @@ vid_ids_train_string = vid_ids_train_string(reduced_inds,:);
 [ labels_devel, valid_ids_devel, vid_ids_devel ] = extract_BP4D_labels(bp4d_dir, devel_users, au_train);
 
 % Reading in the HOG data (of only relevant frames)
-devel_geom_data = Read_geom_files(devel_users, [hog_data_dir, '/devel/']);
-[devel_appearance_data, valid_ids_devel_hog, vid_ids_devel_string] = Read_HOG_files(devel_users, [hog_data_dir, '/devel/']);
+devel_geom_data = Read_geom_files(devel_users, hog_data_dir);
+[devel_appearance_data, valid_ids_devel_hog, vid_ids_devel_string] = Read_HOG_files(devel_users, hog_data_dir);
 devel_appearance_data = cat(2, devel_appearance_data, devel_geom_data);
 
 labels_devel = cat(1, labels_devel{:});

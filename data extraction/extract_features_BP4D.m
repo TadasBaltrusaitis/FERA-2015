@@ -30,8 +30,8 @@ parfor f1=1:numel(bp4d_dirs)
                 output_params = [out_loc name '.params.txt'];
 %                 output_aus = [out_loc name '.au.txt'];
 %                 output_neut = [out_loc name '.neutral'];
-%                 command = cat(2, command, [' -fx 2000 -fy 2000 -rigid -asvid -fdir "' curr_vid '" -simalign "' output_file  '" -simscale 0.7 -simsize 112']);
-                command = cat(2, command, [' -fx 2000 -fy 2000 -rigid -asvid -fdir "' curr_vid '" -simscale 0.7 -simsize 112']);                
+                command = cat(2, command, [' -fx 2000 -fy 2000 -rigid -asvid -fdir "' curr_vid '" -simalign "' output_file  '" -simscale 0.7 -simsize 112']);
+%                 command = cat(2, command, [' -fx 2000 -fy 2000 -rigid -asvid -fdir "' curr_vid '" -simscale 0.7 -simsize 112']);                
                 command = cat(2, command, [' -hogalign "' output_hog '"']);
                 command = cat(2, command, [' -oparams "' output_params '"']);
                 dos(command);
@@ -65,8 +65,8 @@ parfor f1=1:numel(bp4d_dirs)
                 output_params = [out_loc name '.params.txt'];
 %                 output_aus = [out_loc name '.au.txt'];
 %                 output_neut = [out_loc name '.neutral'];
-%                 command = cat(2, command, [' -fx 2000 -fy 2000 -rigid -asvid -fdir "' curr_vid '" -simalign "' output_file  '" -simscale 0.7 -simsize 112']);
-                command = cat(2, command, [' -fx 2000 -fy 2000 -rigid -asvid -fdir "' curr_vid '" -simscale 0.7 -simsize 112']);                
+                command = cat(2, command, [' -fx 2000 -fy 2000 -rigid -asvid -fdir "' curr_vid '" -simalign "' output_file  '" -simscale 0.7 -simsize 112']);
+%                 command = cat(2, command, [' -fx 2000 -fy 2000 -rigid -asvid -fdir "' curr_vid '" -simscale 0.7 -simsize 112']);                
                 command = cat(2, command, [' -hogalign "' output_hog '"']);
                 command = cat(2, command, [' -oparams "' output_params '"']);
                 dos(command);

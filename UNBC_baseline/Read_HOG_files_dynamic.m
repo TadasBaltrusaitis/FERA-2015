@@ -3,6 +3,7 @@ function [hog_data, valid_data, vid_id] = Read_HOG_files_dynamic(users, hog_data
     
     hog_data = [];
     vid_id = {};
+    valid_data = [];
     
     for i=1:numel(users)
         
@@ -84,7 +85,9 @@ function [hog_data, valid_data, vid_id] = Read_HOG_files_dynamic(users, hog_data
         hog_data = cat(1, hog_data, hog_data_curr_p(1:feats_filled,:));
         
     end
-    valid_data = hog_data(:,1) > 0;
-    hog_data = hog_data(:,2:end);
     
+    if(numel(users) > 0)
+        valid_data = hog_data(:,1) > 0;
+        hog_data = hog_data(:,2:end);
+    end
 end

@@ -8,12 +8,17 @@ function [hog_data, valid_inds, vid_id] = Read_HOG_files_dynamic_pp(users, hog_d
 
     for i=1:numel(users)
         
-        hog_files = dir([hog_data_dir, users{i} '*.hog']);                
-        
         start_person_ind = feats_filled + 1;
         
+        hog_files = dir([hog_data_dir, '/train/' users{i} '*.hog']);
+        hog_dir = [hog_data_dir, '/train/'];
+        if(isempty(hog_files))
+            hog_files = dir([hog_data_dir, '/devel/' users{i} '*.hog']);
+            hog_dir = [hog_data_dir, '/devel/'];
+        end
+        
         for h=1:numel(hog_files)
-            hog_file = [hog_data_dir, hog_files(h).name];
+            hog_file = [hog_dir, hog_files(h).name];
             f = fopen(hog_file, 'r');
 
             curr_data = [];

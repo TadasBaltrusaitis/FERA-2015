@@ -27,8 +27,8 @@ parfor f1=1:numel(semaine_dirs)
             output_hog = [out_loc name '.hog'];
             output_params = [out_loc name '.params.txt'];
 
-%             command = cat(2, command, [' -rigid -f "' curr_vid '" -simalign "' output_file  '" -simscale 0.7 -simsize 112']);
-            command = cat(2, command, [' -rigid -f "' curr_vid '" -simscale 0.7 -simsize 112']);
+            command = cat(2, command, [' -rigid -f "' curr_vid '" -simalign "' output_file  '" -simscale 0.7 -simsize 112']);
+%             command = cat(2, command, [' -rigid -f "' curr_vid '" -simscale 0.7 -simsize 112']);
             command = cat(2, command, [' -hogalign "' output_hog '"']);
             command = cat(2, command, [' -oparams "' output_params '"']);
             dos(command);
@@ -61,8 +61,8 @@ parfor f1=1:numel(semaine_dirs)
             output_hog = [out_loc name '.hog'];
             output_params = [out_loc name '.params.txt'];
 
-%             command = cat(2, command, [' -rigid -f "' curr_vid '" -simalign "' output_file  '" -simscale 0.7 -simsize 112']);
-            command = cat(2, command, [' -rigid -f "' curr_vid '" -simscale 0.7 -simsize 112']);
+            command = cat(2, command, [' -rigid -f "' curr_vid '" -simalign "' output_file  '" -simscale 0.7 -simsize 112']);
+%             command = cat(2, command, [' -rigid -f "' curr_vid '" -simscale 0.7 -simsize 112']);
             command = cat(2, command, [' -hogalign "' output_hog '"']);
             command = cat(2, command, [' -oparams "' output_params '"']);
             dos(command);

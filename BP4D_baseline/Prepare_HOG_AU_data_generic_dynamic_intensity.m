@@ -1,4 +1,4 @@
-function [data_train, labels_train, vid_ids_train_string, data_devel, labels_devel, vid_ids_devel_string, raw_devel, PC, means_norm, stds_norm] = ...
+function [data_train, labels_train, vid_ids_train_string, data_devel, labels_devel, vid_ids_devel_string, raw_devel, PC, means_norm, stds_norm, success_devel] = ...
     Prepare_HOG_AU_data_generic_dynamic_intensity(train_users, devel_users, au_train, bp4d_dir, hog_data_dir, pca_file)
 
 %%
@@ -10,10 +10,10 @@ au_other = setdiff([6, 10, 12, 14, 17], au_train);
 [ labels_other, ~, ~ ] = extract_BP4D_labels_intensity(bp4d_dir, train_users, au_other);
 labels_other = cat(1, labels_other{:});
 
-train_geom_data = Read_geom_files_dynamic(train_users, [hog_data_dir, '/train/']);
+train_geom_data = Read_geom_files_dynamic(train_users, hog_data_dir);
 
 % Reading in the HOG data (of only relevant frames)
-[train_appearance_data, valid_ids_train_hog, vid_ids_train_string] = Read_HOG_files_dynamic_pp(train_users, [hog_data_dir, '/train/']);
+[train_appearance_data, valid_ids_train_hog, vid_ids_train_string] = Read_HOG_files_dynamic_pp(train_users, hog_data_dir);
 train_appearance_data = cat(2, train_appearance_data, train_geom_data);
 
 % Subsample the data to make training quicker
@@ -56,14 +56,15 @@ labels_other = labels_other(reduced_inds, :);
 labels_train = labels_train(reduced_inds,:);
 train_appearance_data = train_appearance_data(reduced_inds,:);
 vid_ids_train_string = vid_ids_train_string(reduced_inds,:);
+success_devel = valid_ids_train_hog(reduced_inds);
 %% Extract devel data
 
 % First extracting the labels
 [ labels_devel, valid_ids_devel, vid_ids_devel ] = extract_BP4D_labels_intensity(bp4d_dir, devel_users, au_train);
 
-devel_geom_data = Read_geom_files_dynamic(devel_users, [hog_data_dir, '/devel/']);
+devel_geom_data = Read_geom_files_dynamic(devel_users, hog_data_dir);
 % Reading in the HOG data (of only relevant frames)
-[devel_appearance_data, valid_ids_devel_hog, vid_ids_devel_string] = Read_HOG_files_dynamic_pp(devel_users, [hog_data_dir, '/devel/']);
+[devel_appearance_data, valid_ids_devel_hog, vid_ids_devel_string] = Read_HOG_files_dynamic_pp(devel_users, hog_data_dir);
 devel_appearance_data = cat(2, devel_appearance_data, devel_geom_data);
 
 valid_ids_devel = logical(cat(1, valid_ids_devel{:}));
