@@ -30,7 +30,7 @@ pca_loc = '../pca_generation/generic_face_rigid.mat';
 aus = [1, 2, 4, 5, 6, 9, 12, 15, 17, 20, 25, 26];
 
 %%
-for a=5:numel(aus)
+for a=1:numel(aus)
             
     au_current = aus(a);
 

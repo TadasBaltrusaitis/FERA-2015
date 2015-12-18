@@ -20,6 +20,8 @@ elseif(exist('E:/datasets/DISFA/', 'file'))
     DISFA_dir = 'E:/datasets/DISFA/';
 elseif(exist('C:/tadas/DISFA/', 'file'))        
     DISFA_dir = 'C:/tadas/DISFA/';
+elseif(exist('E:\datasets\face_datasets\DISFA/', 'file'))
+    DISFA_dir = 'E:\datasets\face_datasets\DISFA/';
 else
     fprintf('DISFA location not found (or not defined)\n'); 
 end
